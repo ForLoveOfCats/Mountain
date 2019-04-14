@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-char* next_token(FILE *source_file)
+char *next_token(FILE *source_file)
 {
 	bool in_token = false;
 	char *token = malloc(sizeof(char));
