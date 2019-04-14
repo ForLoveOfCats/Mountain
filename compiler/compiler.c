@@ -1,10 +1,10 @@
+#include <stdlib.h>
 #include <stdio.h>
-#include "test/test.c"
+
 
 int main()
 {
 	printf("Hello\n");
-	test();
-	return 0;
+	return EXIT_SUCCESS;
 }
 
