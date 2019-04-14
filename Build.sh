@@ -1,5 +1,6 @@
 scons #build
 
-printf "\n\n===============================\n\n"
-
-./build/compiler
+if [ $? -eq 0 ]; then #if the build succeeded
+	printf "\n\n===============================\n\n\n"
+    ./build/compiler #run the executable
+fi
