@@ -2,5 +2,5 @@
 
 void test()
 {
-  printf("Hello from the modified test.c\n");
+	printf("Hello from the modified test.c\n");
 }
