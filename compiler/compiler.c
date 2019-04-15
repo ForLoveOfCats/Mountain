@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-enum TOKEN_TYPE {TOKEN_WORD, TOKEN_COLON};
+enum TOKEN_TYPE {TOKEN_WORD, TOKEN_COLON, TOKEN_SEMICOLON};
 
 struct TOKEN
 {
@@ -28,10 +28,19 @@ struct TOKEN next_token(FILE *source_file)
 
 		if(!in_token)
 		{
-			if(car == ':')
+			switch(car)
 			{
-				token.type = TOKEN_COLON;
-				goto return_car_as_token;
+				case ':':
+				{
+					token.type = TOKEN_COLON;
+					goto return_car_as_token;
+				}
+
+				case ';':
+				{
+					token.type = TOKEN_SEMICOLON;
+					goto return_car_as_token;
+				}
 			}
 		}
 
@@ -41,6 +50,7 @@ struct TOKEN next_token(FILE *source_file)
 			case '\t':
 			case '\n':
 			case ':':
+			case ';':
 			{
 				if(!in_token)
 					continue;
@@ -109,6 +119,8 @@ int main(int arg_count, char *arg_array[])
 			printf("Word found: %s\n", token.string);
 		if(token.type == TOKEN_COLON)
 			printf("Colon found\n");
+		if(token.type == TOKEN_SEMICOLON)
+			printf("Semicolon found\n");
 	}
 	free(token.string);
 
