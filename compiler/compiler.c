@@ -29,8 +29,8 @@ char *next_token(FILE *source_file)
 			in_token = true;
 
 		int old_token_length = strlen(token);
-		char *new_token = malloc(sizeof(char) * (old_token_length+1)); //Two larger than originally
-		strncpy(new_token, token, old_token_length);
+		char *new_token = malloc(sizeof(char) * (old_token_length+2)); //Two larger than originally
+		strcpy(new_token, token);
 		free(token);
 		token = new_token;
 		token[old_token_length] = car; //Place in first new spot
