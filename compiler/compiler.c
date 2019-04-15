@@ -4,7 +4,14 @@
 #include <stdio.h>
 
 
-char *next_token(FILE *source_file)
+struct TOKEN
+{
+	bool valid;
+	char *string;
+};
+
+
+struct TOKEN next_token(FILE *source_file)
 {
 	bool in_token = false;
 	char *token = malloc(sizeof(char));
@@ -37,13 +44,14 @@ char *next_token(FILE *source_file)
 		token[old_token_length + 1] = '\0'; //Null terminate in second new spot
 	}
 
-return_token:
+return_token: ;
+	struct TOKEN token_struct = {true, token};
 	if(strlen(token) <= 1 && car == EOF) //If token is blank and is at the end of the file
 	{
-		free(token);
-		return NULL; //Return NULL
+		token_struct.valid = false;
+		return token_struct; //Return NULL
 	}
-	return token; //Otherwise return the token
+	return token_struct; //Otherwise return the token
 }
 
 
@@ -62,17 +70,17 @@ int main(int arg_count, char *arg_array[])
 		return EXIT_FAILURE;
 	}
 
-	char *token = malloc(sizeof(char));
+	struct TOKEN token = {false, malloc(sizeof(char))};
 	while(true)
 	{
-		free(token);
+		free(token.string);
 		token = next_token(source_file);
-		if(token == NULL)
+		if(!token.valid)
 			break;
 
-		printf("%s\n", token);
+		printf("%s\n", token.string);
 	}
-	free(token);
+	free(token.string);
 
 	fclose(source_file);
 	return EXIT_SUCCESS;
