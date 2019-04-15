@@ -8,6 +8,7 @@ char *next_token(FILE *source_file)
 {
 	bool in_token = false;
 	char *token = malloc(sizeof(char));
+	token[0] = '\0';
 	char car;
 	while(true)
 	{
@@ -39,6 +40,7 @@ char *next_token(FILE *source_file)
 return_token:
 	if(strlen(token) <= 1 && car == EOF) //If token is blank and is at the end of the file
 	{
+		free(token);
 		return NULL; //Return NULL
 	}
 	return token; //Otherwise return the token
@@ -60,14 +62,17 @@ int main(int arg_count, char *arg_array[])
 		return EXIT_FAILURE;
 	}
 
+	char *token = malloc(sizeof(char));
 	while(true)
 	{
-		char *token = next_token(source_file);
+		free(token);
+		token = next_token(source_file);
 		if(token == NULL)
 			break;
 
 		printf("%s\n", token);
 	}
+	free(token);
 
 	fclose(source_file);
 	return EXIT_SUCCESS;
