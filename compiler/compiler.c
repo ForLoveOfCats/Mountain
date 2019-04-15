@@ -29,12 +29,12 @@ char *next_token(FILE *source_file)
 			in_token = true;
 
 		int old_token_length = strlen(token);
-		char *new_token = malloc(sizeof(char) * (old_token_length + 1));
+		char *new_token = malloc(sizeof(char) * (old_token_length+1)); //Two larger than originally
 		strncpy(new_token, token, old_token_length);
 		free(token);
 		token = new_token;
-		token[old_token_length] = car;
-		token[old_token_length + 1] = '\0';
+		token[old_token_length] = car; //Place in first new spot
+		token[old_token_length + 1] = '\0'; //Null terminate in second new spot
 	}
 
 return_token:
