@@ -35,18 +35,26 @@ struct TOKEN next_token(FILE *source_file)
 			}
 		}
 
-		if(car == ' ' || car == '\t' || car == '\n' || car == ':')
+		switch(car)
 		{
-			if(!in_token)
-				continue;
-			else
+			case ' ':
+			case '\t':
+			case '\n':
+			case ':':
 			{
-				ungetc(car, source_file); //HACK FIXME
-				goto return_token;
+				if(!in_token)
+					continue;
+				else
+				{
+					ungetc(car, source_file); //HACK FIXME
+					goto return_token;
+				}
+
+				break;
 			}
+			default:
+				in_token = true;
 		}
-		else
-			in_token = true;
 
 		int old_token_length = strlen(token.string);
 		char *new_token = malloc(sizeof(char) * (old_token_length+2)); //Two larger than originally
