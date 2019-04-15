@@ -4,12 +4,14 @@
 #include <stdio.h>
 
 
+enum TOKEN_TYPE {TOKEN_WORD};
+
 struct TOKEN
 {
 	bool valid;
+	enum TOKEN_TYPE type;
 	char *string;
 };
-
 
 struct TOKEN next_token(FILE *source_file)
 {
@@ -45,7 +47,7 @@ struct TOKEN next_token(FILE *source_file)
 	}
 
 return_token: ;
-	struct TOKEN token_struct = {true, token};
+	struct TOKEN token_struct = {true, TOKEN_WORD, token};
 	if(strlen(token) <= 1 && car == EOF) //If token is blank and is at the end of the file
 	{
 		token_struct.valid = false;
@@ -70,7 +72,7 @@ int main(int arg_count, char *arg_array[])
 		return EXIT_FAILURE;
 	}
 
-	struct TOKEN token = {false, malloc(sizeof(char))};
+	struct TOKEN token = {false, 0, strdup("")};
 	while(true)
 	{
 		free(token.string);
@@ -78,7 +80,8 @@ int main(int arg_count, char *arg_array[])
 		if(!token.valid)
 			break;
 
-		printf("%s\n", token.string);
+		if(token.type == TOKEN_WORD)
+			printf("Word found: %s\n", token.string);
 	}
 	free(token.string);
 
