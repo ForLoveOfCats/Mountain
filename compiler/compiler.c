@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-enum TOKEN_TYPE {TOKEN_WORD};
+enum TOKEN_TYPE {TOKEN_WORD, TOKEN_COLON};
 
 struct TOKEN
 {
@@ -26,12 +26,24 @@ struct TOKEN next_token(FILE *source_file)
 			goto return_token;
 		}
 
-		if(car == ' ' || car == '\t' || car == '\n')
+		if(!in_token)
+		{
+			if(car == ':')
+			{
+				token.type = TOKEN_COLON;
+				goto return_car_as_token;
+			}
+		}
+
+		if(car == ' ' || car == '\t' || car == '\n' || car == ':')
 		{
 			if(!in_token)
 				continue;
 			else
+			{
+				ungetc(car, source_file); //HACK FIXME
 				goto return_token;
+			}
 		}
 		else
 			in_token = true;
@@ -52,6 +64,13 @@ return_token: ;
 		return token; //Return NULL
 	}
 	return token; //Otherwise return the token
+
+return_car_as_token: ;
+	free(token.string);
+	token.string = malloc(sizeof(char) * 2);
+	token.string[0] = car;
+	token.string[1] = '\0';
+	return token;
 }
 
 
@@ -80,6 +99,8 @@ int main(int arg_count, char *arg_array[])
 
 		if(token.type == TOKEN_WORD)
 			printf("Word found: %s\n", token.string);
+		if(token.type == TOKEN_COLON)
+			printf("Colon found\n");
 	}
 	free(token.string);
 

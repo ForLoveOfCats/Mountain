@@ -1,3 +1,2 @@
-this is a test of something
-
-this is another line with a single blank line between
+#Variable declaration with value
+def:Int lucky_number = 42;
