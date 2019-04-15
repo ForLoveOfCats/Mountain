@@ -48,7 +48,7 @@ struct TOKEN next_token(FILE *source_file)
 
 return_token: ;
 	struct TOKEN token_struct = {true, TOKEN_WORD, token};
-	if(strlen(token) <= 1 && car == EOF) //If token is blank and is at the end of the file
+	if(strlen(token) <= 0 && car == EOF) //If token is blank and is at the end of the file
 	{
 		token_struct.valid = false;
 		return token_struct; //Return NULL
