@@ -15,9 +15,8 @@ struct TOKEN
 
 struct TOKEN next_token(FILE *source_file)
 {
+	struct TOKEN token = {true, TOKEN_WORD, strdup("")};
 	bool in_token = false;
-	char *token = malloc(sizeof(char));
-	token[0] = '\0';
 	char car;
 	while(true)
 	{
@@ -37,23 +36,22 @@ struct TOKEN next_token(FILE *source_file)
 		else
 			in_token = true;
 
-		int old_token_length = strlen(token);
+		int old_token_length = strlen(token.string);
 		char *new_token = malloc(sizeof(char) * (old_token_length+2)); //Two larger than originally
-		strcpy(new_token, token);
-		free(token);
-		token = new_token;
-		token[old_token_length] = car; //Place in first new spot
-		token[old_token_length + 1] = '\0'; //Null terminate in second new spot
+		strcpy(new_token, token.string);
+		free(token.string);
+		token.string = new_token;
+		token.string[old_token_length] = car; //Place in first new spot
+		token.string[old_token_length + 1] = '\0'; //Null terminate in second new spot
 	}
 
 return_token: ;
-	struct TOKEN token_struct = {true, TOKEN_WORD, token};
-	if(strlen(token) <= 0 && car == EOF) //If token is blank and is at the end of the file
+	if(strlen(token.string) <= 0 && car == EOF) //If token is blank and is at the end of the file
 	{
-		token_struct.valid = false;
-		return token_struct; //Return NULL
+		token.valid = false;
+		return token; //Return NULL
 	}
-	return token_struct; //Otherwise return the token
+	return token; //Otherwise return the token
 }
 
 
