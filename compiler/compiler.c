@@ -92,6 +92,35 @@ return_car_as_token: ;
 }
 
 
+bool parse_statement(FILE *source_file)
+{
+	while(true) //Loop until semicolon
+	{
+		struct TOKEN token = next_token(source_file);
+		if(!token.valid)
+		{
+			printf("Reached end of file\n");
+			free(token.string);
+			return false;
+		}
+
+		if(token.type == TOKEN_SEMICOLON)
+		{
+			printf("Reached end of statement\n");
+			free(token.string);
+			return true;
+		}
+
+		if(token.type == TOKEN_WORD)
+			printf("Word found: %s\n", token.string);
+		if(token.type == TOKEN_COLON)
+			printf("Colon found\n");
+
+		free(token.string);
+	}
+}
+
+
 int main(int arg_count, char *arg_array[])
 {
 	if(arg_count != 2)
@@ -107,22 +136,7 @@ int main(int arg_count, char *arg_array[])
 		return EXIT_FAILURE;
 	}
 
-	struct TOKEN token = {false, 0, strdup("")};
-	while(true)
-	{
-		free(token.string);
-		token = next_token(source_file);
-		if(!token.valid)
-			break;
-
-		if(token.type == TOKEN_WORD)
-			printf("Word found: %s\n", token.string);
-		if(token.type == TOKEN_COLON)
-			printf("Colon found\n");
-		if(token.type == TOKEN_SEMICOLON)
-			printf("Semicolon found\n");
-	}
-	free(token.string);
+	while(parse_statement(source_file)) {}
 
 	fclose(source_file);
 	return EXIT_SUCCESS;
