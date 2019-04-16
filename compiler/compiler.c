@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-enum TOKEN_TYPE {TOKEN_WORD, TOKEN_COLON, TOKEN_SEMICOLON};
+enum TOKEN_TYPE {TOKEN_WORD, TOKEN_COLON, TOKEN_SEMICOLON, TOKEN_COMMENT};
 
 struct TOKEN
 {
@@ -41,6 +41,12 @@ struct TOKEN next_token(FILE *source_file)
 					token.type = TOKEN_SEMICOLON;
 					goto return_car_as_token;
 				}
+
+				case '#':
+				{
+					token.type = TOKEN_COMMENT;
+					goto return_car_as_token;
+				}
 			}
 		}
 
@@ -51,6 +57,7 @@ struct TOKEN next_token(FILE *source_file)
 			case '\n':
 			case ':':
 			case ';':
+			case '#':
 			{
 				if(!in_token)
 					continue;
@@ -102,6 +109,21 @@ bool parse_statement(FILE *source_file)
 			printf("Reached end of file\n");
 			free(token.string);
 			return false;
+		}
+
+		if(token.type == TOKEN_COMMENT)
+		{
+			printf("Encountered comment, reading to end of line\n");
+			free(token.string);
+
+			//Consume until end of comment
+			char car = ' ';
+			while(car != '\n')
+			{
+				car = getc(source_file);
+			}
+
+			return true;
 		}
 
 		if(token.type == TOKEN_SEMICOLON)
