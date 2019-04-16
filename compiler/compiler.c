@@ -109,53 +109,51 @@ return_car_as_token: ;
 
 bool parse_next_statement(FILE *source_file)
 {
-	while(true) //Loop until semicolon
+	struct TOKEN token = next_token(source_file);
+	if(!token.valid)
 	{
-		struct TOKEN token = next_token(source_file);
-		if(!token.valid)
-		{
-			printf("Reached end of file\n");
-			free(token.string);
-			return false;
-		}
-
-		if(token.type == TOKEN_COMMENT)
-		{
-			printf("Encountered comment, reading to end of line\n");
-			free(token.string);
-
-			//Consume until end of comment
-			char car = ' ';
-			while(car != '\n')
-			{
-				car = getc(source_file);
-			}
-
-			return true;
-		}
-
-		if(token.type == TOKEN_SEMICOLON)
-		{
-			printf("Reached end of statement\n");
-			free(token.string);
-			return true;
-		}
-
-		if(token.type == TOKEN_WORD)
-		{
-			printf("Word found: %s\n", token.string);
-			if(strcmp(token.string, "def") == 0)
-			{
-				//We must be dealing with a variable definition
-				struct NODE new_node = create_node(AST_DEF);
-				add_node(new_node); //NOTE unimplimented
-			}
-		}
-		else if(token.type == TOKEN_COLON)
-			printf("Colon found\n");
-
+		printf("Reached end of file\n");
 		free(token.string);
+		return false;
 	}
+
+	if(token.type == TOKEN_COMMENT)
+	{
+		printf("Encountered comment, reading to end of line\n");
+		free(token.string);
+
+		//Consume until end of comment
+		char car = ' ';
+		while(car != '\n')
+		{
+			car = getc(source_file);
+		}
+
+		return true;
+	}
+
+	if(token.type == TOKEN_SEMICOLON)
+	{
+		printf("Reached end of statement\n");
+		free(token.string);
+		return true;
+	}
+
+	if(token.type == TOKEN_WORD)
+	{
+		printf("Word found: %s\n", token.string);
+		if(strcmp(token.string, "def") == 0)
+		{
+			//We must be dealing with a variable definition
+			struct NODE new_node = create_node(AST_DEF);
+			add_node(new_node); //NOTE unimplimented
+		}
+	}
+	else if(token.type == TOKEN_COLON)
+		printf("Colon found\n");
+
+	free(token.string);
+	return true;
 }
 
 
