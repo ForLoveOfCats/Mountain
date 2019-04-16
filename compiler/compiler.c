@@ -3,6 +3,14 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "ast.h"
+
+
+
+struct NODE *root_node;
+struct NODE *current_parse_node;
+
+
 
 enum TOKEN_TYPE {TOKEN_WORD, TOKEN_COLON, TOKEN_SEMICOLON, TOKEN_COMMENT};
 
@@ -99,7 +107,7 @@ return_car_as_token: ;
 }
 
 
-bool parse_statement(FILE *source_file)
+bool parse_next_unit(FILE *source_file)
 {
 	while(true) //Loop until semicolon
 	{
@@ -134,8 +142,16 @@ bool parse_statement(FILE *source_file)
 		}
 
 		if(token.type == TOKEN_WORD)
+		{
 			printf("Word found: %s\n", token.string);
-		if(token.type == TOKEN_COLON)
+			if(strcmp(token.string, "def") == 0)
+			{
+				//We must be dealing with a variable definition
+				struct NODE new_node = create_node(AST_DEF);
+				add_node(new_node); //NOTE unimplimented
+			}
+		}
+		else if(token.type == TOKEN_COLON)
 			printf("Colon found\n");
 
 		free(token.string);
@@ -158,7 +174,10 @@ int main(int arg_count, char *arg_array[])
 		return EXIT_FAILURE;
 	}
 
-	while(parse_statement(source_file)) {}
+	struct NODE local_root_node = {AST_ROOT, NULL, NULL, NULL};
+	root_node = &local_root_node;
+
+	while(parse_next_unit(source_file)) {}
 
 	fclose(source_file);
 	return EXIT_SUCCESS;
