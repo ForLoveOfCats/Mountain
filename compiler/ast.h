@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 
 enum AST_TYPE {AST_ROOT, AST_DEF};
 
@@ -8,6 +10,8 @@ struct NODE
 	struct NODE *parent;
 	struct NODE *next_node;
 	struct NODE *first_child;
+
+	uint32_t stack_location; //Where in the stack the var is if def or get
 };
 
 

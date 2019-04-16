@@ -5,7 +5,7 @@
 
 struct NODE create_node(enum AST_TYPE type)
 {
-	struct NODE new_node = {type, NULL, NULL, NULL};
+	struct NODE new_node = {type, NULL, NULL, NULL, 0};
 	return new_node;
 }
 
