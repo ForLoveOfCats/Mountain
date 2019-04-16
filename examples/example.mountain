@@ -1,2 +1,3 @@
 #Variable declaration with value
 def:Int lucky_number = 42;
+def:Int another_number = 69;

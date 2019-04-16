@@ -146,6 +146,8 @@ bool parse_next_statement(FILE *source_file)
 		{
 			//We must be dealing with a variable definition
 			struct NODE new_node = create_node(AST_DEF);
+			new_node.stack_location = current_parse_node->stack_len;
+			current_parse_node->stack_len += 1;
 			add_node(new_node); //NOTE unimplimented
 		}
 	}
@@ -172,8 +174,9 @@ int main(int arg_count, char *arg_array[])
 		return EXIT_FAILURE;
 	}
 
-	struct NODE local_root_node = {AST_ROOT, NULL, NULL, NULL};
+	struct NODE local_root_node = create_node(AST_ROOT);
 	root_node = &local_root_node;
+	current_parse_node = root_node;
 
 	while(parse_next_statement(source_file)) {}
 

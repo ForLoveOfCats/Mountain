@@ -1,3 +1,4 @@
+#pragma once
 #include <stdint.h>
 
 
@@ -11,6 +12,7 @@ struct NODE
 	struct NODE *next_node;
 	struct NODE *first_child;
 
+	uint32_t stack_len;
 	uint32_t stack_location; //Where in the stack the var is if def or get
 };
 
