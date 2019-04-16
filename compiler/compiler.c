@@ -107,7 +107,7 @@ return_car_as_token: ;
 }
 
 
-bool parse_next_unit(FILE *source_file)
+bool parse_next_statement(FILE *source_file)
 {
 	while(true) //Loop until semicolon
 	{
@@ -177,7 +177,7 @@ int main(int arg_count, char *arg_array[])
 	struct NODE local_root_node = {AST_ROOT, NULL, NULL, NULL};
 	root_node = &local_root_node;
 
-	while(parse_next_unit(source_file)) {}
+	while(parse_next_statement(source_file)) {}
 
 	fclose(source_file);
 	return EXIT_SUCCESS;
