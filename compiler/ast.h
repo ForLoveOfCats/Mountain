@@ -11,14 +11,17 @@ struct NODE
 	struct NODE *parent;
 	struct NODE *next_node;
 	struct NODE *first_child;
+	struct NODE *last_child;
 
 	uint32_t stack_len;
 	uint32_t stack_location; //Where in the stack the var is if def or get
 };
 
 
-struct NODE create_node(enum AST_TYPE);
+struct NODE *create_node(enum AST_TYPE);
 
 
-void add_node(struct NODE new_node);
+void add_node(struct NODE *new_node);
 
+
+void free_node(struct NODE *child);
