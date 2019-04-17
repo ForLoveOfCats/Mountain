@@ -7,6 +7,9 @@
 #include "ast.h"
 
 
+char *token_type_name[] = {"WORD", "COLON", "SEMICOLON", "COMMENT"};
+
+
 struct TOKEN next_token(FILE *source_file)
 {
 	struct TOKEN token = {true, TOKEN_WORD, strdup("")};
@@ -93,13 +96,13 @@ return_car_as_token: ;
 }
 
 
-struct TOKEN next_token_no_semicolon(FILE* source_file, char *expected) //Exits on semicolon while printing message
+struct TOKEN next_token_expect(FILE* source_file, enum TOKEN_TYPE expected)
 {
 	struct TOKEN token = next_token(source_file);
 
-	if(token.type == TOKEN_SEMICOLON)
+	if(token.type != expected)
 	{
-		printf("Expected %s: found semicolon\n", expected);
+		printf("Expected %s: found %s\n", token_type_name[expected], token_type_name[token.type]);
 		exit(EXIT_FAILURE);
 	}
 
@@ -144,7 +147,7 @@ bool parse_next_statement(FILE *source_file)
 		printf("Word found: %s\n", token.string);
 		if(strcmp(token.string, "def") == 0)
 		{
-			free(next_token_no_semicolon(source_file, "colon").string);
+			free(next_token_expect(source_file, TOKEN_COLON).string);
 
 			//We must be dealing with a variable definition
 			struct NODE *new_node = create_node(AST_DEF);
@@ -152,10 +155,10 @@ bool parse_next_statement(FILE *source_file)
 			current_parse_parent_node->stack_len += 1;
 
 			free(new_node->type_name);
-			new_node->type_name = next_token_no_semicolon(source_file, "type").string;
+			new_node->type_name = next_token_expect(source_file, TOKEN_WORD).string;
 
 			free(new_node->def_name);
-			new_node->def_name = next_token_no_semicolon(source_file, "name").string;
+			new_node->def_name = next_token_expect(source_file, TOKEN_WORD).string;
 
 			add_node(new_node);
 		}

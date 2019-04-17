@@ -4,6 +4,7 @@
 
 
 enum TOKEN_TYPE {TOKEN_WORD, TOKEN_COLON, TOKEN_SEMICOLON, TOKEN_COMMENT};
+char *token_type_name[4];
 
 struct TOKEN
 {
