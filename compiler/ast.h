@@ -2,6 +2,12 @@
 #include <stdint.h>
 
 
+
+struct NODE *root_node;
+struct NODE *current_parse_parent_node;
+
+
+
 enum AST_TYPE {AST_ROOT, AST_DEF};
 
 struct NODE

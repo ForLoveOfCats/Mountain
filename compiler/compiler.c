@@ -6,12 +6,6 @@
 #include "ast.h"
 
 
-
-struct NODE *root_node;
-struct NODE *current_parse_parent_node;
-
-
-
 enum TOKEN_TYPE {TOKEN_WORD, TOKEN_COLON, TOKEN_SEMICOLON, TOKEN_COMMENT};
 
 struct TOKEN
