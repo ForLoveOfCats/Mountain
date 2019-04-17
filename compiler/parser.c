@@ -154,6 +154,9 @@ bool parse_next_statement(FILE *source_file)
 			free(new_node->type_name);
 			new_node->type_name = next_token_no_semicolon(source_file, "type").string;
 
+			free(new_node->def_name);
+			new_node->def_name = next_token_no_semicolon(source_file, "name").string;
+
 			add_node(new_node);
 		}
 	}
