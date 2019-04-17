@@ -7,7 +7,7 @@
 #include "ast.h"
 
 
-char *token_type_name[] = {"WORD", "COLON", "SEMICOLON", "COMMENT"};
+char *token_type_name[] = {"WORD", "COLON", "SEMICOLON", "COMMENT", "EQUALS"};
 
 
 struct TOKEN next_token(FILE *source_file)
@@ -44,6 +44,12 @@ struct TOKEN next_token(FILE *source_file)
 					token.type = TOKEN_COMMENT;
 					goto return_car_as_token;
 				}
+
+				case '=':
+				{
+					token.type = TOKEN_EQUALS;
+					goto return_car_as_token;
+				}
 			}
 		}
 
@@ -55,6 +61,7 @@ struct TOKEN next_token(FILE *source_file)
 			case ':':
 			case ';':
 			case '#':
+			case '=':
 			{
 				if(!in_token)
 					continue;
@@ -159,6 +166,8 @@ bool parse_next_statement(FILE *source_file)
 
 			free(new_node->def_name);
 			new_node->def_name = next_token_expect(source_file, TOKEN_WORD).string;
+
+			free(next_token_expect(source_file, TOKEN_EQUALS).string);
 
 			add_node(new_node);
 		}
