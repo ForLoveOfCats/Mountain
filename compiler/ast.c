@@ -19,7 +19,8 @@ struct NODE *create_node(enum AST_TYPE type)
 	new_node->last_child = NULL;
 
 	new_node->stack_len = 0;
-	new_node->stack_location = 0;
+	new_node->def_location = 0;
+	new_node->def_name = strdup("");
 
 	return new_node;
 }
@@ -55,5 +56,6 @@ void free_node(struct NODE *node) //Frees *node and all descendant nodes
 		free_node(child);
 		child = new_child;
 	}
+	free(node->def_name);
 	free(node);
 }

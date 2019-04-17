@@ -132,7 +132,7 @@ bool parse_next_statement(FILE *source_file)
 		{
 			//We must be dealing with a variable definition
 			struct NODE *new_node = create_node(AST_DEF);
-			new_node->stack_location = current_parse_parent_node->stack_len;
+			new_node->def_location = current_parse_parent_node->stack_len;
 			current_parse_parent_node->stack_len += 1;
 			add_node(new_node);
 		}

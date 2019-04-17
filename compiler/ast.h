@@ -20,7 +20,8 @@ struct NODE
 	struct NODE *last_child;
 
 	uint32_t stack_len;
-	uint32_t stack_location; //Where in the stack the var is if def or get
+	uint32_t def_location; //Where in the stack the var is if def or get
+	char *def_name;
 };
 
 
