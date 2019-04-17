@@ -19,8 +19,11 @@ struct NODE
 	struct NODE *first_child;
 	struct NODE *last_child;
 
+	char *type_name; //For def and get
+
 	uint32_t stack_len;
 	uint32_t def_location; //Where in the stack the var is if def or get
+
 	char *def_name;
 };
 

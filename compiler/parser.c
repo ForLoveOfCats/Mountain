@@ -93,6 +93,20 @@ return_car_as_token: ;
 }
 
 
+struct TOKEN next_token_no_semicolon(FILE* source_file, char *expected) //Exits on semicolon while printing message
+{
+	struct TOKEN token = next_token(source_file);
+
+	if(token.type == TOKEN_SEMICOLON)
+	{
+		printf("Expected %s: found semicolon\n", expected);
+		exit(EXIT_FAILURE);
+	}
+
+	return token;
+}
+
+
 bool parse_next_statement(FILE *source_file)
 {
 	struct TOKEN token = next_token(source_file);
@@ -130,10 +144,16 @@ bool parse_next_statement(FILE *source_file)
 		printf("Word found: %s\n", token.string);
 		if(strcmp(token.string, "def") == 0)
 		{
+			free(next_token_no_semicolon(source_file, "colon").string);
+
 			//We must be dealing with a variable definition
 			struct NODE *new_node = create_node(AST_DEF);
 			new_node->def_location = current_parse_parent_node->stack_len;
 			current_parse_parent_node->stack_len += 1;
+
+			free(new_node->type_name);
+			new_node->type_name = next_token_no_semicolon(source_file, "type").string;
+
 			add_node(new_node);
 		}
 	}
