@@ -178,4 +178,3 @@ int main(int arg_count, char *arg_array[])
 	fclose(source_file);
 	return EXIT_SUCCESS;
 }
-
