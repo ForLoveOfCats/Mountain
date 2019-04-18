@@ -3,11 +3,15 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "compiler.h"
 #include "parser.h"
 #include "ast.h"
 
 
 char *token_type_name[] = {"WORD", "COLON", "SEMICOLON", "COMMENT", "EQUALS"};
+
+
+int current_token_start = 0;
 
 
 void free_token(struct TOKEN token) //In case I add more fields which require freeing
@@ -24,9 +28,15 @@ struct TOKEN next_token(FILE *source_file)
 	while(true)
 	{
 		car = fgetc(source_file);
+		current_file_character++;
 		if(car == EOF)
 		{
 			goto return_token;
+		}
+		else if(car == '\n')
+		{
+			current_file_line++;
+			current_file_character = 0;
 		}
 
 		if(!in_token)
@@ -74,12 +84,18 @@ struct TOKEN next_token(FILE *source_file)
 				else
 				{
 					ungetc(car, source_file); //HACK FIXME
+					current_file_character--;
+					if(car == '\n')
+						current_file_line--;
+
 					goto return_token;
 				}
 
 				break;
 			}
 			default:
+				if(!in_token)
+					current_token_start = current_file_character;
 				in_token = true;
 		}
 
@@ -115,7 +131,7 @@ struct TOKEN next_token_expect(FILE* source_file, enum TOKEN_TYPE expected)
 
 	if(token.type != expected)
 	{
-		printf("Expected %s: found %s\n", token_type_name[expected], token_type_name[token.type]);
+		printf("Parse error on line %i, column %i. Expected %s: found %s\n", current_file_line, current_token_start, token_type_name[expected], token_type_name[token.type]);
 		exit(EXIT_FAILURE);
 	}
 
@@ -158,6 +174,8 @@ bool parse_next_statement(FILE *source_file)
 		{
 			car = getc(source_file);
 		}
+		current_file_character = 0;
+		current_file_line++;
 
 		return true;
 	}
