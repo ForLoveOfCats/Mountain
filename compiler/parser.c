@@ -161,7 +161,14 @@ struct NODE *parse_next_expression(FILE *source_file)
 	//this is VERY BAD(tm) and should be improved ASAP
 
 	struct NODE *node = create_node(AST_INT);
-	struct TOKEN token = next_token_expect(source_file, TOKEN_WORD);
+
+	struct TOKEN token = next_token(source_file);
+	while(token.type != TOKEN_SEMICOLON)
+	{
+		free_token(token);
+		token = next_token(source_file);
+	}
+
 	node->int_value = (int32_t)strtol(token.string, NULL, 10);
 	free_token(token);
 	return node;
@@ -222,9 +229,7 @@ bool parse_next_statement(FILE *source_file)
 
 			free_token(next_token_expect(source_file, TOKEN_EQUALS));
 
-			add_node(new_node, parse_next_expression(source_file));
-
-			free_token(next_token_expect(source_file, TOKEN_SEMICOLON));
+			add_node(new_node, parse_next_expression(source_file)); //Should read to semicolon
 
 			add_node(current_parse_parent_node, new_node);
 		}
