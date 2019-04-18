@@ -117,6 +117,20 @@ struct TOKEN next_token_expect(FILE* source_file, enum TOKEN_TYPE expected)
 }
 
 
+struct NODE *parse_next_expression(FILE *source_file)
+{
+	//NOTE TODO FIXME HACK
+	//For now we are just assuming that any expression is an integer
+	//this is VERY BAD(tm) and should be improved ASAP
+
+	struct NODE *node = create_node(AST_INT);
+	struct TOKEN token = next_token_expect(source_file, TOKEN_WORD);
+	node->int_value = (int32_t)strtol(token.string, NULL, 10);
+	free(token.string);
+	return node;
+}
+
+
 bool parse_next_statement(FILE *source_file)
 {
 	struct TOKEN token = next_token(source_file);
@@ -169,7 +183,9 @@ bool parse_next_statement(FILE *source_file)
 
 			free(next_token_expect(source_file, TOKEN_EQUALS).string);
 
-			add_node(new_node);
+			add_node(new_node, parse_next_expression(source_file));
+
+			add_node(current_parse_parent_node, new_node);
 		}
 	}
 	else if(token.type == TOKEN_COLON)

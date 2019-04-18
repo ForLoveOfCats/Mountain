@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "compiler.h"
+#include "parser.h"
 #include "ast.h"
 
 
@@ -29,35 +30,32 @@ struct NODE *create_node(enum AST_TYPE type)
 }
 
 
-void add_node(struct NODE *new_node)
+void add_node(struct NODE *parent, struct NODE *new_node)
 {
-	new_node->parent = current_parse_parent_node;
+	new_node->parent = parent;
 	new_node->next_node = NULL;
-	new_node->first_child = NULL;
-	new_node->last_child = NULL;
 
-	if(current_parse_parent_node->first_child == NULL)
+	if(parent->first_child == NULL)
 	{
-		current_parse_parent_node->first_child = new_node;
-		current_parse_parent_node->last_child = new_node;
+		parent->first_child = new_node;
+		parent->last_child = new_node;
 	}
 	else
 	{
-		current_parse_parent_node->last_child->next_node = new_node;
-		current_parse_parent_node->last_child = new_node;
+		parent->last_child->next_node = new_node;
+		parent->last_child = new_node;
 	}
 }
 
 
 void free_node(struct NODE *node) //Frees *node and all descendant nodes
 {
-	struct NODE *child;
-	child = node->first_child;
+	struct NODE *child = node->first_child;
 	while(child != NULL)
 	{
-		struct NODE *new_child = child->next_node;
+		struct NODE *next_child = child->next_node;
 		free_node(child);
-		child = new_child;
+		child = next_child;
 	}
 
 	free(node->type_name);
