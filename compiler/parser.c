@@ -191,6 +191,8 @@ bool parse_next_statement(FILE *source_file)
 
 			add_node(new_node, parse_next_expression(source_file));
 
+			free_token(next_token_expect(source_file, TOKEN_SEMICOLON));
+
 			add_node(current_parse_parent_node, new_node);
 		}
 	}
