@@ -10,6 +10,12 @@
 char *token_type_name[] = {"WORD", "COLON", "SEMICOLON", "COMMENT", "EQUALS"};
 
 
+void free_token(struct TOKEN token) //In case I add more fields which require freeing
+{
+	free(token.string);
+}
+
+
 struct TOKEN next_token(FILE *source_file)
 {
 	struct TOKEN token = {true, TOKEN_WORD, strdup("")};
@@ -95,7 +101,7 @@ return_token: ;
 	return token; //Otherwise return the token
 
 return_car_as_token: ;
-	free(token.string);
+	free_token(token);
 	token.string = malloc(sizeof(char) * 2);
 	token.string[0] = car;
 	token.string[1] = '\0';
@@ -126,7 +132,7 @@ struct NODE *parse_next_expression(FILE *source_file)
 	struct NODE *node = create_node(AST_INT);
 	struct TOKEN token = next_token_expect(source_file, TOKEN_WORD);
 	node->int_value = (int32_t)strtol(token.string, NULL, 10);
-	free(token.string);
+	free_token(token);
 	return node;
 }
 
@@ -137,14 +143,14 @@ bool parse_next_statement(FILE *source_file)
 	if(!token.valid)
 	{
 		printf("Reached end of file\n");
-		free(token.string);
+		free_token(token);
 		return false;
 	}
 
 	if(token.type == TOKEN_COMMENT)
 	{
 		printf("Encountered comment, reading to end of line\n");
-		free(token.string);
+		free_token(token);
 
 		//Consume until end of comment
 		char car = ' ';
@@ -159,7 +165,7 @@ bool parse_next_statement(FILE *source_file)
 	if(token.type == TOKEN_SEMICOLON)
 	{
 		printf("Reached end of statement\n");
-		free(token.string);
+		free_token(token);
 		return true;
 	}
 
@@ -168,7 +174,7 @@ bool parse_next_statement(FILE *source_file)
 		printf("Word found: %s\n", token.string);
 		if(strcmp(token.string, "def") == 0)
 		{
-			free(next_token_expect(source_file, TOKEN_COLON).string);
+			free_token(next_token_expect(source_file, TOKEN_COLON));
 
 			//We must be dealing with a variable definition
 			struct NODE *new_node = create_node(AST_DEF);
@@ -181,7 +187,7 @@ bool parse_next_statement(FILE *source_file)
 			free(new_node->def_name);
 			new_node->def_name = next_token_expect(source_file, TOKEN_WORD).string;
 
-			free(next_token_expect(source_file, TOKEN_EQUALS).string);
+			free_token(next_token_expect(source_file, TOKEN_EQUALS));
 
 			add_node(new_node, parse_next_expression(source_file));
 
@@ -191,6 +197,6 @@ bool parse_next_statement(FILE *source_file)
 	else if(token.type == TOKEN_COLON)
 		printf("Colon found\n");
 
-	free(token.string);
+	free_token(token);
 	return true;
 }

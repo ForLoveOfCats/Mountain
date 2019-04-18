@@ -14,4 +14,7 @@ struct TOKEN
 };
 
 
+void free_token(struct TOKEN);
+
+
 bool parse_next_statement(FILE *source_file);
