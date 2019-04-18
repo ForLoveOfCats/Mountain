@@ -160,7 +160,7 @@ struct NODE *parse_next_expression(FILE *source_file)
 	//For now we are just assuming that any expression is an integer
 	//this is VERY BAD(tm) and should be improved ASAP
 
-	struct NODE *node = create_node(AST_INT);
+	struct NODE *expression_root = create_node(AST_ROOT); //NOTE AST type is temp
 
 	struct TOKEN token = next_token(source_file);
 	while(token.type != TOKEN_SEMICOLON)
@@ -169,9 +169,9 @@ struct NODE *parse_next_expression(FILE *source_file)
 		token = next_token(source_file);
 	}
 
-	node->int_value = (int32_t)strtol(token.string, NULL, 10);
+	expression_root->int_value = (int32_t)strtol(token.string, NULL, 10);
 	free_token(token);
-	return node;
+	return expression_root;
 }
 
 
