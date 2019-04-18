@@ -8,7 +8,7 @@
 #include "ast.h"
 
 
-char *token_type_name[] = {"WORD", "COLON", "SEMICOLON", "COMMENT", "EQUALS"};
+char *token_type_name[] = {"WORD", "COLON", "SEMICOLON", "COMMENT", "EQUALS", "OPEN_PARENTHESES", "CLOSE_PARENTHESES"};
 
 
 int current_token_start = 0;
@@ -66,6 +66,18 @@ struct TOKEN next_token(FILE *source_file)
 					token.type = TOKEN_EQUALS;
 					goto return_car_as_token;
 				}
+
+				case '(':
+				{
+					token.type = TOKEN_OPEN_PARENTHESES;
+					goto return_car_as_token;
+				}
+
+				case ')':
+				{
+					token.type = TOKEN_CLOSE_PARENTHESES;
+					goto return_car_as_token;
+				}
 			}
 		}
 
@@ -78,6 +90,8 @@ struct TOKEN next_token(FILE *source_file)
 			case ';':
 			case '#':
 			case '=':
+			case '(':
+			case ')':
 			{
 				if(!in_token)
 					continue;
@@ -117,6 +131,7 @@ return_token: ;
 	return token; //Otherwise return the token
 
 return_car_as_token: ;
+	current_token_start = current_file_character;
 	free_token(token);
 	token.string = malloc(sizeof(char) * 2);
 	token.string[0] = car;
