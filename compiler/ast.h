@@ -9,6 +9,7 @@ struct NODE *current_parse_parent_node;
 
 
 enum AST_TYPE {AST_ROOT, AST_DEF, AST_LITERAL};
+enum LITERAL_TYPE {LITERAL_INT};
 
 struct NODE
 {
@@ -26,6 +27,7 @@ struct NODE
 
 	char *def_name;
 
+	enum LITERAL_TYPE literal_type;
 	char *literal_string;
 };
 

@@ -179,6 +179,7 @@ struct NODE *parse_next_expression(FILE *source_file)
 		if(is_number(token.string))
 		{
 			expression_root->type = AST_LITERAL;
+			expression_root->literal_type = LITERAL_INT;
 			free(expression_root->literal_string);
 			expression_root->literal_string = strdup(token.string);
 		}
