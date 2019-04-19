@@ -183,6 +183,12 @@ struct NODE *parse_next_expression(FILE *source_file)
 			free(expression_root->literal_string);
 			expression_root->literal_string = strdup(token.string);
 		}
+		else
+		{
+			printf("Found non-numerical literal parsing expression on line %i, column %i: only integer literals are currently supported, sorry\n",
+			       current_file_line, current_token_start);
+			exit(EXIT_FAILURE);
+		}
 
 		free_token(token);
 		token = next_token(source_file);
