@@ -26,6 +26,8 @@ struct NODE *create_node(enum AST_TYPE type)
 
 	new_node->def_name = strdup("");
 
+	new_node->literal_string = strdup("");
+
 	return new_node;
 }
 
@@ -60,5 +62,6 @@ void free_node(struct NODE *node) //Frees *node and all descendant nodes
 
 	free(node->type_name);
 	free(node->def_name);
+	free(node->literal_string);
 	free(node);
 }

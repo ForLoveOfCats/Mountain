@@ -154,23 +154,45 @@ struct TOKEN next_token_expect(FILE* source_file, enum TOKEN_TYPE expected)
 }
 
 
+int is_number(const char *s) //Adapted from rosettacode.org
+{
+	if(s == NULL || *s == '\0' || *s == ' ')
+		return 0;
+
+	char *p;
+	strtod(s, &p);
+	return *p == '\0';
+}
+
+
 struct NODE *parse_next_expression(FILE *source_file)
 {
 	//NOTE TODO FIXME HACK
 	//For now we are just assuming that any expression is an integer
 	//this is VERY BAD(tm) and should be improved ASAP
 
-	struct NODE *expression_root = create_node(AST_ROOT); //NOTE AST type is temp
+	struct NODE *expression_root = create_node(AST_ROOT); //NOTE AST type is set later
 
 	struct TOKEN token = next_token(source_file);
 	while(token.type != TOKEN_SEMICOLON)
 	{
+		if(is_number(token.string))
+		{
+			expression_root->type = AST_LITERAL;
+			free(expression_root->literal_string);
+			expression_root->literal_string = strdup(token.string);
+		}
+
 		free_token(token);
 		token = next_token(source_file);
 	}
-
-	expression_root->int_value = (int32_t)strtol(token.string, NULL, 10);
 	free_token(token);
+
+	if(expression_root->type == AST_ROOT) //Defensive programming, fail early
+	{
+		printf("INTERNAL ERROR: expression_root is still of type AST_ROOT\n");
+		exit(EXIT_FAILURE);
+	}
 	return expression_root;
 }
 
