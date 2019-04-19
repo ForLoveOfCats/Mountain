@@ -8,7 +8,7 @@
 #include "ast.h"
 
 
-char *token_type_name[] = {"WORD", "COLON", "SEMICOLON", "COMMENT", "EQUALS", "OPEN_PARENTHESES", "CLOSE_PARENTHESES"};
+char *token_type_name[] = { FOREACH_TOKEN_TYPE(GENERATE_STRING) };
 
 
 int current_token_start = 0;
