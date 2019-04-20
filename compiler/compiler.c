@@ -6,6 +6,7 @@
 #include "compiler.h"
 #include "ast.h"
 #include "parser.h"
+#include "transpile.h"
 
 
 FILE *open_source_file(char *path)
