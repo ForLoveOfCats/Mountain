@@ -40,9 +40,10 @@ int main(int arg_count, char *arg_array[])
 
 	struct TOKEN *first_token = tokenize_file(source_file);
 	struct TOKEN *token = first_token;
-	while(parse_next_statement(token))
+	token = parse_next_statement(token);
+	while(token != NULL)
 	{
-		token = token->next_token;
+		token = parse_next_statement(token);
 	}
 	free_token(first_token);
 

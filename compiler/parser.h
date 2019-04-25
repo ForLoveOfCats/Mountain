@@ -36,4 +36,4 @@ void free_token(struct TOKEN *token);
 struct TOKEN *tokenize_file(FILE *source_file);
 
 
-bool parse_next_statement(struct TOKEN *token);
+struct TOKEN *parse_next_statement(struct TOKEN *token);

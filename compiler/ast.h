@@ -8,7 +8,7 @@ struct NODE *current_parse_parent_node;
 
 
 
-enum AST_TYPE {AST_ROOT, AST_DEF, AST_LITERAL};
+enum AST_TYPE {AST_ROOT, AST_DEF, AST_SET, AST_LITERAL};
 enum LITERAL_TYPE {LITERAL_INT};
 
 struct NODE
@@ -25,7 +25,7 @@ struct NODE
 	uint32_t stack_len;
 	uint32_t def_location; //Where in the stack the var is if def or get
 
-	char *def_name;
+	char *variable_name; //def, var, get, and set name
 
 	enum LITERAL_TYPE literal_type;
 	char *literal_string;

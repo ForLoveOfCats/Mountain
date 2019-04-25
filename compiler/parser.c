@@ -208,7 +208,7 @@ int is_number(const char *s) //Adapted from rosettacode.org
 }
 
 
-struct NODE *parse_next_expression(struct TOKEN *token)
+struct NODE *parse_next_expression(struct TOKEN **token)
 {
 	//NOTE TODO FIXME HACK
 	//For now we are just assuming that any expression is an integer
@@ -216,14 +216,14 @@ struct NODE *parse_next_expression(struct TOKEN *token)
 
 	struct NODE *expression_root = create_node(AST_ROOT); //NOTE AST type is set later
 
-	while(token->type != TOKEN_SEMICOLON)
+	while((*token)->type != TOKEN_SEMICOLON)
 	{
-		if(is_number(token->string))
+		if(is_number((*token)->string))
 		{
 			expression_root->type = AST_LITERAL;
 			expression_root->literal_type = LITERAL_INT;
 			free(expression_root->literal_string);
-			expression_root->literal_string = strdup(token->string);
+			expression_root->literal_string = strdup((*token)->string);
 		}
 		else
 		{
@@ -232,7 +232,7 @@ struct NODE *parse_next_expression(struct TOKEN *token)
 			exit(EXIT_FAILURE);
 		}
 
-		token = token->next_token;
+		(*token) = (*token)->next_token;
 	}
 
 	if(expression_root->type == AST_ROOT) //Defensive programming, fail early
@@ -244,54 +244,76 @@ struct NODE *parse_next_expression(struct TOKEN *token)
 }
 
 
-bool parse_next_statement(struct TOKEN *token)
+struct TOKEN *parse_next_statement(struct TOKEN *token)
 {
 	if(!token->valid)
 	{
 		printf("Reached end of file\n");
-		return false;
+		return NULL;
 	}
 
 	if(token->type == TOKEN_SEMICOLON)
 	{
 		printf("Reached end of statement\n");
-		return true;
+		return token;
 	}
 
 	if(token->type == TOKEN_WORD)
 	{
-		printf("Word found: %s\n", token->string);
-		if(strcmp(token->string, "def") == 0)
+		printf("First word is: %s\n", token->string);
+
+		if(strcmp(token->string, "def") == 0) //inmutable variable declaration
 		{
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_COLON);
-			NEXT_TOKEN(token);
 
 			//We must be dealing with a variable definition
 			struct NODE *new_node = create_node(AST_DEF);
 			new_node->def_location = current_parse_parent_node->stack_len;
 			current_parse_parent_node->stack_len += 1;
 
+			NEXT_TOKEN(token);
 			free(new_node->type_name);
 			expect(token, TOKEN_WORD);
 			new_node->type_name = strdup(token->string);
-			NEXT_TOKEN(token);
 
-			free(new_node->def_name);
+			NEXT_TOKEN(token);
+			free(new_node->variable_name);
 			expect(token, TOKEN_WORD);
-			new_node->def_name = strdup(token->string);
-			NEXT_TOKEN(token);
+			new_node->variable_name = strdup(token->string);
 
+			NEXT_TOKEN(token);
 			expect(token, TOKEN_EQUALS);
-			NEXT_TOKEN(token);
 
-			add_node(new_node, parse_next_expression(token)); //Should read to semicolon
+			NEXT_TOKEN(token);
+			add_node(new_node, parse_next_expression(&token)); //Should read to semicolon
 
 			add_node(current_parse_parent_node, new_node);
+
+			NEXT_TOKEN(token);
+		}
+
+		else //It must be a variable set or a function call   TODO Add function calls
+		{
+			//HACK for now we are just assuming that it is a variable set
+			expect(token, TOKEN_WORD);
+			struct NODE *new_node = create_node(AST_SET);
+			free(new_node->variable_name);
+			new_node->variable_name = strdup(token->string);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_EQUALS);
+
+			NEXT_TOKEN(token);
+			add_node(new_node, parse_next_expression(&token)); //Should read to semicolon
+
+			add_node(current_parse_parent_node, new_node);
+
+			NEXT_TOKEN(token);
 		}
 	}
 	else if(token->type == TOKEN_COLON)
 		printf("Colon found\n");
 
-	return true;
+	return token;
 }
