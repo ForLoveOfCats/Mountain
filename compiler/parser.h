@@ -9,7 +9,6 @@
 	TYPE(TOKEN_WORD) \
 	TYPE(TOKEN_COLON) \
 	TYPE(TOKEN_SEMICOLON) \
-	TYPE(TOKEN_COMMENT) \
 	TYPE(TOKEN_EQUALS) \
 	TYPE(TOKEN_OPEN_PARENTHESES) \
 	TYPE(TOKEN_CLOSE_PARENTHESES) \
@@ -22,10 +21,15 @@ struct TOKEN
 	bool valid;
 	enum TOKEN_TYPE type;
 	char *string;
+
+	struct TOKEN *next_token;
 };
 
 
-void free_token(struct TOKEN);
+void free_token(struct TOKEN *token);
 
 
-bool parse_next_statement(FILE *source_file);
+struct TOKEN *tokenize_file(FILE *source_file);
+
+
+bool parse_next_statement(struct TOKEN *token);

@@ -38,7 +38,13 @@ int main(int arg_count, char *arg_array[])
 	root_node = create_node(AST_ROOT);
 	current_parse_parent_node = root_node;
 
-	while(parse_next_statement(source_file)) {}
+	struct TOKEN *first_token = tokenize_file(source_file);
+	struct TOKEN *token = first_token;
+	while(parse_next_statement(token))
+	{
+		token = token->next_token;
+	}
+	free_token(first_token);
 
 	free_node(root_node);
 
