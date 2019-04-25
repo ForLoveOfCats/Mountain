@@ -18,6 +18,10 @@ enum TOKEN_TYPE { FOREACH_TOKEN_TYPE(GENERATE_ENUM) };
 
 struct TOKEN
 {
+	int line_number;
+	int start_char;
+	int end_char;
+
 	bool valid;
 	enum TOKEN_TYPE type;
 	char *string;

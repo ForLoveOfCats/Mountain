@@ -9,12 +9,12 @@
 
 
 #define NEXT_TOKEN(token) \
-	token = token->next_token; \
-	if(token == NULL) \
+	if(token->next_token == NULL) \
 	{ \
-		printf("Parse error: Encountered end of file unexpectedly\n"); \
+		printf("Parse error: Encountered end of file unexpectedly on line %i, column %i\n", token->line_number, token->end_char + 1); \
 		exit(EXIT_FAILURE); \
 	} \
+	token = token->next_token; \
 
 
 char *token_type_name[] = { FOREACH_TOKEN_TYPE(GENERATE_STRING) };
@@ -48,6 +48,8 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 		current_file_character++;
 		if(car == EOF)
 		{
+			ungetc(car, source_file);
+			current_file_character--;
 			goto return_token;
 		}
 		else if(car == '\n')
@@ -149,9 +151,11 @@ return_token: ;
 	if(strlen(token->string) <= 0 && car == EOF) //If token is blank and is at the end of the file
 	{
 		token->valid = false;
-		return token; //Return NULL
 	}
-	return token; //Otherwise return the token
+	token->line_number = current_file_line;
+	token->start_char = current_token_start;
+	token->end_char = current_file_character;
+	return token;
 
 return_car_as_token: ;
 	current_token_start = current_file_character;
@@ -159,6 +163,9 @@ return_car_as_token: ;
 	token->string = malloc(sizeof(char) * 2);
 	token->string[0] = car;
 	token->string[1] = '\0';
+	token->line_number = current_file_line;
+	token->start_char = current_token_start;
+	token->end_char = current_file_character;
 	return token;
 }
 
@@ -184,7 +191,7 @@ void expect(struct TOKEN *token, enum TOKEN_TYPE expected)
 {
 	if(token->type != expected)
 	{
-		printf("Parse error on line %i, column %i. Expected %s: found %s\n", current_file_line, current_token_start, token_type_name[expected], token_type_name[token->type]);
+		printf("Parse error on line %i, column %i. Expected %s: found %s\n", token->line_number, token->start_char, token_type_name[expected], token_type_name[token->type]);
 		exit(EXIT_FAILURE);
 	}
 }
