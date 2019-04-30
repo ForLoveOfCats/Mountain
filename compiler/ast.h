@@ -20,6 +20,8 @@ struct NODE
 	struct NODE *first_child;
 	struct NODE *last_child;
 
+	int line_number;
+
 	char *type_name; //For def and get
 
 	uint32_t stack_len;
@@ -32,10 +34,13 @@ struct NODE
 };
 
 
-struct NODE *create_node(enum AST_TYPE);
+struct NODE *create_node(enum AST_TYPE type, int line_number);
 
 
 void add_node(struct NODE *parent, struct NODE *new_node);
+
+
+int count_node_children(struct NODE *node);
 
 
 void free_node(struct NODE *child);

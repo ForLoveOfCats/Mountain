@@ -214,7 +214,7 @@ struct NODE *parse_next_expression(struct TOKEN **token)
 	//For now we are just assuming that any expression is an integer
 	//this is VERY BAD(tm) and should be improved ASAP
 
-	struct NODE *expression_root = create_node(AST_ROOT); //NOTE AST type is set later
+	struct NODE *expression_root = create_node(AST_ROOT, (*token)->line_number); //NOTE AST type is set later
 
 	while((*token)->type != TOKEN_SEMICOLON)
 	{
@@ -264,13 +264,13 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		if(strcmp(token->string, "def") == 0) //inmutable variable declaration
 		{
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_COLON);
-
 			//We must be dealing with a variable definition
-			struct NODE *new_node = create_node(AST_DEF);
+			struct NODE *new_node = create_node(AST_DEF, token->line_number);
 			new_node->def_location = current_parse_parent_node->stack_len;
 			current_parse_parent_node->stack_len += 1;
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_COLON);
 
 			NEXT_TOKEN(token);
 			free(new_node->type_name);
@@ -297,7 +297,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		{
 			//HACK for now we are just assuming that it is a variable set
 			expect(token, TOKEN_WORD);
-			struct NODE *new_node = create_node(AST_SET);
+			struct NODE *new_node = create_node(AST_SET, token->line_number);
 			free(new_node->variable_name);
 			new_node->variable_name = strdup(token->string);
 

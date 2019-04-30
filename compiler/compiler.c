@@ -6,6 +6,7 @@
 #include "compiler.h"
 #include "ast.h"
 #include "parser.h"
+#include "validator.h"
 #include "transpile.h"
 
 
@@ -35,7 +36,7 @@ int main(int arg_count, char *arg_array[])
 
 	FILE *source_file = open_source_file(arg_array[1]);
 
-	root_node = create_node(AST_ROOT);
+	root_node = create_node(AST_ROOT, -1);
 	current_parse_parent_node = root_node;
 
 	struct TOKEN *first_token = tokenize_file(source_file);
@@ -46,6 +47,8 @@ int main(int arg_count, char *arg_array[])
 		token = parse_next_statement(token);
 	}
 	free_token(first_token);
+
+	validate_tree(root_node);
 
 	free_node(root_node);
 

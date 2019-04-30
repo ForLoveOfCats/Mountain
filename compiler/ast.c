@@ -8,7 +8,7 @@
 #include "ast.h"
 
 
-struct NODE *create_node(enum AST_TYPE type)
+struct NODE *create_node(enum AST_TYPE type, int line_number)
 {
 	struct NODE *new_node = (struct NODE *)malloc(sizeof(struct NODE));
 
@@ -18,6 +18,8 @@ struct NODE *create_node(enum AST_TYPE type)
 	new_node->next_node = NULL;
 	new_node->first_child = NULL;
 	new_node->last_child = NULL;
+
+	new_node->line_number = line_number;
 
 	new_node->type_name = strdup("");
 
@@ -47,6 +49,21 @@ void add_node(struct NODE *parent, struct NODE *new_node)
 		parent->last_child->next_node = new_node;
 		parent->last_child = new_node;
 	}
+}
+
+
+int count_node_children(struct NODE *node)
+{
+	int count = 0;
+
+	struct NODE *child = node->first_child;
+	while(child != NULL)
+	{
+		count++;
+		child = child->next_node;
+	}
+
+	return count;
 }
 
 
