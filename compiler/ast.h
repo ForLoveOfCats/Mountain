@@ -8,7 +8,7 @@ struct NODE *current_parse_parent_node;
 
 
 
-enum AST_TYPE {AST_ROOT, AST_DEF, AST_SET, AST_LITERAL};
+enum AST_TYPE {AST_ROOT, AST_DEF, AST_MUT, AST_SET, AST_LITERAL};
 enum LITERAL_TYPE {LITERAL_INT};
 
 struct NODE

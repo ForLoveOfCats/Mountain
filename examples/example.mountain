@@ -1,5 +1,5 @@
 #Variable declaration with value
 def:Int lucky_number = 42;
-def:Int another_number = 69;
+mut:Int another_number = 69;
 
-lucky_number = 3; #invalid as lucky_number is inmutable
+another_number = 3; #invalid as lucky_number is inmutable
