@@ -102,15 +102,15 @@ void validate_tree(struct NODE *node) //Exits on failure
 
 				if(var_exists(scope, node->variable_name))
 				{
-					printf("Validation Error: Variable '%s' on line %i already exists from line %i\n",
-					       node->variable_name, node->line_number, get_var(scope, node->variable_name)->line);
+					printf("Validation error @ line %i: Variable '%s' already exists from line %i\n",
+					       node->line_number, node->variable_name, get_var(scope, node->variable_name)->line);
 					exit(EXIT_FAILURE);
 				}
 				add_var(scope, node->variable_name, false, node->line_number);
 
 				if(strcmp(node->type_name, "Int") != 0) //TODO allow non-int values
 				{
-					printf("Validation Error: Variable defined with non-Int type on line %i\n", node->line_number);
+					printf("Validation error @ line %i: Variable defined with non-Int type\n", node->line_number);
 					exit(EXIT_FAILURE);
 				}
 
@@ -123,15 +123,15 @@ void validate_tree(struct NODE *node) //Exits on failure
 
 				if(var_exists(scope, node->variable_name))
 				{
-					printf("Validation Error: Variable '%s' on line %i already exists from line %i\n",
-					       node->variable_name, node->line_number, get_var(scope, node->variable_name)->line);
+					printf("Validation error @ line %i: Variable '%s' already exists from line %i\n",
+					       node->line_number, node->variable_name, get_var(scope, node->variable_name)->line);
 					exit(EXIT_FAILURE);
 				}
 				add_var(scope, node->variable_name, true, node->line_number);
 
 				if(strcmp(node->type_name, "Int") != 0) //TODO allow non-int values
 				{
-					printf("Validation Error: Variable defined with non-Int type on line %i\n", node->line_number);
+					printf("Validation error @ line %i: Variable defined with non-Int type\n", node->line_number);
 					exit(EXIT_FAILURE);
 				}
 
