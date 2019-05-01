@@ -141,7 +141,19 @@ void validate_tree(struct NODE *node) //Exits on failure
 			case AST_SET:
 			{
 				assert(count_node_children(node) == 1);
-				//TODO Check that variable exists and is mutable
+
+				struct VAR_DATA *var = get_var(scope, node->variable_name);
+				if(var == NULL)
+				{
+					printf("Validation error @ line %i: Cannot set variable '%s' as it does not exist\n", node->line_number, node->variable_name);
+					exit(EXIT_FAILURE);
+				}
+
+				if(!var->is_mutable)
+				{
+					printf("Validation error @ line %i: Cannot set to immutable variable '%s'\n", node->line_number, node->variable_name);
+					exit(EXIT_FAILURE);
+				}
 			}
 
 			default: //To get ccls to shut up
