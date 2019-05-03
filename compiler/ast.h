@@ -8,7 +8,7 @@ struct NODE *current_parse_parent_node;
 
 
 
-enum AST_TYPE {AST_BLOCK, AST_DEF, AST_MUT, AST_SET, AST_LITERAL};
+enum AST_TYPE {AST_BLOCK, AST_VAR, AST_SET, AST_LITERAL};
 enum LITERAL_TYPE {LITERAL_INT};
 
 struct NODE
@@ -22,12 +22,12 @@ struct NODE
 
 	int line_number;
 
-	char *type_name; //For def and get
+	char *type_name; //For var, get, and set
 
 	uint32_t stack_len;
-	uint32_t def_location; //Where in the stack the var is if def or get
+	uint32_t def_location; //Where in the stack the var is if var or get
 
-	char *variable_name; //def, var, get, and set name
+	char *variable_name; //var's and set's name
 
 	enum LITERAL_TYPE literal_type;
 	char *literal_string;

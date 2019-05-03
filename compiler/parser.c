@@ -274,41 +274,9 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 	if(token->type == TOKEN_WORD)
 	{
-		if(strcmp(token->string, "def") == 0) //inmutable variable declaration
+		if(strcmp(token->string, "var") == 0) //mutable variable declaration
 		{
-			struct NODE *new_node = create_node(AST_DEF, token->line_number);
-			new_node->def_location = current_parse_parent_node->stack_len;
-			current_parse_parent_node->stack_len += 1;
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_COLON);
-
-			NEXT_TOKEN(token);
-			free(new_node->type_name);
-			expect(token, TOKEN_WORD);
-			new_node->type_name = strdup(token->string);
-
-			NEXT_TOKEN(token);
-			free(new_node->variable_name);
-			expect(token, TOKEN_WORD);
-			new_node->variable_name = strdup(token->string);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_EQUALS);
-
-			NEXT_TOKEN(token);
-			add_node(new_node, parse_next_expression(&token)); //Should read to semicolon
-
-			add_node(current_parse_parent_node, new_node);
-
-			if(token->next == NULL)
-				return NULL;
-			NEXT_TOKEN(token);
-		}
-
-		else if(strcmp(token->string, "mut") == 0) //mutable variable declaration
-		{
-			struct NODE *new_node = create_node(AST_MUT, token->line_number);
+			struct NODE *new_node = create_node(AST_VAR, token->line_number);
 			new_node->def_location = current_parse_parent_node->stack_len;
 			current_parse_parent_node->stack_len += 1;
 

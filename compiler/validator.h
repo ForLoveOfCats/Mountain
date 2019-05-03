@@ -21,7 +21,6 @@ struct VAR_DATA
 {
 	struct VAR_DATA *next;
 
-	bool is_mutable;
 	char *name;
 	int line;
 };

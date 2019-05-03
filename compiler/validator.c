@@ -8,11 +8,10 @@
 #include "validator.h"
 
 
-void add_var(struct SCOPE *scope, char *name, bool is_mutable, int line)
+void add_var(struct SCOPE *scope, char *name, int line)
 {
 	struct VAR_DATA *var = malloc(sizeof(struct VAR_DATA));
 	var->next = NULL;
-	var->is_mutable = is_mutable;
 	var->name = strdup(name);
 	var->line = line;
 
@@ -132,7 +131,7 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				break;
 			}
 
-			case AST_DEF:
+			case AST_VAR:
 			{
 				assert(count_node_children(node) == 1);
 
@@ -142,28 +141,7 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 					       node->line_number, node->variable_name, get_var(scope, node->variable_name)->line);
 					exit(EXIT_FAILURE);
 				}
-				add_var(scope, node->variable_name, false, node->line_number);
-
-				if(strcmp(node->type_name, "Int") != 0) //TODO allow non-int values
-				{
-					printf("Validation error @ line %i: Variable defined with non-Int type\n", node->line_number);
-					exit(EXIT_FAILURE);
-				}
-
-				break;
-			}
-
-			case AST_MUT:
-			{
-				assert(count_node_children(node) == 1);
-
-				if(var_exists(scope, node->variable_name))
-				{
-					printf("Validation error @ line %i: Variable '%s' already exists from line %i\n",
-					       node->line_number, node->variable_name, get_var(scope, node->variable_name)->line);
-					exit(EXIT_FAILURE);
-				}
-				add_var(scope, node->variable_name, true, node->line_number);
+				add_var(scope, node->variable_name, node->line_number);
 
 				if(strcmp(node->type_name, "Int") != 0) //TODO allow non-int values
 				{
@@ -182,12 +160,6 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				if(var == NULL)
 				{
 					printf("Validation error @ line %i: Cannot set variable '%s' as it does not exist\n", node->line_number, node->variable_name);
-					exit(EXIT_FAILURE);
-				}
-
-				if(!var->is_mutable)
-				{
-					printf("Validation error @ line %i: Cannot set to immutable variable '%s'\n", node->line_number, node->variable_name);
 					exit(EXIT_FAILURE);
 				}
 			}
