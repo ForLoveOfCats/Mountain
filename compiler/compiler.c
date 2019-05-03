@@ -41,13 +41,13 @@ int main(int arg_count, char *arg_array[])
 
 	struct TOKEN *first_token = tokenize_file(source_file);
 	parse_block(first_token, 0);
-	free_token(first_token);
+	free_token_list(first_token);
 
 	struct SCOPE *scope = create_scope(NULL);
 	validate_block(root_node, scope, 0);
-	free_scope(scope);
+	free_scope_tree(scope);
 
-	free_node(root_node);
+	free_tree(root_node);
 
 	fclose(source_file);
 	return EXIT_SUCCESS;

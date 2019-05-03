@@ -15,7 +15,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number)
 	new_node->type = type;
 
 	new_node->parent = NULL;
-	new_node->next_node = NULL;
+	new_node->next = NULL;
 	new_node->first_child = NULL;
 	new_node->last_child = NULL;
 
@@ -37,7 +37,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number)
 void add_node(struct NODE *parent, struct NODE *new_node)
 {
 	new_node->parent = parent;
-	new_node->next_node = NULL;
+	new_node->next = NULL;
 
 	if(parent->first_child == NULL)
 	{
@@ -46,7 +46,7 @@ void add_node(struct NODE *parent, struct NODE *new_node)
 	}
 	else
 	{
-		parent->last_child->next_node = new_node;
+		parent->last_child->next = new_node;
 		parent->last_child = new_node;
 	}
 }
@@ -60,20 +60,20 @@ int count_node_children(struct NODE *node)
 	while(child != NULL)
 	{
 		count++;
-		child = child->next_node;
+		child = child->next;
 	}
 
 	return count;
 }
 
 
-void free_node(struct NODE *node) //Frees *node and all descendant nodes
+void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 {
 	struct NODE *child = node->first_child;
 	while(child != NULL)
 	{
-		struct NODE *next_child = child->next_node;
-		free_node(child);
+		struct NODE *next_child = child->next;
+		free_tree(child);
 		child = next_child;
 	}
 

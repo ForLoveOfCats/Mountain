@@ -98,7 +98,7 @@ struct SCOPE *create_scope(struct SCOPE *parent)
 }
 
 
-void free_scope(struct SCOPE *scope)
+void free_scope_tree(struct SCOPE *scope)
 {
 	if(scope->first_child != NULL)
 	{
@@ -106,7 +106,7 @@ void free_scope(struct SCOPE *scope)
 		while(child != NULL)
 		{
 			struct SCOPE *next = child->next;
-			free_scope(child);
+			free_scope_tree(child);
 			child = next;
 		}
 	}
@@ -196,6 +196,6 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				break;
 		}
 
-		node = node->next_node;
+		node = node->next;
 	}
 }

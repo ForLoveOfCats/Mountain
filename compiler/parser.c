@@ -10,12 +10,12 @@
 
 
 #define NEXT_TOKEN(token) \
-	if(token->next_token == NULL) \
+	if(token->next == NULL) \
 	{ \
 		printf("Parse error: Encountered end of file unexpectedly on line %i, column %i\n", token->line_number, token->end_char + 1); \
 		exit(EXIT_FAILURE); \
 	} \
-	token = token->next_token; \
+	token = token->next; \
 
 
 char *token_type_name[] = { FOREACH_TOKEN_TYPE(GENERATE_STRING) };
@@ -24,11 +24,11 @@ char *token_type_name[] = { FOREACH_TOKEN_TYPE(GENERATE_STRING) };
 int current_token_start = 0;
 
 
-void free_token(struct TOKEN *token) //Frees a token and all next tokens
+void free_token_list(struct TOKEN *token) //Frees a token and all next tokens
 {
 	free(token->string);
-	if(token->next_token != NULL)
-		free_token(token->next_token);
+	if(token->next != NULL)
+		free_token_list(token->next);
 	free(token);
 }
 
@@ -38,7 +38,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 	struct TOKEN *token = malloc(sizeof(struct TOKEN));
 	token->type = TOKEN_WORD;
 	token->string = strdup("");
-	token->next_token = NULL;
+	token->next = NULL;
 
 	bool in_token = false;
 	char car;
@@ -163,7 +163,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 return_token: ;
 	if(strlen(token->string) <= 0 && car == EOF) //If token is blank and is at the end of the file
 	{
-		free_token(token);
+		free_token_list(token);
 		return NULL;
 	}
 	token->line_number = current_file_line;
@@ -192,7 +192,7 @@ struct TOKEN *tokenize_file(FILE *source_file)
 	while(token != NULL)
 	{
 		struct TOKEN *next_token = next_token_from_file(source_file);
-		token->next_token = next_token;
+		token->next = next_token;
 		token = next_token;
 		token_count++;
 	}
@@ -246,7 +246,7 @@ struct NODE *parse_next_expression(struct TOKEN **token)
 			exit(EXIT_FAILURE);
 		}
 
-		(*token) = (*token)->next_token;
+		(*token) = (*token)->next;
 	}
 
 	if(expression_root->type == AST_BLOCK) //Defensive programming, fail early
@@ -301,7 +301,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			add_node(current_parse_parent_node, new_node);
 
-			if(token->next_token == NULL)
+			if(token->next == NULL)
 				return NULL;
 			NEXT_TOKEN(token);
 		}
@@ -333,7 +333,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			add_node(current_parse_parent_node, new_node);
 
-			if(token->next_token == NULL)
+			if(token->next == NULL)
 				return NULL;
 			NEXT_TOKEN(token);
 		}
@@ -354,7 +354,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			add_node(current_parse_parent_node, new_node);
 
-			if(token->next_token == NULL)
+			if(token->next == NULL)
 				return NULL;
 			NEXT_TOKEN(token);
 		}
@@ -379,7 +379,7 @@ struct TOKEN *parse_block(struct TOKEN *token, int level)
 	while(true)
 	{
 		if(token->type == TOKEN_OPEN_BRACE)
-		  token = parse_block(token->next_token, level + 1);
+		  token = parse_block(token->next, level + 1);
 		if(token == NULL)
 			break;
 
@@ -396,7 +396,7 @@ struct TOKEN *parse_block(struct TOKEN *token, int level)
 			}
 
 			current_parse_parent_node = current_parse_parent_node->parent;
-			return token->next_token;
+			return token->next;
 		}
 	}
 

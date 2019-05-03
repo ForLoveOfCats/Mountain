@@ -27,11 +27,11 @@ struct TOKEN
 	enum TOKEN_TYPE type;
 	char *string;
 
-	struct TOKEN *next_token;
+	struct TOKEN *next;
 };
 
 
-void free_token(struct TOKEN *token);
+void free_token_list(struct TOKEN *token);
 
 
 struct TOKEN *tokenize_file(FILE *source_file);

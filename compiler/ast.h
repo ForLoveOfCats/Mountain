@@ -16,7 +16,7 @@ struct NODE
 	enum AST_TYPE type;
 
 	struct NODE *parent;
-	struct NODE *next_node;
+	struct NODE *next;
 	struct NODE *first_child;
 	struct NODE *last_child;
 
@@ -43,4 +43,4 @@ void add_node(struct NODE *parent, struct NODE *new_node);
 int count_node_children(struct NODE *node);
 
 
-void free_node(struct NODE *child);
+void free_tree(struct NODE *child);
