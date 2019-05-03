@@ -251,11 +251,7 @@ struct NODE *parse_next_expression(struct TOKEN **token)
 		(*token) = (*token)->next;
 	}
 
-	if(expression_root->type == AST_BLOCK) //Defensive programming, fail early
-	{
-		printf("INTERNAL ERROR: expression_root is still of type AST_ROOT\n");
-		exit(EXIT_FAILURE);
-	}
+	assert(expression_root->type != AST_BLOCK);
 	return expression_root;
 }
 
