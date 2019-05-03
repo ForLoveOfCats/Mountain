@@ -8,11 +8,12 @@
 #include "validator.h"
 
 
-void add_var(struct SCOPE *scope, char *name, int line)
+void add_var(struct SCOPE *scope, char *name, char *type, int line)
 {
 	struct VAR_DATA *var = malloc(sizeof(struct VAR_DATA));
 	var->next = NULL;
 	var->name = strdup(name);
+	var->type = strdup(type);
 	var->line = line;
 
 	if(scope->first_var == NULL)
@@ -54,6 +55,7 @@ bool var_exists(struct SCOPE *scope, char *name)
 void free_var(struct VAR_DATA *var) //futureproofing
 {
 	free(var->name);
+	free(var->type);
 	free(var);
 }
 
@@ -141,7 +143,7 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 					       node->line_number, node->variable_name, get_var(scope, node->variable_name)->line);
 					exit(EXIT_FAILURE);
 				}
-				add_var(scope, node->variable_name, node->line_number);
+				add_var(scope, node->variable_name, node->type_name, node->line_number);
 
 				if(strcmp(node->type_name, "Int") != 0) //TODO allow non-int values
 				{
@@ -157,9 +159,17 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				assert(count_node_children(node) == 1);
 
 				struct VAR_DATA *var = get_var(scope, node->variable_name);
+
 				if(var == NULL)
 				{
 					printf("Validation error @ line %i: Cannot set variable '%s' as it does not exist\n", node->line_number, node->variable_name);
+					exit(EXIT_FAILURE);
+				}
+
+				if(strcmp(var->type, node->first_child->type_name) != 0)
+				{
+					printf("Validation error @ line %i: Cannot set variable '%s' due to type mismatch\n", node->line_number, node->variable_name);
+					printf("Var type: '%s'     Set type: '%s'\n", var->type, node->first_child->type_name);
 					exit(EXIT_FAILURE);
 				}
 			}

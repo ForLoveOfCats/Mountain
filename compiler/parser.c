@@ -238,6 +238,8 @@ struct NODE *parse_next_expression(struct TOKEN **token)
 			expression_root->literal_type = LITERAL_INT;
 			free(expression_root->literal_string);
 			expression_root->literal_string = strdup((*token)->string);
+			free(expression_root->type_name);
+			expression_root->type_name = strdup("Int"); //HACK FIXME This is the set type hardcoded to Int
 		}
 		else
 		{
@@ -284,8 +286,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			expect(token, TOKEN_COLON);
 
 			NEXT_TOKEN(token);
-			free(new_node->type_name);
 			expect(token, TOKEN_WORD);
+			free(new_node->type_name);
 			new_node->type_name = strdup(token->string);
 
 			NEXT_TOKEN(token);

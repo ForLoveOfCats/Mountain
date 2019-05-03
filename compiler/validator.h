@@ -22,6 +22,7 @@ struct VAR_DATA
 	struct VAR_DATA *next;
 
 	char *name;
+	char *type;
 	int line;
 };
 
