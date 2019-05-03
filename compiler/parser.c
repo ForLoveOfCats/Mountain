@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -35,7 +36,6 @@ void free_token(struct TOKEN *token) //Frees a token and all next tokens
 struct TOKEN *next_token_from_file(FILE *source_file)
 {
 	struct TOKEN *token = malloc(sizeof(struct TOKEN));
-	token->valid = true;
 	token->type = TOKEN_WORD;
 	token->string = strdup("");
 	token->next_token = NULL;
@@ -76,7 +76,6 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 
 				case '#':
 				{
-					printf("Encountered comment, reading to end of line\n");
 					while(car != '\n')
 					{
 						car = getc(source_file);
@@ -103,6 +102,18 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					token->type = TOKEN_CLOSE_PARENTHESES;
 					goto return_car_as_token;
 				}
+
+				case '{':
+				{
+					token->type = TOKEN_OPEN_BRACE;
+					goto return_car_as_token;
+				}
+
+				case '}':
+				{
+					token->type = TOKEN_CLOSE_BRACE;
+					goto return_car_as_token;
+				}
 			}
 		}
 
@@ -117,6 +128,8 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 			case '=':
 			case '(':
 			case ')':
+			case '{':
+			case '}':
 			{
 				if(!in_token)
 					continue;
@@ -150,7 +163,8 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 return_token: ;
 	if(strlen(token->string) <= 0 && car == EOF) //If token is blank and is at the end of the file
 	{
-		token->valid = false;
+		free_token(token);
+		return NULL;
 	}
 	token->line_number = current_file_line;
 	token->start_char = current_token_start;
@@ -175,7 +189,7 @@ struct TOKEN *tokenize_file(FILE *source_file)
 	int token_count = 1;
 	struct TOKEN *first_token = next_token_from_file(source_file);
 	struct TOKEN *token = first_token;
-	while(token->valid)
+	while(token != NULL)
 	{
 		struct TOKEN *next_token = next_token_from_file(source_file);
 		token->next_token = next_token;
@@ -214,7 +228,7 @@ struct NODE *parse_next_expression(struct TOKEN **token)
 	//For now we are just assuming that any expression is an integer
 	//this is VERY BAD(tm) and should be improved ASAP
 
-	struct NODE *expression_root = create_node(AST_ROOT, (*token)->line_number); //NOTE AST type is set later
+	struct NODE *expression_root = create_node(AST_BLOCK, (*token)->line_number); //NOTE AST type is set later
 
 	while((*token)->type != TOKEN_SEMICOLON)
 	{
@@ -235,7 +249,7 @@ struct NODE *parse_next_expression(struct TOKEN **token)
 		(*token) = (*token)->next_token;
 	}
 
-	if(expression_root->type == AST_ROOT) //Defensive programming, fail early
+	if(expression_root->type == AST_BLOCK) //Defensive programming, fail early
 	{
 		printf("INTERNAL ERROR: expression_root is still of type AST_ROOT\n");
 		exit(EXIT_FAILURE);
@@ -246,7 +260,7 @@ struct NODE *parse_next_expression(struct TOKEN **token)
 
 struct TOKEN *parse_next_statement(struct TOKEN *token)
 {
-	if(!token->valid)
+	if(token == NULL)
 	{
 		printf("Reached end of file\n");
 		return NULL;
@@ -260,8 +274,6 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 	if(token->type == TOKEN_WORD)
 	{
-		printf("First word is: %s\n", token->string);
-
 		if(strcmp(token->string, "def") == 0) //inmutable variable declaration
 		{
 			struct NODE *new_node = create_node(AST_DEF, token->line_number);
@@ -289,6 +301,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			add_node(current_parse_parent_node, new_node);
 
+			if(token->next_token == NULL)
+				return NULL;
 			NEXT_TOKEN(token);
 		}
 
@@ -319,6 +333,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			add_node(current_parse_parent_node, new_node);
 
+			if(token->next_token == NULL)
+				return NULL;
 			NEXT_TOKEN(token);
 		}
 
@@ -338,11 +354,57 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			add_node(current_parse_parent_node, new_node);
 
+			if(token->next_token == NULL)
+				return NULL;
 			NEXT_TOKEN(token);
 		}
 	}
-	else if(token->type == TOKEN_COLON)
-		printf("Colon found\n");
 
 	return token;
+}
+
+
+struct TOKEN *parse_block(struct TOKEN *token, int level)
+{
+	assert(level >= 0);
+	bool inner_block = level > 0;
+
+	if(inner_block)
+	{
+		struct NODE *block = create_node(AST_BLOCK, token->line_number);
+		add_node(current_parse_parent_node, block);
+		current_parse_parent_node = block;
+	}
+
+	while(true)
+	{
+		if(token->type == TOKEN_OPEN_BRACE)
+		  token = parse_block(token->next_token, level + 1);
+		if(token == NULL)
+			break;
+
+		token = parse_next_statement(token);
+		if(token == NULL)
+			break;
+
+		else if(token->type == TOKEN_CLOSE_BRACE)
+		{
+			if(!inner_block)
+			{
+				printf("Parse error @ line %i column %i: Unexpected close brace\n", token->line_number, token->start_char);
+				exit(EXIT_FAILURE);
+			}
+
+			current_parse_parent_node = current_parse_parent_node->parent;
+			return token->next_token;
+		}
+	}
+
+	//At this point we know that we have reached the end of the file
+	if(inner_block)
+	{
+		printf("Parse error: Expected close brace, found end of file\n");
+		exit(EXIT_FAILURE);
+	}
+	return NULL;
 }

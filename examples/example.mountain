@@ -2,4 +2,8 @@
 def:Int lucky_number = 42;
 mut:Int another_number = 69;
 
-another_number = 3;
+{
+    another_number = 3;
+}
+
+

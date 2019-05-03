@@ -36,19 +36,16 @@ int main(int arg_count, char *arg_array[])
 
 	FILE *source_file = open_source_file(arg_array[1]);
 
-	root_node = create_node(AST_ROOT, -1);
+	root_node = create_node(AST_BLOCK, -1);
 	current_parse_parent_node = root_node;
 
 	struct TOKEN *first_token = tokenize_file(source_file);
-	struct TOKEN *token = first_token;
-	token = parse_next_statement(token);
-	while(token != NULL)
-	{
-		token = parse_next_statement(token);
-	}
+	parse_block(first_token, 0);
 	free_token(first_token);
 
-	validate_tree(root_node);
+	struct SCOPE *scope = create_scope(NULL);
+	validate_block(root_node, scope, 0);
+	free_scope(scope);
 
 	free_node(root_node);
 

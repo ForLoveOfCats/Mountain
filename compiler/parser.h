@@ -12,6 +12,8 @@
 	TYPE(TOKEN_EQUALS) \
 	TYPE(TOKEN_OPEN_PARENTHESES) \
 	TYPE(TOKEN_CLOSE_PARENTHESES) \
+	TYPE(TOKEN_OPEN_BRACE) \
+	TYPE(TOKEN_CLOSE_BRACE) \
 
 enum TOKEN_TYPE { FOREACH_TOKEN_TYPE(GENERATE_ENUM) };
 
@@ -22,7 +24,6 @@ struct TOKEN
 	int start_char;
 	int end_char;
 
-	bool valid;
 	enum TOKEN_TYPE type;
 	char *string;
 
@@ -37,3 +38,6 @@ struct TOKEN *tokenize_file(FILE *source_file);
 
 
 struct TOKEN *parse_next_statement(struct TOKEN *token);
+
+
+struct TOKEN *parse_block(struct TOKEN *token, int level);

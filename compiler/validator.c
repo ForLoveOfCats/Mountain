@@ -38,6 +38,10 @@ struct VAR_DATA *get_var(struct SCOPE *scope, char *name)
 
 		var = var->next;
 	}
+
+	if(scope->parent != NULL)
+		return get_var(scope->parent, name);
+
 	return NULL;
 }
 
@@ -70,32 +74,64 @@ struct SCOPE *create_scope(struct SCOPE *parent)
 {
 	struct SCOPE *scope = malloc(sizeof(struct SCOPE));
 	scope->parent = parent;
+	scope->first_child = NULL;
+	scope->last_child = NULL;
+	scope->next = NULL;
 	scope->first_var = NULL;
 	scope->last_var = NULL;
+
+	if(parent != NULL)
+	{
+		if(parent->first_child == NULL)
+		{
+			parent->first_child = scope;
+			parent->last_child = scope;
+		}
+		else
+		{
+			parent->last_child->next = scope;
+			parent->last_child = scope;
+		}
+	}
+
 	return scope;
 }
 
 
-void free_scope(struct SCOPE *scope) //futureproofing
+void free_scope(struct SCOPE *scope)
 {
+	if(scope->first_child != NULL)
+	{
+		struct SCOPE *child = scope->first_child;
+		while(child != NULL)
+		{
+			struct SCOPE *next = child->next;
+			free_scope(child);
+			child = next;
+		}
+	}
+
 	free_var_list(scope->first_var);
 	free(scope);
 }
 
 
-void validate_tree(struct NODE *node) //Exits on failure
+void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits on failure
 {
-	assert(node->type == AST_ROOT);
+	assert(node->type == AST_BLOCK);
 	node = node->first_child;
-
-	struct SCOPE *root_scope = create_scope(NULL);
-	struct SCOPE *scope = root_scope;
 
 	//"foreach" node
 	while(node != NULL)
 	{
 		switch(node->type)
 		{
+			case AST_BLOCK:
+			{
+				validate_block(node, create_scope(scope), level + 1);
+				break;
+			}
+
 			case AST_DEF:
 			{
 				assert(count_node_children(node) == 1);
@@ -162,6 +198,4 @@ void validate_tree(struct NODE *node) //Exits on failure
 
 		node = node->next_node;
 	}
-
-	free_scope(root_scope);
 }
