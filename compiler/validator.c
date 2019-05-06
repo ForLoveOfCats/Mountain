@@ -11,6 +11,18 @@
 int count;
 
 
+bool type_is_number(char *type)
+{
+	if(strcmp(type, "Number") == 0)
+		return true;
+
+	else if(strcmp(type, "Int32") == 0)
+		return true;
+
+	return false;
+}
+
+
 struct VAR_DATA *add_var(struct SCOPE *scope, char *name, char *type, int line)
 {
 	struct VAR_DATA *var = malloc(sizeof(struct VAR_DATA));
@@ -157,9 +169,9 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				struct VAR_DATA *var = add_var(scope, node->variable_name, node->type_name, node->line_number);
 				node->index = var->index;
 
-				if(strcmp(node->type_name, "Int32") != 0) //TODO allow non-int values
+				if(!type_is_number(node->type_name)) //TODO allow non-numerica types
 				{
-					printf("Validation error @ line %i: Variable defined with non-Int32 type\n", node->line_number);
+					printf("Validation error @ line %i: Variable defined with non-numerical type '%s'\n", node->line_number, node->type_name);
 					exit(EXIT_FAILURE);
 				}
 
@@ -180,8 +192,11 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 
 				if(strcmp(var->type, node->first_child->type_name) != 0)
 				{
-					printf("Validation error @ line %i: Cannot set variable '%s' due to type mismatch\n", node->line_number, node->variable_name);
-					exit(EXIT_FAILURE);
+					if( !(type_is_number(var->type) && type_is_number(node->first_child->type_name)) )
+					{
+						printf("Validation error @ line %i: Cannot set variable '%s' due to type mismatch\n", node->line_number, node->variable_name);
+						exit(EXIT_FAILURE);
+					}
 				}
 
 				node->index = var->index;

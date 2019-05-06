@@ -5,6 +5,9 @@
 #include "ast.h"
 
 
+bool type_is_number(char *type);
+
+
 struct SCOPE
 {
 	struct SCOPE *parent;

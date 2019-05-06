@@ -43,14 +43,12 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				transpile_block(target, node, level + 1);
 				break;
 
-			case AST_VAR: //TODO Support non-int types
-				assert(strcmp(node->type_name, "Int32") == 0);
+			case AST_VAR:
 				assert(node->index >= 0);
 				fprintf(target, "%s var_%i = %s;\n", type_to_c(node->type_name), node->index, node->first_child->literal_string);
 				break;
 
 			case AST_SET:
-				assert(strcmp(node->type_name, "Int32") == 0);
 				assert(node->index >= 0);
 				fprintf(target, "var_%i = %s;\n", node->index, node->first_child->literal_string);
 				break;

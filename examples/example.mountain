@@ -5,5 +5,3 @@ var:Int32 another_number = 69;
 {
     another_number = 3;
 }
-
-
