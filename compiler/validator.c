@@ -181,7 +181,6 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				if(strcmp(var->type, node->first_child->type_name) != 0)
 				{
 					printf("Validation error @ line %i: Cannot set variable '%s' due to type mismatch\n", node->line_number, node->variable_name);
-					printf("Var type: '%s'     Set type: '%s'\n", var->type, node->first_child->type_name);
 					exit(EXIT_FAILURE);
 				}
 

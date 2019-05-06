@@ -29,6 +29,7 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 	if(!inner_block)
 	{
 		fprintf(target, "#include <stdint.h>\n\n");
+		fprintf(target, "int main() {\n");
 	}
 
 	fprintf(target, "{\n");
@@ -61,5 +62,8 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 		node = node->next;
 	}
 
-	fprintf(target, "}\n");
+	if(inner_block)
+		fprintf(target, "}\n");
+	else
+		fprintf(target, "}\n}\n");
 }
