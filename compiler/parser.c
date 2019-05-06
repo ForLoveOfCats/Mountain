@@ -314,7 +314,10 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			expect(token, TOKEN_EQUALS);
 
 			NEXT_TOKEN(token);
-			add_node(new_node, parse_next_expression(&token)); //Should read to semicolon
+			struct NODE *expression = parse_next_expression(&token);
+			add_node(new_node, expression); //Should read to semicolon
+			free(new_node->type_name);
+			new_node->type_name = strdup(expression->type_name);
 
 			add_node(current_parse_parent_node, new_node);
 

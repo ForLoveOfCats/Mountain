@@ -4,4 +4,4 @@
 #include "ast.h"
 
 
-void transpile_node(FILE *target, struct NODE *node);
+void transpile_block(FILE *target, struct NODE *node, int level);

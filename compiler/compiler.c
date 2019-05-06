@@ -28,13 +28,13 @@ FILE *open_source_file(char *path)
 
 int main(int arg_count, char *arg_array[])
 {
-	if(arg_count != 2)
+	if(arg_count != 3)
 	{
-		printf("Please provide a file path to compile\n");
+		printf("Please provide an output path and an input path to compile\n");
 		return EXIT_FAILURE;
 	}
 
-	FILE *source_file = open_source_file(arg_array[1]);
+	FILE *source_file = open_source_file(arg_array[2]);
 
 	root_node = create_node(AST_BLOCK, -1);
 	current_parse_parent_node = root_node;
@@ -45,8 +45,11 @@ int main(int arg_count, char *arg_array[])
 
 	struct SCOPE *scope = create_scope(NULL);
 	validate_block(root_node, scope, 0);
-	free_scope_tree(scope);
 
+	FILE *output_file = fopen(arg_array[1], "w");
+	transpile_block(output_file, root_node, 0);
+
+	free_scope_tree(scope);
 	free_tree(root_node);
 
 	fclose(source_file);

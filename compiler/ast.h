@@ -22,6 +22,8 @@ struct NODE
 
 	int line_number;
 
+	int index;
+
 	char *type_name; //For var, get, and set
 
 	char *variable_name; //var's and set's name

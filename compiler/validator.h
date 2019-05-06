@@ -24,6 +24,8 @@ struct VAR_DATA
 	char *name;
 	char *type;
 	int line;
+
+	int index;
 };
 
 

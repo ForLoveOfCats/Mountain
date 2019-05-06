@@ -8,7 +8,10 @@
 #include "validator.h"
 
 
-void add_var(struct SCOPE *scope, char *name, char *type, int line)
+int count;
+
+
+struct VAR_DATA *add_var(struct SCOPE *scope, char *name, char *type, int line)
 {
 	struct VAR_DATA *var = malloc(sizeof(struct VAR_DATA));
 	var->next = NULL;
@@ -16,15 +19,19 @@ void add_var(struct SCOPE *scope, char *name, char *type, int line)
 	var->type = strdup(type);
 	var->line = line;
 
+	var->index = count;
+	count++;
+
 	if(scope->first_var == NULL)
 	{
 		scope->first_var = var;
 		scope->last_var = var;
-		return;
+		return var;
 	}
 
 	scope->last_var->next = var;
 	scope->last_var = var;
+	return var;
 }
 
 
@@ -122,6 +129,10 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 	assert(node->type == AST_BLOCK);
 	node = node->first_child;
 
+	assert(level >= 0);
+	if(level == 0)
+		count = 0;
+
 	//"foreach" node
 	while(node != NULL)
 	{
@@ -143,7 +154,8 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 					       node->line_number, node->variable_name, get_var(scope, node->variable_name)->line);
 					exit(EXIT_FAILURE);
 				}
-				add_var(scope, node->variable_name, node->type_name, node->line_number);
+				struct VAR_DATA *var = add_var(scope, node->variable_name, node->type_name, node->line_number);
+				node->index = var->index;
 
 				if(strcmp(node->type_name, "Int") != 0) //TODO allow non-int values
 				{
@@ -172,6 +184,8 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 					printf("Var type: '%s'     Set type: '%s'\n", var->type, node->first_child->type_name);
 					exit(EXIT_FAILURE);
 				}
+
+				node->index = var->index;
 			}
 
 			default: //To get ccls to shut up
