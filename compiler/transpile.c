@@ -1,9 +1,22 @@
+#include <stdlib.h>
 #include <stdbool.h>
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "ast.h"
+
+
+char *type_to_c(char *type)
+{
+	if(strcmp(type, "Int32") == 0)
+	{
+	  return "int32_t";
+	}
+
+	printf("Invalid type to transpile '%s'\n", type);
+	exit(EXIT_FAILURE);
+}
 
 
 void transpile_block(FILE *target, struct NODE *node, int level) //This is in no way efficient...
@@ -30,12 +43,14 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				break;
 
 			case AST_VAR: //TODO Support non-int types
-				assert(strcmp(node->type_name, "Int") == 0);
-				fprintf(target, "int32_t var_%i = %s;\n", node->index, node->first_child->literal_string);
+				assert(strcmp(node->type_name, "Int32") == 0);
+				assert(node->index >= 0);
+				fprintf(target, "%s var_%i = %s;\n", type_to_c(node->type_name), node->index, node->first_child->literal_string);
 				break;
 
 			case AST_SET:
-				assert(strcmp(node->type_name, "Int") == 0);
+				assert(strcmp(node->type_name, "Int32") == 0);
+				assert(node->index >= 0);
 				fprintf(target, "var_%i = %s;\n", node->index, node->first_child->literal_string);
 				break;
 

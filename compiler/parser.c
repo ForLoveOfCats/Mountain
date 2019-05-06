@@ -239,7 +239,7 @@ struct NODE *parse_next_expression(struct TOKEN **token)
 			free(expression_root->literal_string);
 			expression_root->literal_string = strdup((*token)->string);
 			free(expression_root->type_name);
-			expression_root->type_name = strdup("Int"); //HACK FIXME This is the set type hardcoded to Int
+			expression_root->type_name = strdup("Int32"); //HACK FIXME This is the set type hardcoded to Int32
 		}
 		else
 		{

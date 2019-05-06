@@ -1,6 +1,6 @@
 #Variable declaration with value
-var:Int lucky_number = 42;
-var:Int another_number = 69;
+var:Int32 lucky_number = 42;
+var:Int32 another_number = 69;
 
 {
     another_number = 3;

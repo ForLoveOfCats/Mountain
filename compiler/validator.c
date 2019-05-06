@@ -157,9 +157,9 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				struct VAR_DATA *var = add_var(scope, node->variable_name, node->type_name, node->line_number);
 				node->index = var->index;
 
-				if(strcmp(node->type_name, "Int") != 0) //TODO allow non-int values
+				if(strcmp(node->type_name, "Int32") != 0) //TODO allow non-int values
 				{
-					printf("Validation error @ line %i: Variable defined with non-Int type\n", node->line_number);
+					printf("Validation error @ line %i: Variable defined with non-Int32 type\n", node->line_number);
 					exit(EXIT_FAILURE);
 				}
 
