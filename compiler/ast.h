@@ -24,9 +24,6 @@ struct NODE
 
 	char *type_name; //For var, get, and set
 
-	uint32_t stack_len;
-	uint32_t def_location; //Where in the stack the var is if var or get
-
 	char *variable_name; //var's and set's name
 
 	enum LITERAL_TYPE literal_type;

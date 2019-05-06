@@ -275,8 +275,6 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		if(strcmp(token->string, "var") == 0) //mutable variable declaration
 		{
 			struct NODE *new_node = create_node(AST_VAR, token->line_number);
-			new_node->def_location = current_parse_parent_node->stack_len;
-			current_parse_parent_node->stack_len += 1;
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_COLON);

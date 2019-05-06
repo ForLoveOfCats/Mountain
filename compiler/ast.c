@@ -23,9 +23,6 @@ struct NODE *create_node(enum AST_TYPE type, int line_number)
 
 	new_node->type_name = strdup("");
 
-	new_node->stack_len = 0;
-	new_node->def_location = 0;
-
 	new_node->variable_name = strdup("");
 
 	new_node->literal_string = strdup("");
