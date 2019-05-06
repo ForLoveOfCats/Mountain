@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "ast.h"
+#include "validator.h"
 
 
 char *type_to_c(char *type)
@@ -16,6 +17,14 @@ char *type_to_c(char *type)
 
 	printf("Invalid type to transpile '%s'\n", type);
 	exit(EXIT_FAILURE);
+}
+
+
+void transpile_expression(FILE *target, struct NODE *node)
+{
+	assert(type_is_number(node->type_name)); //TODO support non-numerical values
+
+	fprintf(target, "((float)%s)", node->literal_string);
 }
 
 
@@ -45,12 +54,16 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 
 			case AST_VAR:
 				assert(node->index >= 0);
-				fprintf(target, "%s var_%i = %s;\n", type_to_c(node->type_name), node->index, node->first_child->literal_string);
+				fprintf(target, "%s var_%i = ", type_to_c(node->type_name), node->index, node->first_child->literal_string);
+				transpile_expression(target, node->first_child);
+				fprintf(target, ";\n");
 				break;
 
 			case AST_SET:
 				assert(node->index >= 0);
-				fprintf(target, "var_%i = %s;\n", node->index, node->first_child->literal_string);
+				fprintf(target, "var_%i = ", node->index, node->first_child->literal_string);
+				transpile_expression(target, node->first_child);
+				fprintf(target, ";\n");
 				break;
 
 			default:
