@@ -19,6 +19,7 @@
 * Variable redeclaration with different type (see Rust's variable shadowing)
 * Special form of pointer which manages autofreeing
 * First class types
+* Inline type casting without enclosing value in parenthesis
 * First class methods
 * Inline methods
 * Named blocks/named break
