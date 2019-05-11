@@ -7,6 +7,10 @@
 * Type inheritance with multiple inheritance
 * Interfaces
 * Interface inheritance with multiple inheritance
+* Overriding inherited methods
+* Method overloading
+* Operator overloading
+* Infix functions
 * Some sort of foreach with iterators (interface?)
 * Native enum iteration
 * Native enum to string conversion
