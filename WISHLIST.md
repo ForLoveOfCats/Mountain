@@ -38,7 +38,7 @@ function prototype in resulting C source)
 * Concept of a "world" or "reality", alowing the ergonomics of global
 variables without the fragility
 * Tests as a language feature
-* Automatic HTML (and other formats) documetation generating (with doc-coments)
+* Automatic HTML (and other formats) documentation generation (with doc-coments)
 * Some form of metaprogramming/compiler time code generation
 * Modify collections while foreaching through them (possibly feasable?)
 * A language server for IDE features
