@@ -91,6 +91,18 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					goto return_car_as_token;
 				}
 
+				case '+':
+				{
+					token->type = TOKEN_ADD;
+					goto return_car_as_token;
+				}
+
+				case '-':
+				{
+					token->type = TOKEN_SUB;
+					goto return_car_as_token;
+				}
+
 				case '(':
 				{
 					token->type = TOKEN_OPEN_PARENTHESES;
@@ -126,6 +138,8 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 			case ';':
 			case '#':
 			case '=':
+			case '+':
+			case '-':
 			case '(':
 			case ')':
 			case '{':
@@ -222,15 +236,160 @@ int is_number(const char *s) //Adapted from rosettacode.org
 }
 
 
-struct NODE *parse_next_expression(struct TOKEN **token)
+bool token_is_op(struct TOKEN *token)
+{
+	switch(token->type)
+	{
+		case TOKEN_ADD:
+			return true;
+
+		case TOKEN_SUB:
+			return true;
+
+ 		default:
+			return false;
+	}
+}
+
+
+void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKEN *end)
+{
+	struct TOKEN *token = start;
+	int value_count = 0;
+	bool last_was_end = false; //I hate this
+	bool last_was_value = false;
+	while(true)
+	{
+		if(last_was_end) //This sucks
+		  break; //Oh god why
+		printf("Iterating %s\n", token->string);
+
+		if(!token_is_op(token)) //not a token
+		{
+			//TODO FIXME right now we assume that it is a `Number`
+			assert(is_number(token->string));
+
+			if(last_was_value)
+			{
+				printf("Parse error @ line %i column %i: Expected operator, found value '%s'\n",
+				       token->line_number, token->start_char, token->string);
+				exit(EXIT_FAILURE);
+			}
+
+			printf("Was value\n");
+			last_was_value = true;
+			value_count++;
+		}
+		else //is a token
+		{
+			if(token->type == TOKEN_SUB && value_count == 0) //leading minus for negative number
+			{}
+			else
+			{
+				if(value_count % 2 == 0)
+				{
+					printf("Parse error @ line %i column %i: Expected value, found '%s'\n",
+					       token->line_number, token->start_char, token->string);
+					exit(EXIT_FAILURE);
+				}
+
+				last_was_value = false;
+			}
+		}
+
+		last_was_end = token == end; //End my suffering
+		token = token->next;
+	}
+
+}
+
+
+struct NODE *parse_expression_to_semicolon(struct TOKEN **token)
+{
+	struct NODE *expression_root = create_node(AST_EXPRESSION, (*token)->line_number);
+
+	//TODO count parenthesis to validate
+	struct TOKEN *start = *token;
+	struct TOKEN *end = *token;
+	while((*token)->type != TOKEN_SEMICOLON)
+	{
+		end = *token;
+
+		*token = (*token)->next;
+		if(token == NULL) //We know we reached the end of the file before hitting a semicolon
+		{
+			printf("Parse error: Expected semicolon, found end of file\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	parse_expression_bounds(expression_root, start, end);
+	return expression_root;
+}
+
+
+struct NODE *parse_next_expression(struct TOKEN **token) //NOTE unused, currently kept for reference
 {
 	//NOTE TODO FIXME HACK
-	//For now we are just assuming that any expression is an integer
+	//For now we are just assuming that any expression is a number or math expression
 	//this is VERY BAD(tm) and should be improved ASAP
 
-	struct NODE *expression_root = create_node(AST_BLOCK, (*token)->line_number); //NOTE AST type is set later
+	int node_count = 0;
+	struct NODE *expression_root = create_node(AST_EXPRESSION, (*token)->line_number);
+	struct NODE *current_parent = expression_root;
 
 	while((*token)->type != TOKEN_SEMICOLON)
+	{
+		if(token_is_op(*token))
+ 		{
+			/*if(node_count % 2 == 0)
+			{
+				printf("Parse error @ line %i column %i: Expected value, found '%s'\n",
+				       (*token)->line_number, (*token)->start_char, (*token)->string);
+				exit(EXIT_FAILURE);
+			}*/
+
+			struct NODE *new_node = create_node(AST_OP, (*token)->line_number);
+			switch((*token)->type)
+			{
+				case TOKEN_ADD:
+					new_node->op_type = OP_ADD;
+					break;
+
+				case TOKEN_SUB:
+					new_node->op_type = OP_SUB;
+					break;
+
+				default:
+					printf("INTERNAL ERROR: op_type was not set but should have been\n");
+					exit(EXIT_FAILURE);
+			}
+			add_node(current_parent, new_node);
+			current_parent = new_node;
+			node_count++;
+		}
+		else //Number, variable get, or function call
+		{
+		  assert(is_number((*token)->string));
+		  struct NODE *new_node = create_node(AST_LITERAL, (*token)->line_number);
+		  free(new_node->type_name);
+		  new_node->type_name = strdup("Number");
+		  add_node(current_parent, new_node);
+		  node_count++;
+		}
+
+
+		(*token) = (*token)->next;
+	}
+
+	if(node_count <= 0)
+	{
+		printf("Parse error @ line %i column %i: Expected value, found semicolon\n",
+		       (*token)->line_number, (*token)->start_char);
+		exit(EXIT_FAILURE);
+	}
+
+	/*while((*token)->type != TOKEN_SEMICOLON)
 	{
 		if(is_number((*token)->string))
 		{
@@ -249,9 +408,12 @@ struct NODE *parse_next_expression(struct TOKEN **token)
 		}
 
 		(*token) = (*token)->next;
-	}
+	}*/
 
 	assert(expression_root->type != AST_BLOCK);
+	free(expression_root->type_name);
+	expression_root->type_name = strdup(expression_root->first_child->type_name);
+
 	return expression_root;
 }
 
@@ -293,7 +455,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			expect(token, TOKEN_EQUALS);
 
 			NEXT_TOKEN(token);
-			add_node(new_node, parse_next_expression(&token)); //Should read to semicolon
+			add_node(new_node, parse_expression_to_semicolon(&token));
 
 			add_node(current_parse_parent_node, new_node);
 
@@ -314,8 +476,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			expect(token, TOKEN_EQUALS);
 
 			NEXT_TOKEN(token);
-			struct NODE *expression = parse_next_expression(&token);
-			add_node(new_node, expression); //Should read to semicolon
+			struct NODE *expression = parse_expression_to_semicolon(&token);
+			add_node(new_node, expression);
 			free(new_node->type_name);
 			new_node->type_name = strdup(expression->type_name);
 

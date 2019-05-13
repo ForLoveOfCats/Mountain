@@ -8,7 +8,8 @@ struct NODE *current_parse_parent_node;
 
 
 
-enum AST_TYPE {AST_BLOCK, AST_VAR, AST_SET, AST_LITERAL};
+enum AST_TYPE {AST_BLOCK, AST_VAR, AST_SET, AST_EXPRESSION, AST_LITERAL, AST_OP};
+enum OP_TYPE {OP_NONE, OP_ADD, OP_SUB};
 enum LITERAL_TYPE {LITERAL_INT};
 
 struct NODE
@@ -25,11 +26,12 @@ struct NODE
 	int index;
 
 	char *type_name; //For var, get, and set
-
 	char *variable_name; //var's and set's name
 
 	enum LITERAL_TYPE literal_type;
 	char *literal_string;
+
+	enum OP_TYPE op_type;
 };
 
 

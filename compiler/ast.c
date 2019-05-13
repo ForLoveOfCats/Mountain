@@ -24,10 +24,11 @@ struct NODE *create_node(enum AST_TYPE type, int line_number)
 	new_node->index = -1;
 
 	new_node->type_name = strdup("");
-
 	new_node->variable_name = strdup("");
 
 	new_node->literal_string = strdup("");
+
+	new_node->op_type = OP_NONE;
 
 	return new_node;
 }

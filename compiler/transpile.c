@@ -54,14 +54,14 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 
 			case AST_VAR:
 				assert(node->index >= 0);
-				fprintf(target, "%s var_%i = ", type_to_c(node->type_name), node->index, node->first_child->literal_string);
+				fprintf(target, "%s var_%i = ", type_to_c(node->type_name), node->index);
 				transpile_expression(target, node->first_child);
 				fprintf(target, ";\n");
 				break;
 
 			case AST_SET:
 				assert(node->index >= 0);
-				fprintf(target, "var_%i = ", node->index, node->first_child->literal_string);
+				fprintf(target, "var_%i = ", node->index);
 				transpile_expression(target, node->first_child);
 				fprintf(target, ";\n");
 				break;
