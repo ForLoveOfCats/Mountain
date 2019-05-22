@@ -254,22 +254,24 @@ bool token_is_op(struct TOKEN *token)
 
 void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKEN *end)
 {
+	enum LAST_TYPE {NONE, VALUE, OP};
+
 	struct TOKEN *token = start;
 	int value_count = 0;
 	bool last_was_end = false; //I hate this
-	bool last_was_value = false;
+	enum LAST_TYPE last_type = NONE;
 	while(true)
 	{
 		if(last_was_end) //This sucks
 		  break; //Oh god why
 		printf("Iterating %s\n", token->string);
 
-		if(!token_is_op(token)) //not a token
+		if(!token_is_op(token)) //is a value
 		{
 			//TODO FIXME right now we assume that it is a `Number`
 			assert(is_number(token->string));
 
-			if(last_was_value)
+			if(last_type == VALUE)
 			{
 				printf("Parse error @ line %i column %i: Expected operator, found value '%s'\n",
 				       token->line_number, token->start_char, token->string);
@@ -277,10 +279,10 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			}
 
 			printf("Was value\n");
-			last_was_value = true;
+			last_type = VALUE;
 			value_count++;
 		}
-		else //is a token
+		else //is an op
 		{
 			if(token->type == TOKEN_SUB && value_count == 0) //leading minus for negative number
 			{}
@@ -293,7 +295,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 					exit(EXIT_FAILURE);
 				}
 
-				last_was_value = false;
+				last_type = OP;
 			}
 		}
 
@@ -304,7 +306,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 }
 
 
-struct NODE *parse_expression_to_semicolon(struct TOKEN **token)
+struct NODE *parse_expression_to_semicolon(struct TOKEN **token) //TODO: Error on no token before semicolon
 {
 	struct NODE *expression_root = create_node(AST_EXPRESSION, (*token)->line_number);
 
