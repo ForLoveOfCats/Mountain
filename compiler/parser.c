@@ -304,6 +304,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 
 			struct NODE *new_node = create_node(AST_LITERAL, token->line_number);
 			new_node->literal_type = LITERAL_NUMBER;
+			free(new_node->literal_string);
 			new_node->literal_string = strdup(token->string);
 
 			if(left_value_node == NULL)
