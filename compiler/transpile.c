@@ -45,6 +45,14 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 				fprintf(target, " - ");
 				break;
 
+			case OP_MUL:
+				fprintf(target, " * ");
+				break;
+
+			case OP_DIV:
+				fprintf(target, " / ");
+				break;
+
 			default:
 				printf("INTERNAL ERROR: We don't know how to transpile this op\n");
 				exit(EXIT_FAILURE);

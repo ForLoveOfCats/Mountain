@@ -103,6 +103,18 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					goto return_car_as_token;
 				}
 
+				case '*':
+				{
+					token->type = TOKEN_MUL;
+					goto return_car_as_token;
+				}
+
+				case '/':
+				{
+					token->type = TOKEN_DIV;
+					goto return_car_as_token;
+				}
+
 				case '(':
 				{
 					token->type = TOKEN_OPEN_PARENTHESES;
@@ -140,6 +152,8 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 			case '=':
 			case '+':
 			case '-':
+			case '*':
+			case '/':
 			case '(':
 			case ')':
 			case '{':
@@ -241,9 +255,9 @@ bool token_is_op(struct TOKEN *token)
 	switch(token->type)
 	{
 		case TOKEN_ADD:
-			return true;
-
 		case TOKEN_SUB:
+		case TOKEN_MUL:
+		case TOKEN_DIV:
 			return true;
 
  		default:
@@ -257,11 +271,12 @@ int get_op_precedence(enum OP_TYPE op)
 	switch(op)
 	{
 		case OP_ADD:
-			return 0;
-			break;
-
 		case OP_SUB:
 			return 0;
+
+		case OP_MUL:
+		case OP_DIV:
+			return 1;
 
 		default:
 			printf("INTERNAL ERROR: Unimplimented op precedence\n");
@@ -276,6 +291,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 
 	enum LAST_TYPE {NONE, VALUE, OP};
 
+	struct NODE *root_op_node = NULL;
 	struct NODE *current_op_node = NULL;
 	struct NODE *left_value_node = NULL;
 
@@ -347,25 +363,49 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 						new_node->op_type = OP_SUB;
 						break;
 
+					case TOKEN_MUL:
+						new_node->op_type = OP_MUL;
+						break;
+
+					case TOKEN_DIV:
+						new_node->op_type = OP_DIV;
+						break;
+
 					default:
 						printf("Parse error @ line %i column %i: Cannot convert operation token to operation\n",
 							   token->line_number, token->start_char);
 						exit(EXIT_FAILURE);
 				}
 
-				if(current_op_node == NULL)
+				if(root_op_node == NULL)
 				{
 					current_op_node = new_node;
+					root_op_node = current_op_node;
 					add_node(current_op_node, left_value_node);
 				}
 				else
 				{
-					if(get_op_precedence(current_op_node->op_type) >= get_op_precedence(new_node->op_type))
+					if(get_op_precedence(current_op_node->op_type) >= get_op_precedence(new_node->op_type)) //Same or lower
 					{
 						struct NODE *old_op_node = current_op_node;
-						current_op_node = new_node;
-						add_node(current_op_node, old_op_node);
+
+						if(old_op_node->parent != NULL)
+							remove_node(old_op_node->parent, old_op_node);
+						add_node(new_node, old_op_node);
+
 						left_value_node = old_op_node;
+						current_op_node = new_node;
+						root_op_node = current_op_node;
+					}
+					else //Higher
+					{
+						struct NODE *right_child = current_op_node->last_child;
+						remove_node(current_op_node, right_child);
+						add_node(new_node, right_child); //Is now the left value of the new op
+						assert(left_value_node == NULL);
+						left_value_node = right_child;
+						add_node(current_op_node, new_node);
+						current_op_node = new_node;
 					}
 				}
 
@@ -384,9 +424,9 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 	}
 	else
 	{
-		assert(current_op_node != NULL);
-		printf("%i\n", recursive_count_node_children(current_op_node));
-		add_node(root, current_op_node);
+		assert(root_op_node != NULL);
+		printf("%i\n", recursive_count_node_children(root_op_node));
+		add_node(root, root_op_node);
 	}
 }
 

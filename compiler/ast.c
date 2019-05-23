@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -16,6 +17,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number)
 
 	new_node->parent = NULL;
 	new_node->next = NULL;
+	new_node->previous = NULL;
 	new_node->first_child = NULL;
 	new_node->last_child = NULL;
 
@@ -47,8 +49,31 @@ void add_node(struct NODE *parent, struct NODE *new_node)
 	else
 	{
 		parent->last_child->next = new_node;
+		new_node->previous = parent->last_child;
 		parent->last_child = new_node;
 	}
+}
+
+
+void remove_node(struct NODE *parent, struct NODE *child)
+{
+	if(parent->last_child == child)
+		parent->last_child = child->previous;
+
+	if(child->previous == NULL) //We are the first node
+	{
+		parent->first_child = child->next; //This is fine if next is NULL
+		if(child->next != NULL)
+			child->next->previous = NULL;
+	}
+	else //We are *not* the first node
+	{
+		child->previous->next = child->next; //This is fine if next is NULL
+		if(child->next != NULL)
+			child->next->previous = child->previous;
+	}
+
+	child->parent = NULL;
 }
 
 
