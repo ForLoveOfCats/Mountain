@@ -300,10 +300,8 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 	bool last_was_end = false; //I hate this
 	enum LAST_TYPE last_type = NONE;
 
-	while(true)
+	while(!last_was_end)
 	{
-		if(last_was_end) //This sucks
-		  break; //Oh god why
 		printf("Iterating %s\n", token->string);
 
 		if(!token_is_op(token)) //is a value
@@ -425,7 +423,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			}
 		}
 
-		last_was_end = token == end; //End my suffering
+		last_was_end = token == end;
 		token = token->next;
 	}
 
