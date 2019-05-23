@@ -302,8 +302,6 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 
 	while(!last_was_end)
 	{
-		printf("Iterating %s\n", token->string);
-
 		if(!token_is_op(token)) //is a value
 		{
 			//TODO FIXME right now we assume that it is a `Number`
@@ -329,7 +327,6 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				left_value_node = NULL;
 			}
 
-			printf("Was value\n");
 			last_type = VALUE;
 			value_count++;
 		}
@@ -396,12 +393,10 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 
 						if(old_op_node == root_op_node)
 						{
-							printf("same or lower, setting root_op_node = new_node\n");
 							root_op_node = new_node;
 						}
 						else
 						{
-							printf("same or lower, adding new_node to old_parent\n");
 							add_node(old_parent, new_node);
 						}
 
@@ -435,7 +430,6 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 	else
 	{
 		assert(root_op_node != NULL);
-		printf("%i\n", recursive_count_node_children(root_op_node));
 		add_node(root, root_op_node);
 	}
 }
