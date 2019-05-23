@@ -10,7 +10,7 @@ struct NODE *current_parse_parent_node;
 
 enum AST_TYPE {AST_BLOCK, AST_VAR, AST_SET, AST_EXPRESSION, AST_LITERAL, AST_OP};
 enum OP_TYPE {OP_NONE, OP_ADD, OP_SUB};
-enum LITERAL_TYPE {LITERAL_INT};
+enum LITERAL_TYPE {LITERAL_NUMBER};
 
 struct NODE
 {

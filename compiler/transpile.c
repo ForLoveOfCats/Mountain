@@ -20,11 +20,41 @@ char *type_to_c(char *type)
 }
 
 
-void transpile_expression(FILE *target, struct NODE *node)
+void transpile_expression(FILE *target, struct NODE *node) //TODO support non-numerical values
 {
-	assert(type_is_number(node->type_name)); //TODO support non-numerical values
+	if(node->type == AST_EXPRESSION)
+	{
+		printf("Expression node\n");
+		transpile_expression(target, node->first_child);
+		return;
+	}
+	printf("Children %i\n", count_node_children(node));
 
-	fprintf(target, "((float)%s)", node->literal_string);
+	fprintf(target, "(");
+
+	if(node->type == AST_OP)
+	{
+		transpile_expression(target, node->first_child);
+		switch(node->op_type)
+		{
+			case OP_ADD:
+				fprintf(target, " + ");
+				break;
+
+			case OP_SUB:
+				fprintf(target, " - ");
+				break;
+
+			default:
+				printf("INTERNAL ERROR: We don't know how to transpile this op\n");
+				exit(EXIT_FAILURE);
+		}
+		transpile_expression(target, node->first_child->next);
+	}
+	else
+		fprintf(target, "%s", node->literal_string);
+
+	fprintf(target, ")");
 }
 
 

@@ -48,6 +48,7 @@ int main(int arg_count, char *arg_array[])
 
 	FILE *output_file = fopen(arg_array[1], "w");
 	transpile_block(output_file, root_node, 0);
+	fclose(output_file);
 
 	free_scope_tree(scope);
 	free_tree(root_node);
