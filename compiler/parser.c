@@ -388,14 +388,26 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 					if(get_op_precedence(current_op_node->op_type) >= get_op_precedence(new_node->op_type)) //Same or lower
 					{
 						struct NODE *old_op_node = current_op_node;
+						struct NODE *old_parent = old_op_node->parent;
 
 						if(old_op_node->parent != NULL)
 							remove_node(old_op_node->parent, old_op_node);
 						add_node(new_node, old_op_node);
 
 						left_value_node = old_op_node;
+
+						if(old_op_node == root_op_node)
+						{
+							printf("same or lower, setting root_op_node = new_node\n");
+							root_op_node = new_node;
+						}
+						else
+						{
+							printf("same or lower, adding new_node to old_parent\n");
+							add_node(old_parent, new_node);
+						}
+
 						current_op_node = new_node;
-						root_op_node = current_op_node;
 					}
 					else //Higher
 					{
