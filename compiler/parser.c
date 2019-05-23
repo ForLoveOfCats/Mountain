@@ -252,14 +252,38 @@ bool token_is_op(struct TOKEN *token)
 }
 
 
-void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKEN *end)
+int get_op_precedence(enum OP_TYPE op)
 {
+	switch(op)
+	{
+		case OP_ADD:
+			return 0;
+			break;
+
+		case OP_SUB:
+			return 0;
+
+		default:
+			printf("INTERNAL ERROR: Unimplimented op precedence\n");
+			exit(EXIT_FAILURE);
+	}
+}
+
+
+void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKEN *end) //NOTE: these bounds are inclusive
+{
+	//TODO: We need to eventually handle periods in numbers once periods are their own token
+
 	enum LAST_TYPE {NONE, VALUE, OP};
+
+	struct NODE *current_op_node = NULL;
+	struct NODE *left_value_node = NULL;
 
 	struct TOKEN *token = start;
 	int value_count = 0;
 	bool last_was_end = false; //I hate this
 	enum LAST_TYPE last_type = NONE;
+
 	while(true)
 	{
 		if(last_was_end) //This sucks
@@ -278,6 +302,15 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				exit(EXIT_FAILURE);
 			}
 
+			struct NODE *new_node = create_node(AST_LITERAL, token->line_number);
+			if(left_value_node == NULL)
+				left_value_node = new_node;
+			else
+			{
+				add_node(current_op_node, new_node);
+				left_value_node = NULL;
+			}
+
 			printf("Was value\n");
 			last_type = VALUE;
 			value_count++;
@@ -285,14 +318,51 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 		else //is an op
 		{
 			if(token->type == TOKEN_SUB && value_count == 0) //leading minus for negative number
-			{}
+			{
+				printf("Parse warning @ line %i column %i: Negative numbers are not currently supported\n",
+				       token->line_number, token->start_char);
+				//TODO: Add negative number support
+			}
 			else
 			{
-				if(value_count % 2 == 0)
+				if(last_type != VALUE)
 				{
 					printf("Parse error @ line %i column %i: Expected value, found '%s'\n",
 					       token->line_number, token->start_char, token->string);
 					exit(EXIT_FAILURE);
+				}
+
+				struct NODE *new_node = create_node(AST_OP, token->line_number);
+				switch(token->type)
+				{
+					case TOKEN_ADD:
+						new_node->op_type = OP_ADD;
+						break;
+
+					case TOKEN_SUB:
+						new_node->op_type = OP_SUB;
+						break;
+
+					default:
+						printf("Parse error @ line %i column %i: Cannot convert operation token to operation\n",
+							   token->line_number, token->start_char);
+						exit(EXIT_FAILURE);
+				}
+
+				if(current_op_node == NULL)
+				{
+					current_op_node = new_node;
+					add_node(current_op_node, left_value_node);
+				}
+				else
+				{
+					if(get_op_precedence(current_op_node->op_type) >= get_op_precedence(new_node->op_type))
+					{
+						struct NODE *old_op_node = current_op_node;
+						current_op_node = new_node;
+						add_node(current_op_node, old_op_node);
+						left_value_node = old_op_node;
+					}
 				}
 
 				last_type = OP;
@@ -303,6 +373,17 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 		token = token->next;
 	}
 
+	if(value_count == 1)
+	{
+		assert(left_value_node != NULL);
+		add_node(root, left_value_node);
+	}
+	else
+	{
+		assert(current_op_node != NULL);
+		printf("%i\n", recursive_count_node_children(current_op_node));
+		add_node(root, current_op_node);
+	}
 }
 
 

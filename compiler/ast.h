@@ -44,4 +44,7 @@ void add_node(struct NODE *parent, struct NODE *new_node);
 int count_node_children(struct NODE *node);
 
 
+int recursive_count_node_children(struct NODE *node);
+
+
 void free_tree(struct NODE *child);

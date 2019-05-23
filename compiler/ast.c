@@ -67,6 +67,21 @@ int count_node_children(struct NODE *node)
 }
 
 
+int recursive_count_node_children(struct NODE *node)
+{
+	int count = count_node_children(node);
+
+	struct NODE *child = node->first_child;
+	while(child != NULL)
+	{
+		count += recursive_count_node_children(child);
+		child = child->next;
+	}
+
+	return count;
+}
+
+
 void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 {
 	struct NODE *child = node->first_child;
