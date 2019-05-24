@@ -9,6 +9,20 @@
 #include "ast.h"
 
 
+#define PARSE_ERROR_LC(line, column, ...) \
+	printf("Parse error @ line %i column %i: ", line, column); \
+	printf( __VA_ARGS__); \
+	printf("\n"); \
+	exit(EXIT_FAILURE); \
+
+
+#define PARSE_ERROR(...) \
+	printf("Parse error: "); \
+	printf( __VA_ARGS__); \
+	printf("\n"); \
+	exit(EXIT_FAILURE); \
+
+
 #define NEXT_TOKEN(token) \
 	if(token->next == NULL) \
 	{ \
@@ -233,8 +247,7 @@ void expect(struct TOKEN *token, enum TOKEN_TYPE expected)
 {
 	if(token->type != expected)
 	{
-		printf("Parse error on line %i, column %i. Expected %s: found %s\n", token->line_number, token->start_char, token_type_name[expected], token_type_name[token->type]);
-		exit(EXIT_FAILURE);
+		PARSE_ERROR_LC(token->line_number, token->start_char, "Expected %s but found %s", token_type_name[expected], token_type_name[token->type]);
 	}
 }
 
@@ -309,9 +322,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 
 			if(last_type == VALUE)
 			{
-				printf("Parse error @ line %i column %i: Expected operator, found value '%s'\n",
-				       token->line_number, token->start_char, token->string);
-				exit(EXIT_FAILURE);
+				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected operator but found value '%s'", token->string);
 			}
 
 			struct NODE *new_node = create_node(AST_LITERAL, token->line_number);
@@ -336,17 +347,14 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 		{
 			if(token->type == TOKEN_SUB && value_count == 0) //leading minus for negative number
 			{
-				printf("Parse warning @ line %i column %i: Negative numbers are not currently supported\n",
-				       token->line_number, token->start_char);
+				PARSE_ERROR_LC(token->line_number, token->start_char, "Negative numbers are not currently supported");
 				//TODO: Add negative number support
 			}
 			else
 			{
 				if(last_type != VALUE)
 				{
-					printf("Parse error @ line %i column %i: Expected value, found '%s'\n",
-					       token->line_number, token->start_char, token->string);
-					exit(EXIT_FAILURE);
+					PARSE_ERROR_LC(token->line_number, token->start_char, "Expected value but found '%s'", token->string);
 				}
 
 				struct NODE *new_node = create_node(AST_OP, token->line_number);
@@ -369,9 +377,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 						break;
 
 					default:
-						printf("Parse error @ line %i column %i: Cannot convert operation token to operation\n",
-							   token->line_number, token->start_char);
-						exit(EXIT_FAILURE);
+						PARSE_ERROR_LC(token->line_number, token->start_char, "Cannot convert operation token to operation");
 				}
 
 				if(root_op_node == NULL)
@@ -449,10 +455,9 @@ struct NODE *parse_expression_to_semicolon(struct TOKEN **token) //TODO: Error o
 		end = *token;
 
 		*token = (*token)->next;
-		if(token == NULL) //We know we reached the end of the file before hitting a semicolon
+		if(*token == NULL) //We know we reached the end of the file before hitting a semicolon
 		{
-			printf("Parse error: Expected semicolon, found end of file\n");
-			exit(EXIT_FAILURE);
+			PARSE_ERROR("Expected semicolon but found end of file");
 		}
 	}
 
@@ -563,8 +568,7 @@ struct TOKEN *parse_block(struct TOKEN *token, int level)
 		{
 			if(!inner_block)
 			{
-				printf("Parse error @ line %i column %i: Unexpected close brace\n", token->line_number, token->start_char);
-				exit(EXIT_FAILURE);
+				PARSE_ERROR_LC(token->line_number, token->start_char, "Unexpected close brace");
 			}
 
 			current_parse_parent_node = current_parse_parent_node->parent;
@@ -575,8 +579,7 @@ struct TOKEN *parse_block(struct TOKEN *token, int level)
 	//At this point we know that we have reached the end of the file
 	if(inner_block)
 	{
-		printf("Parse error: Expected close brace, found end of file\n");
-		exit(EXIT_FAILURE);
+		PARSE_ERROR("Expected close brace but found end of file")
 	}
 	return NULL;
 }
