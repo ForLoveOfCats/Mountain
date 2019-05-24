@@ -136,6 +136,46 @@ void free_scope_tree(struct SCOPE *scope)
 }
 
 
+char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //Exits on failure
+{
+	if(node->type == AST_EXPRESSION)
+	{
+		return typecheck_expression(node->first_child, scope, level + 1);
+	}
+
+	int child_count = count_node_children(node);
+	assert(child_count <= 2 && child_count >= 0);
+
+	if(child_count == 0)
+	{
+		return node->type_name;
+	}
+	else if(child_count == 1)
+	{
+		return typecheck_expression(node->next, scope, level +1);
+	}
+	else if(child_count == 2)
+	{
+		char *left_type = typecheck_expression(node->first_child, scope, level +1);
+		char *right_type = typecheck_expression(node->last_child, scope, level +1);
+
+		if(strcmp(left_type, right_type) != 0)
+		{
+			printf("Validation error @ line %i: Type mismatch between left and right values for operation in expression\n", //TODO: Include op column
+				   node->line_number);
+			exit(EXIT_FAILURE);
+		}
+		else
+			return left_type;
+	}
+	else
+	{
+		printf("INTERNAL ERROR: Unsupported child count of expression subnode\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
+
 void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits on failure
 {
 	assert(node->type == AST_BLOCK);
@@ -175,6 +215,14 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 					exit(EXIT_FAILURE);
 				}
 
+				char *expression_type = typecheck_expression(node->first_child, scope, 0);
+				if((strcmp(expression_type, node->type_name) != 0) && (type_is_number(expression_type) != type_is_number(node->type_name)))
+				{
+					printf("Validation error @ line %i: Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'\n",
+						   node->line_number, node->variable_name, node->type_name, expression_type);
+					exit(EXIT_FAILURE);
+				}
+
 				break;
 			}
 
@@ -190,13 +238,12 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 					exit(EXIT_FAILURE);
 				}
 
-				if(strcmp(var->type, node->first_child->type_name) != 0)
+				char *expression_type = typecheck_expression(node->first_child, scope, 0);
+				if((strcmp(expression_type, var->type) != 0) && (type_is_number(expression_type) != type_is_number(var->type)))
 				{
-					if( !(type_is_number(var->type) && type_is_number(node->first_child->type_name)) )
-					{
-						printf("Validation error @ line %i: Cannot set variable '%s' due to type mismatch\n", node->line_number, node->variable_name);
-						exit(EXIT_FAILURE);
-					}
+					printf("Validation error @ line %i: Type mismatch setting variable '%s' of type '%s' with expression of type '%s'\n",
+						   node->line_number, node->variable_name, var->type, expression_type);
+					exit(EXIT_FAILURE);
 				}
 
 				node->index = var->index;
