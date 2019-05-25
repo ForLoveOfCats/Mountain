@@ -461,6 +461,11 @@ struct NODE *parse_expression_to_semicolon(struct TOKEN **token) //TODO: Error o
 		}
 	}
 
+	if(start == end && start->type == TOKEN_SEMICOLON)
+	{
+		PARSE_ERROR_LC(start->line_number, start->start_char, "Expected expression before semicolon");
+	}
+
 	parse_expression_bounds(expression_root, start, end);
 	return expression_root;
 }
