@@ -430,6 +430,11 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 		token = token->next;
 	}
 
+	if(last_type != VALUE)
+	{
+		PARSE_ERROR_LC(token->line_number, token->start_char, "Expected final value but found %s instead", token_type_name[token->type]);
+	}
+
 	if(value_count == 1)
 	{
 		assert(left_value_node != NULL);
