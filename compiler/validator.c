@@ -209,12 +209,6 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				struct VAR_DATA *var = add_var(scope, node->variable_name, node->type_name, node->line_number);
 				node->index = var->index;
 
-				if(!type_is_number(node->type_name)) //TODO allow non-numerica types
-				{
-					printf("Validation error @ line %i: Variable defined with non-numerical type '%s'\n", node->line_number, node->type_name);
-					exit(EXIT_FAILURE);
-				}
-
 				char *expression_type = typecheck_expression(node->first_child, scope, 0);
 				if((strcmp(expression_type, node->type_name) != 0) && (type_is_number(expression_type) != type_is_number(node->type_name)))
 				{

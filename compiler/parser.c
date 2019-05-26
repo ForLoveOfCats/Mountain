@@ -317,20 +317,48 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 	{
 		if(!token_is_op(token)) //is a value
 		{
-			//TODO FIXME right now we assume that it is a `Number`
-			assert(is_number(token->string));
-
 			if(last_type == VALUE)
 			{
 				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected operator but found value '%s'", token->string);
 			}
 
-			struct NODE *new_node = create_node(AST_LITERAL, token->line_number);
-			free(new_node->type_name);
-			new_node->type_name = strdup("Number");
-			new_node->literal_type = LITERAL_NUMBER;
-			free(new_node->literal_string);
-			new_node->literal_string = strdup(token->string);
+			struct NODE *new_node = NULL;
+			if(is_number(token->string))
+			{
+				new_node = create_node(AST_LITERAL, token->line_number);
+				free(new_node->type_name);
+				new_node->type_name = strdup("Number");
+				new_node->literal_type = LITERAL_NUMBER;
+				free(new_node->literal_string);
+				new_node->literal_string = strdup(token->string);
+			}
+			else
+			{
+				if(strcmp(token->string, "true") == 0 || strcmp(token->string, "false") == 0)
+				{
+					new_node = create_node(AST_LITERAL, token->line_number);
+					free(new_node->type_name);
+					new_node->type_name = strdup("Bool");
+					new_node->literal_type = LITERAL_BOOL;
+					free(new_node->literal_string);
+					new_node->literal_string = strdup(token->string);
+
+					if(strcmp(token->string, "true") == 0)
+						new_node->literal_bool = true;
+					else if(strcmp(token->string, "false") == 0)
+						new_node->literal_bool = false;
+					else
+					{
+						PARSE_ERROR_LC(token->line_number, token->start_char, "Somehow we don't know how to convert this Bool to an AST node");
+					}
+
+				}
+				else
+				{
+					PARSE_ERROR_LC(token->line_number, token->start_char, "We don't know how to deal with this non-numerical value");
+				}
+			}
+			assert(new_node != NULL);
 
 			if(left_value_node == NULL)
 				left_value_node = new_node;

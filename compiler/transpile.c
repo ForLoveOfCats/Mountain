@@ -11,9 +11,10 @@
 char *type_to_c(char *type)
 {
 	if(strcmp(type, "Int32") == 0)
-	{
 	  return "int32_t";
-	}
+
+	if(strcmp(type, "Bool") == 0)
+		return "bool";
 
 	printf("Invalid type to transpile '%s'\n", type);
 	exit(EXIT_FAILURE);
@@ -73,7 +74,7 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 	bool inner_block = level > 0;
 	if(!inner_block)
 	{
-		fprintf(target, "#include <stdint.h>\n\n");
+		fprintf(target, "#include <stdint.h>\n#include <stdbool.h>\n\n");
 		fprintf(target, "int main()\n");
 	}
 

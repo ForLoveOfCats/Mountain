@@ -1,6 +1,7 @@
 #Variable declaration with value
 var:Int32 lucky_number = 42;
 var:Int32 another_number = 2 * 3 + 1 / 5 + 4;
+var:Bool my_bool = true;
 
 {
     another_number = 3 - 2;

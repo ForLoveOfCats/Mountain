@@ -10,7 +10,7 @@ struct NODE *current_parse_parent_node;
 
 enum AST_TYPE {AST_BLOCK, AST_VAR, AST_SET, AST_EXPRESSION, AST_LITERAL, AST_OP};
 enum OP_TYPE {OP_NONE, OP_ADD, OP_SUB, OP_MUL, OP_DIV};
-enum LITERAL_TYPE {LITERAL_NUMBER};
+enum LITERAL_TYPE {LITERAL_NUMBER, LITERAL_BOOL};
 
 struct NODE
 {
@@ -31,6 +31,7 @@ struct NODE
 
 	enum LITERAL_TYPE literal_type;
 	char *literal_string;
+	bool literal_bool;
 
 	enum OP_TYPE op_type;
 };
