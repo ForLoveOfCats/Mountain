@@ -165,6 +165,12 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 				   node->line_number);
 			exit(EXIT_FAILURE);
 		}
+		else if(node->type == AST_OP && (!type_is_number(left_type) || !type_is_number(right_type)) )
+		{
+			printf("Validation error @ line %i: Cannot perform arithmetic on one or more non-numerical values\n", //TODO: Include column
+				   node->line_number);
+			exit(EXIT_FAILURE);
+		}
 		else
 			return left_type;
 	}
