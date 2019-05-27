@@ -342,11 +342,12 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 {
 	//TODO: We need to eventually handle periods in numbers once periods are their own token
 
-	enum LAST_TYPE {NONE, VALUE, OP, UNOP};
+	enum LAST_TYPE {NONE, VALUE, OP}; //unop pretends to be VALUE
 
 	struct NODE *root_op_node = NULL;
 	struct NODE *current_op_node = NULL;
 	struct NODE *left_value_node = NULL;
+	struct NODE *previous_node = NULL;
 
 	struct TOKEN *token = start;
 	int value_count = 0;
@@ -370,6 +371,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				}
 
 				struct NODE *new_node = create_node(AST_OP, token->line_number);
+				previous_node = new_node;
 				switch(token->type)
 				{
 					case TOKEN_TEST_EQUAL:
@@ -443,7 +445,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 		}
 		else if(token_is_unop(token)) //Is an unop
 		{
-			if((left_value_node == NULL && root_op_node == NULL) || !(last_type == VALUE || last_type == UNOP) )
+			if((left_value_node == NULL && root_op_node == NULL) || !(last_type == VALUE) )
 			{
 				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected value before unary operation '%s'", token->string);
 			}
@@ -459,24 +461,24 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 					PARSE_ERROR_LC(token->line_number, token->start_char, "We don't know how to set unop node type from token");
 			}
 
-			if(value_count == 1 && root_op_node == NULL && current_op_node == NULL) //Put left_value_node as child
-			{
-				assert(left_value_node != NULL);
-				add_node(new_node, left_value_node);
-				left_value_node = new_node;
-			}
-			else if(current_op_node == NULL) //Put root_op_node as child
-			{
-				add_node(new_node, root_op_node);
+			assert(previous_node != NULL);
+
+			struct NODE *parent = previous_node->parent;
+			if(parent != NULL)
+				remove_node(parent, previous_node);
+			add_node(new_node, previous_node);
+			if(parent != NULL)
+				add_node(parent, new_node);
+
+			if(previous_node == root_op_node)
 				root_op_node = new_node;
-			}
-			else //Put current_op_node as child (most common)
-			{
-				assert(current_op_node->parent != NULL);
-				remove_node(current_op_node->parent, current_op_node);
-				add_node(new_node, current_op_node);
+			if(previous_node == current_op_node)
 				current_op_node = new_node;
-			}
+			if(previous_node == left_value_node)
+				left_value_node = new_node;
+			previous_node = new_node;
+
+			last_type = VALUE;
 		}
 		else //Is a value
 		{
@@ -489,6 +491,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			if(is_number(token->string))
 			{
 				new_node = create_node(AST_LITERAL, token->line_number);
+				previous_node = new_node;
 				free(new_node->type_name);
 				new_node->type_name = strdup("Number");
 				new_node->literal_type = LITERAL_NUMBER;
@@ -500,6 +503,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				if(strcmp(token->string, "true") == 0 || strcmp(token->string, "false") == 0)
 				{
 					new_node = create_node(AST_LITERAL, token->line_number);
+					previous_node = new_node;
 					free(new_node->type_name);
 					new_node->type_name = strdup("Bool");
 					new_node->literal_type = LITERAL_BOOL;
