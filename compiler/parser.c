@@ -12,7 +12,7 @@
 #define PARSE_ERROR_LC(line, column, ...) \
 	{ \
 		printf("Parse error @ line %i column %i: ", line, column); \
-		printf( __VA_ARGS__); \
+		printf(__VA_ARGS__); \
 		printf("\n"); \
 		exit(EXIT_FAILURE); \
 	} \
@@ -21,7 +21,7 @@
 #define PARSE_ERROR(...) \
 	{ \
 		printf("Parse error: "); \
-		printf( __VA_ARGS__); \
+		printf(__VA_ARGS__); \
 		printf("\n"); \
 		exit(EXIT_FAILURE); \
 	} \

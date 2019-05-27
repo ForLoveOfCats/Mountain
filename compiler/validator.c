@@ -8,6 +8,16 @@
 #include "validator.h"
 
 
+//TODO: Add column information to message
+#define VALIDATE_ERROR_L(line, ...) \
+	{ \
+		printf("Validation error @ line %i: ", line); \
+		printf(__VA_ARGS__); \
+		printf("\n"); \
+		exit(EXIT_FAILURE); \
+	} \
+
+
 int count;
 
 
@@ -161,20 +171,12 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 			case UNOP_INVERT:
 			{
 				if(strcmp(type, "Bool") != 0)
-				{
-					printf("Validation error @ line %i: Cannot invert non-boolean value of type '%s'\n", //TODO: Include op column
-						   node->line_number, type);
-					exit(EXIT_FAILURE);
-				}
+					VALIDATE_ERROR_L(node->line_number, "Cannot invert non-boolean value of type '%s'", type);
 				break;
 			}
 
 			default:
-			{
-				printf("Validation error @ line %i: We don't know how to typecheck this unop\n", //TODO: Include op column
-					   node->line_number);
-				exit(EXIT_FAILURE);
-			}
+				VALIDATE_ERROR_L(node->line_number, "We don't know how to typecheck this unop");
 		}
 
 		return type;
@@ -187,11 +189,7 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 		char *right_type = typecheck_expression(node->last_child, scope, level + 1);
 
 		if(strcmp(left_type, right_type) != 0)
-		{
-			printf("Validation error @ line %i: Type mismatch between left and right values for operation in expression\n", //TODO: Include op column
-				   node->line_number);
-			exit(EXIT_FAILURE);
-		}
+			VALIDATE_ERROR_L(node->line_number, "Type mismatch between left and right values for operation in expression");
 
 		if(node->op_type == OP_TEST_EQUAL)
 		{
@@ -200,11 +198,7 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 		else
 		{
 			if(node->type == AST_OP && (!type_is_number(left_type) || !type_is_number(right_type)) )
-			{
-				printf("Validation error @ line %i: Cannot perform arithmetic on one or more non-numerical values\n", //TODO: Include column
-					   node->line_number);
-				exit(EXIT_FAILURE);
-			}
+				VALIDATE_ERROR_L(node->line_number, "Cannot perform arithmetic on one or more non-numerical values");
 			return left_type;
 		}
 	}
@@ -241,20 +235,16 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				assert(count_node_children(node) == 1);
 
 				if(var_exists(scope, node->variable_name))
-				{
-					printf("Validation error @ line %i: Variable '%s' already exists from line %i\n",
-					       node->line_number, node->variable_name, get_var(scope, node->variable_name)->line);
-					exit(EXIT_FAILURE);
-				}
+					VALIDATE_ERROR_L(node->line_number, "Variable '%s' already exists from line %i", node->variable_name, get_var(scope, node->variable_name)->line);
+
 				struct VAR_DATA *var = add_var(scope, node->variable_name, node->type_name, node->line_number);
 				node->index = var->index;
 
 				char *expression_type = typecheck_expression(node->first_child, scope, 0);
 				if((strcmp(expression_type, node->type_name) != 0) && (type_is_number(expression_type) != type_is_number(node->type_name)))
 				{
-					printf("Validation error @ line %i: Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'\n",
-						   node->line_number, node->variable_name, node->type_name, expression_type);
-					exit(EXIT_FAILURE);
+					VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
+									 node->variable_name, node->type_name, expression_type);
 				}
 
 				break;
@@ -267,17 +257,13 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				struct VAR_DATA *var = get_var(scope, node->variable_name);
 
 				if(var == NULL)
-				{
-					printf("Validation error @ line %i: Cannot set variable '%s' as it does not exist\n", node->line_number, node->variable_name);
-					exit(EXIT_FAILURE);
-				}
+					VALIDATE_ERROR_L(node->line_number, "Cannot set variable '%s' as it does not exist", node->variable_name);
 
 				char *expression_type = typecheck_expression(node->first_child, scope, 0);
 				if((strcmp(expression_type, var->type) != 0) && (type_is_number(expression_type) != type_is_number(var->type)))
 				{
-					printf("Validation error @ line %i: Type mismatch setting variable '%s' of type '%s' with expression of type '%s'\n",
-						   node->line_number, node->variable_name, var->type, expression_type);
-					exit(EXIT_FAILURE);
+					VALIDATE_ERROR_L(node->line_number, "Type mismatch setting variable '%s' of type '%s' with expression of type '%s'",
+									 node->variable_name, var->type, expression_type);
 				}
 
 				node->index = var->index;
