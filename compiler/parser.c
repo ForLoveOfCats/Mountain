@@ -586,8 +586,14 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 						PARSE_ERROR_LC(token->line_number, token->start_char, "Somehow we don't know how to convert this Bool to an AST node");
 
 				}
-				else
-					PARSE_ERROR_LC(token->line_number, token->start_char, "We don't know how to deal with this non-numerical value");
+				else //Must be a variable get or function call
+				{
+					//TODO: Add function calls
+					new_node = create_node(AST_GET, token->line_number, token->start_char, token->end_char);
+					previous_node = new_node;
+					free(new_node->variable_name);
+					new_node->variable_name = strdup(token->string);
+				}
 			}
 			assert(new_node != NULL);
 

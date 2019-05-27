@@ -87,6 +87,10 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 		fprintf(target, "!");
 		transpile_expression(target, node->first_child);
 	}
+	else if(node->type == AST_GET)
+	{
+		fprintf(target, "var_%i", node->index);
+	}
 	else
 		fprintf(target, "%s", node->literal_string);
 

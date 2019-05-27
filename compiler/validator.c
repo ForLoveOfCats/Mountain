@@ -158,7 +158,17 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 
 	if(child_count == 0)
 	{
-		return node->type_name;
+		if(node->type == AST_GET)
+		{
+			if(!var_exists(scope, node->variable_name))
+				VALIDATE_ERROR_L(node->line_number, "Cannot get variable '%s' as it does not exist", node->variable_name);
+
+			struct VAR_DATA *var = get_var(scope, node->variable_name);
+			node->index = var->index;
+			return var->type;
+		}
+		else
+			return node->type_name;
 	}
 	else if(child_count == 1)
 	{
