@@ -32,6 +32,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number)
 	new_node->literal_bool = false;
 
 	new_node->op_type = OP_NONE;
+	new_node->unop_type = UNOP_NONE;
 
 	return new_node;
 }

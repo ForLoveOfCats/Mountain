@@ -152,12 +152,37 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 	}
 	else if(child_count == 1)
 	{
-		return typecheck_expression(node->next, scope, level +1);
+		assert(node->type == AST_UNOP);
+
+		char *type = typecheck_expression(node->first_child, scope, level + 1);
+
+		switch(node->unop_type)
+		{
+			case UNOP_INVERT:
+			{
+				if(strcmp(type, "Bool") != 0)
+				{
+					printf("Validation error @ line %i: Cannot invert non-boolean value of type '%s'\n", //TODO: Include op column
+						   node->line_number, type);
+					exit(EXIT_FAILURE);
+				}
+				break;
+			}
+
+			default:
+			{
+				printf("Validation error @ line %i: We don't know how to typecheck this unop\n", //TODO: Include op column
+					   node->line_number);
+				exit(EXIT_FAILURE);
+			}
+		}
+
+		return type;
 	}
 	else if(child_count == 2)
 	{
-		char *left_type = typecheck_expression(node->first_child, scope, level +1);
-		char *right_type = typecheck_expression(node->last_child, scope, level +1);
+		char *left_type = typecheck_expression(node->first_child, scope, level + 1);
+		char *right_type = typecheck_expression(node->last_child, scope, level + 1);
 
 		if(strcmp(left_type, right_type) != 0)
 		{

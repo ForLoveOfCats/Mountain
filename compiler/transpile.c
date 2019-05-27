@@ -58,6 +58,11 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 		}
 		transpile_expression(target, node->first_child->next);
 	}
+	else if(node->type == AST_UNOP)
+	{
+		fprintf(target, "!");
+		transpile_expression(target, node->first_child);
+	}
 	else
 		fprintf(target, "%s", node->literal_string);
 

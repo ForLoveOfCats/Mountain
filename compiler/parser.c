@@ -10,26 +10,32 @@
 
 
 #define PARSE_ERROR_LC(line, column, ...) \
-	printf("Parse error @ line %i column %i: ", line, column); \
-	printf( __VA_ARGS__); \
-	printf("\n"); \
-	exit(EXIT_FAILURE); \
+	{ \
+		printf("Parse error @ line %i column %i: ", line, column); \
+		printf( __VA_ARGS__); \
+		printf("\n"); \
+		exit(EXIT_FAILURE); \
+	} \
 
 
 #define PARSE_ERROR(...) \
-	printf("Parse error: "); \
-	printf( __VA_ARGS__); \
-	printf("\n"); \
-	exit(EXIT_FAILURE); \
+	{ \
+		printf("Parse error: "); \
+		printf( __VA_ARGS__); \
+		printf("\n"); \
+		exit(EXIT_FAILURE); \
+	} \
 
 
 #define NEXT_TOKEN(token) \
-	if(token->next == NULL) \
 	{ \
-		printf("Parse error: Encountered end of file unexpectedly on line %i, column %i\n", token->line_number, token->end_char + 1); \
-		exit(EXIT_FAILURE); \
+		if(token->next == NULL) \
+		{ \
+			printf("Parse error: Encountered end of file unexpectedly on line %i, column %i\n", token->line_number, token->end_char + 1); \
+			exit(EXIT_FAILURE); \
+		} \
+		token = token->next; \
 	} \
-	token = token->next; \
 
 
 char *token_type_name[] = { FOREACH_TOKEN_TYPE(GENERATE_STRING) };
@@ -129,6 +135,12 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					goto return_car_as_token;
 				}
 
+				case '!':
+				{
+					token->type = TOKEN_EXCLAMATION;
+					goto return_car_as_token;
+				}
+
 				case '(':
 				{
 					token->type = TOKEN_OPEN_PARENTHESES;
@@ -168,6 +180,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 			case '-':
 			case '*':
 			case '/':
+			case '!':
 			case '(':
 			case ')':
 			case '{':
@@ -279,6 +292,19 @@ bool token_is_op(struct TOKEN *token)
 }
 
 
+bool token_is_unop(struct TOKEN *token)
+{
+	switch(token->type)
+	{
+		case TOKEN_EXCLAMATION:
+			return true;
+
+ 		default:
+			return false;
+	}
+}
+
+
 int get_op_precedence(enum OP_TYPE op)
 {
 	switch(op)
@@ -302,7 +328,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 {
 	//TODO: We need to eventually handle periods in numbers once periods are their own token
 
-	enum LAST_TYPE {NONE, VALUE, OP};
+	enum LAST_TYPE {NONE, VALUE, OP, UNOP};
 
 	struct NODE *root_op_node = NULL;
 	struct NODE *current_op_node = NULL;
@@ -315,63 +341,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 
 	while(!last_was_end)
 	{
-		if(!token_is_op(token)) //is a value
-		{
-			if(last_type == VALUE)
-			{
-				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected operator but found value '%s'", token->string);
-			}
-
-			struct NODE *new_node = NULL;
-			if(is_number(token->string))
-			{
-				new_node = create_node(AST_LITERAL, token->line_number);
-				free(new_node->type_name);
-				new_node->type_name = strdup("Number");
-				new_node->literal_type = LITERAL_NUMBER;
-				free(new_node->literal_string);
-				new_node->literal_string = strdup(token->string);
-			}
-			else
-			{
-				if(strcmp(token->string, "true") == 0 || strcmp(token->string, "false") == 0)
-				{
-					new_node = create_node(AST_LITERAL, token->line_number);
-					free(new_node->type_name);
-					new_node->type_name = strdup("Bool");
-					new_node->literal_type = LITERAL_BOOL;
-					free(new_node->literal_string);
-					new_node->literal_string = strdup(token->string);
-
-					if(strcmp(token->string, "true") == 0)
-						new_node->literal_bool = true;
-					else if(strcmp(token->string, "false") == 0)
-						new_node->literal_bool = false;
-					else
-					{
-						PARSE_ERROR_LC(token->line_number, token->start_char, "Somehow we don't know how to convert this Bool to an AST node");
-					}
-
-				}
-				else
-				{
-					PARSE_ERROR_LC(token->line_number, token->start_char, "We don't know how to deal with this non-numerical value");
-				}
-			}
-			assert(new_node != NULL);
-
-			if(left_value_node == NULL)
-				left_value_node = new_node;
-			else
-			{
-				add_node(current_op_node, new_node);
-				left_value_node = NULL;
-			}
-
-			last_type = VALUE;
-			value_count++;
-		}
-		else //is an op
+		if(token_is_op(token)) //is an op
 		{
 			if(token->type == TOKEN_SUB && value_count == 0) //leading minus for negative number
 			{
@@ -453,14 +423,103 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				last_type = OP;
 			}
 		}
+		else if(token_is_unop(token)) //Is an unop
+		{
+			if((left_value_node == NULL && root_op_node == NULL) || !(last_type == VALUE || last_type == UNOP) )
+			{
+				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected value before unary operation '%s'", token->string);
+			}
+
+			struct NODE *new_node = create_node(AST_UNOP, token->line_number);
+			switch(token->type)
+			{
+				case TOKEN_EXCLAMATION:
+					new_node->unop_type = UNOP_INVERT;
+					break;
+
+				default:
+					PARSE_ERROR_LC(token->line_number, token->start_char, "We don't know how to set unop node type from token");
+			}
+
+			if(value_count == 1 && root_op_node == NULL && current_op_node == NULL) //Put left_value_node as child
+			{
+				assert(left_value_node != NULL);
+				add_node(new_node, left_value_node);
+				left_value_node = new_node;
+			}
+			else if(current_op_node == NULL) //Put root_op_node as child
+			{
+				add_node(new_node, root_op_node);
+				root_op_node = new_node;
+			}
+			else //Put current_op_node as child (most common)
+			{
+				assert(current_op_node->parent != NULL);
+				remove_node(current_op_node->parent, current_op_node);
+				add_node(new_node, current_op_node);
+				current_op_node = new_node;
+			}
+		}
+		else //Is a value
+		{
+			if(last_type == VALUE)
+			{
+				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected operator but found value '%s'", token->string);
+			}
+
+			struct NODE *new_node = NULL;
+			if(is_number(token->string))
+			{
+				new_node = create_node(AST_LITERAL, token->line_number);
+				free(new_node->type_name);
+				new_node->type_name = strdup("Number");
+				new_node->literal_type = LITERAL_NUMBER;
+				free(new_node->literal_string);
+				new_node->literal_string = strdup(token->string);
+			}
+			else
+			{
+				if(strcmp(token->string, "true") == 0 || strcmp(token->string, "false") == 0)
+				{
+					new_node = create_node(AST_LITERAL, token->line_number);
+					free(new_node->type_name);
+					new_node->type_name = strdup("Bool");
+					new_node->literal_type = LITERAL_BOOL;
+					free(new_node->literal_string);
+					new_node->literal_string = strdup(token->string);
+
+					if(strcmp(token->string, "true") == 0)
+						new_node->literal_bool = true;
+					else if(strcmp(token->string, "false") == 0)
+						new_node->literal_bool = false;
+					else
+						PARSE_ERROR_LC(token->line_number, token->start_char, "Somehow we don't know how to convert this Bool to an AST node");
+
+				}
+				else
+					PARSE_ERROR_LC(token->line_number, token->start_char, "We don't know how to deal with this non-numerical value");
+			}
+			assert(new_node != NULL);
+
+			if(left_value_node == NULL)
+				left_value_node = new_node;
+			else
+			{
+				add_node(current_op_node, new_node);
+				left_value_node = NULL;
+			}
+
+			last_type = VALUE;
+			value_count++;
+		}
 
 		last_was_end = token == end;
 		token = token->next;
 	}
 
-	if(last_type != VALUE)
+	if(last_type == OP)
 	{
-		PARSE_ERROR_LC(token->line_number, token->start_char, "Expected final value but found %s instead", token_type_name[token->type]);
+		PARSE_ERROR_LC(token->line_number, token->start_char, "Expected final value following operator '%s'", token_type_name[token->type]);
 	}
 
 	if(value_count == 1)
