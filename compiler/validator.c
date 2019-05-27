@@ -198,7 +198,7 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 		char *left_type = typecheck_expression(node->first_child, scope, level + 1);
 		char *right_type = typecheck_expression(node->last_child, scope, level + 1);
 
-		if(strcmp(left_type, right_type) != 0)
+		if(strcmp(left_type, right_type) != 0 && !(type_is_number(left_type) && type_is_number(right_type)))
 			VALIDATE_ERROR_L(node->line_number, "Type mismatch between left and right values for operation in expression");
 
 		//TODO: Use a switch statement here
