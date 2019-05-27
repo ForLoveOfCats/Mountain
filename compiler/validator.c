@@ -191,10 +191,17 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 		if(strcmp(left_type, right_type) != 0)
 			VALIDATE_ERROR_L(node->line_number, "Type mismatch between left and right values for operation in expression");
 
+		//TODO: Use a switch statement here
 		if(node->op_type == OP_TEST_EQUAL)
-		{
 			return "Bool";
-		}
+		else if(node->op_type == OP_TEST_GREATER)
+			return "Bool";
+		else if(node->op_type == OP_TEST_GREATER_EQUAL)
+			return "Bool";
+		else if(node->op_type == OP_TEST_LESS)
+			return "Bool";
+		else if(node->op_type == OP_TEST_LESS_EQUAL)
+			return "Bool";
 		else
 		{
 			if(node->type == AST_OP && (!type_is_number(left_type) || !type_is_number(right_type)) )

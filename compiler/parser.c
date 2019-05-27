@@ -121,6 +121,34 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					goto return_token;
 				}
 
+				case '>':
+				{
+					char next_car = fgetc(source_file);
+					if(next_car != '=')
+					{
+						ungetc(next_car, source_file); //HACK FIXME
+						token->type = TOKEN_TEST_GREATER;
+						goto return_car_as_token;
+					}
+
+					token->type = TOKEN_TEST_GREATER_EQUAL;
+					goto return_car_as_token;
+				}
+
+				case '<':
+				{
+					char next_car = fgetc(source_file);
+					if(next_car != '=')
+					{
+						ungetc(next_car, source_file); //HACK FIXME
+						token->type = TOKEN_TEST_LESS;
+						goto return_car_as_token;
+					}
+
+					token->type = TOKEN_TEST_LESS_EQUAL;
+					goto return_car_as_token;
+				}
+
 				case '+':
 				{
 					token->type = TOKEN_ADD;
@@ -186,6 +214,8 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 			case ';':
 			case '#':
 			case '=':
+			case '>':
+			case '<':
 			case '+':
 			case '-':
 			case '*':
@@ -291,6 +321,10 @@ bool token_is_op(struct TOKEN *token)
 	switch(token->type)
 	{
 		case TOKEN_TEST_EQUAL:
+		case TOKEN_TEST_GREATER:
+		case TOKEN_TEST_GREATER_EQUAL:
+		case TOKEN_TEST_LESS:
+		case TOKEN_TEST_LESS_EQUAL:
 		case TOKEN_ADD:
 		case TOKEN_SUB:
 		case TOKEN_MUL:
@@ -321,6 +355,10 @@ int get_op_precedence(enum OP_TYPE op)
 	switch(op)
 	{
 		case OP_TEST_EQUAL:
+		case OP_TEST_GREATER:
+		case OP_TEST_GREATER_EQUAL:
+		case OP_TEST_LESS:
+		case OP_TEST_LESS_EQUAL:
 			return 1;
 
 		case OP_ADD:
@@ -376,6 +414,22 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				{
 					case TOKEN_TEST_EQUAL:
 						new_node->op_type = OP_TEST_EQUAL;
+						break;
+
+					case TOKEN_TEST_GREATER:
+						new_node->op_type = OP_TEST_GREATER;
+						break;
+
+					case TOKEN_TEST_GREATER_EQUAL:
+						new_node->op_type = OP_TEST_GREATER_EQUAL;
+						break;
+
+					case TOKEN_TEST_LESS:
+						new_node->op_type = OP_TEST_LESS;
+						break;
+
+					case TOKEN_TEST_LESS_EQUAL:
+						new_node->op_type = OP_TEST_LESS_EQUAL;
 						break;
 
 					case TOKEN_ADD:
