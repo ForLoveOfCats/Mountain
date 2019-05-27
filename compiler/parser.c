@@ -536,12 +536,13 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 		}
 
 		last_was_end = token == end;
-		token = token->next;
+		if(!last_was_end)
+			token = token->next;
 	}
 
 	if(last_type == OP)
 	{
-		PARSE_ERROR_LC(token->line_number, token->start_char, "Expected final value following operator '%s'", token_type_name[token->type]);
+		PARSE_ERROR_LC(token->line_number, token->start_char, "Expected final value following operator '%s'", token->string);
 	}
 
 	if(value_count == 1)
@@ -554,6 +555,8 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 		assert(root_op_node != NULL);
 		add_node(root, root_op_node);
 	}
+
+	token = token->next;
 }
 
 
