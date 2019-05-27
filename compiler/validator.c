@@ -194,6 +194,8 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 		//TODO: Use a switch statement here
 		if(node->op_type == OP_TEST_EQUAL)
 			return "Bool";
+		else if(node->op_type == OP_TEST_NOT_EQUAL)
+			return "Bool";
 		else if(node->op_type == OP_TEST_GREATER)
 			return "Bool";
 		else if(node->op_type == OP_TEST_GREATER_EQUAL)

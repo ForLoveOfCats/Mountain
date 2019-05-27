@@ -40,6 +40,10 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 				fprintf(target, " == ");
 				break;
 
+			case OP_TEST_NOT_EQUAL:
+				fprintf(target, " != ");
+				break;
+
 			case OP_TEST_GREATER:
 				fprintf(target, " > ");
 				break;

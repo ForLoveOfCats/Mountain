@@ -132,7 +132,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					}
 
 					token->type = TOKEN_TEST_GREATER_EQUAL;
-					goto return_car_as_token;
+					goto return_token;
 				}
 
 				case '<':
@@ -146,7 +146,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					}
 
 					token->type = TOKEN_TEST_LESS_EQUAL;
-					goto return_car_as_token;
+					goto return_token;
 				}
 
 				case '+':
@@ -175,8 +175,16 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 
 				case '!':
 				{
-					token->type = TOKEN_EXCLAMATION;
-					goto return_car_as_token;
+					char next_car = fgetc(source_file);
+					if(next_car != '=')
+					{
+						ungetc(next_car, source_file); //HACK FIXME
+						token->type = TOKEN_EXCLAMATION;
+						goto return_car_as_token;
+					}
+
+					token->type = TOKEN_TEST_NOT_EQUAL;
+					goto return_token;
 				}
 
 				case '(':
@@ -321,6 +329,7 @@ bool token_is_op(struct TOKEN *token)
 	switch(token->type)
 	{
 		case TOKEN_TEST_EQUAL:
+		case TOKEN_TEST_NOT_EQUAL:
 		case TOKEN_TEST_GREATER:
 		case TOKEN_TEST_GREATER_EQUAL:
 		case TOKEN_TEST_LESS:
@@ -355,6 +364,7 @@ int get_op_precedence(enum OP_TYPE op)
 	switch(op)
 	{
 		case OP_TEST_EQUAL:
+		case OP_TEST_NOT_EQUAL:
 		case OP_TEST_GREATER:
 		case OP_TEST_GREATER_EQUAL:
 		case OP_TEST_LESS:
@@ -414,6 +424,10 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				{
 					case TOKEN_TEST_EQUAL:
 						new_node->op_type = OP_TEST_EQUAL;
+						break;
+
+					case TOKEN_TEST_NOT_EQUAL:
+						new_node->op_type = OP_TEST_NOT_EQUAL;
 						break;
 
 					case TOKEN_TEST_GREATER:

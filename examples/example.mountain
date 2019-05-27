@@ -8,6 +8,7 @@ var:Bool my_bool = true!;
 }
 
 var:Bool result = true == false!;
+result = true != false;
 result = 10 > 5;
 result = 10 >= 5;
 result = 10 < 15;
