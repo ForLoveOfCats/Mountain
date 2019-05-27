@@ -24,6 +24,8 @@ struct NODE
 	struct NODE *last_child;
 
 	int line_number;
+	int start_char;
+	int end_char;
 
 	int index;
 
@@ -39,7 +41,7 @@ struct NODE
 };
 
 
-struct NODE *create_node(enum AST_TYPE type, int line_number);
+struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, int end_char);
 
 
 void add_node(struct NODE *parent, struct NODE *new_node);

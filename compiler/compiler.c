@@ -36,7 +36,7 @@ int main(int arg_count, char *arg_array[])
 
 	FILE *source_file = open_source_file(arg_array[2]);
 
-	root_node = create_node(AST_BLOCK, -1);
+	root_node = create_node(AST_BLOCK, -1, -1, -1);
 	current_parse_parent_node = root_node;
 
 	struct TOKEN *first_token = tokenize_file(source_file);

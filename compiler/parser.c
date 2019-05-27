@@ -370,7 +370,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 					PARSE_ERROR_LC(token->line_number, token->start_char, "Expected value but found '%s'", token->string);
 				}
 
-				struct NODE *new_node = create_node(AST_OP, token->line_number);
+				struct NODE *new_node = create_node(AST_OP, token->line_number, token->start_char, token->end_char);
 				previous_node = new_node;
 				switch(token->type)
 				{
@@ -450,7 +450,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected value before unary operation '%s'", token->string);
 			}
 
-			struct NODE *new_node = create_node(AST_UNOP, token->line_number);
+			struct NODE *new_node = create_node(AST_UNOP, token->line_number, token->start_char, token->end_char);
 			switch(token->type)
 			{
 				case TOKEN_EXCLAMATION:
@@ -490,7 +490,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			struct NODE *new_node = NULL;
 			if(is_number(token->string))
 			{
-				new_node = create_node(AST_LITERAL, token->line_number);
+				new_node = create_node(AST_LITERAL, token->line_number, token->start_char, token->end_char);
 				previous_node = new_node;
 				free(new_node->type_name);
 				new_node->type_name = strdup("Number");
@@ -502,7 +502,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			{
 				if(strcmp(token->string, "true") == 0 || strcmp(token->string, "false") == 0)
 				{
-					new_node = create_node(AST_LITERAL, token->line_number);
+					new_node = create_node(AST_LITERAL, token->line_number, token->start_char, token->end_char);
 					previous_node = new_node;
 					free(new_node->type_name);
 					new_node->type_name = strdup("Bool");
@@ -562,7 +562,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 
 struct NODE *parse_expression_to_semicolon(struct TOKEN **token) //TODO: Error on no token before semicolon
 {
-	struct NODE *expression_root = create_node(AST_EXPRESSION, (*token)->line_number);
+	struct NODE *expression_root = create_node(AST_EXPRESSION, (*token)->line_number, (*token)->start_char, (*token)->end_char);
 
 	//TODO count parenthesis to validate
 	struct TOKEN *start = *token;
@@ -606,7 +606,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 	{
 		if(strcmp(token->string, "var") == 0) //mutable variable declaration
 		{
-			struct NODE *new_node = create_node(AST_VAR, token->line_number);
+			struct NODE *new_node = create_node(AST_VAR, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_COLON);
@@ -638,7 +638,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		{
 			//HACK for now we are just assuming that it is a variable set
 			expect(token, TOKEN_WORD);
-			struct NODE *new_node = create_node(AST_SET, token->line_number);
+			struct NODE *new_node = create_node(AST_SET, token->line_number, token->start_char, token->end_char);
 			free(new_node->variable_name);
 			new_node->variable_name = strdup(token->string);
 
@@ -670,7 +670,7 @@ struct TOKEN *parse_block(struct TOKEN *token, int level)
 
 	if(inner_block)
 	{
-		struct NODE *block = create_node(AST_BLOCK, token->line_number);
+		struct NODE *block = create_node(AST_BLOCK, token->line_number, token->start_char, token->end_char);
 		add_node(current_parse_parent_node, block);
 		current_parse_parent_node = block;
 	}
