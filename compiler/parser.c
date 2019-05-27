@@ -107,8 +107,18 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 
 				case '=':
 				{
-					token->type = TOKEN_EQUALS;
-					goto return_car_as_token;
+					char next_car = fgetc(source_file);
+					if(next_car != '=')
+					{
+						ungetc(next_car, source_file); //HACK FIXME
+						token->type = TOKEN_EQUALS;
+						goto return_car_as_token;
+					}
+
+					token->type = TOKEN_TEST_EQUAL;
+					free(token->string);
+					token->string = strdup("==");
+					goto return_token;
 				}
 
 				case '+':
@@ -280,6 +290,7 @@ bool token_is_op(struct TOKEN *token)
 {
 	switch(token->type)
 	{
+		case TOKEN_TEST_EQUAL:
 		case TOKEN_ADD:
 		case TOKEN_SUB:
 		case TOKEN_MUL:
@@ -309,13 +320,16 @@ int get_op_precedence(enum OP_TYPE op)
 {
 	switch(op)
 	{
+		case OP_TEST_EQUAL:
+			return 1;
+
 		case OP_ADD:
 		case OP_SUB:
-			return 0;
+			return 2;
 
 		case OP_MUL:
 		case OP_DIV:
-			return 1;
+			return 3;
 
 		default:
 			printf("INTERNAL ERROR: Unimplimented op precedence\n");
@@ -358,6 +372,10 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				struct NODE *new_node = create_node(AST_OP, token->line_number);
 				switch(token->type)
 				{
+					case TOKEN_TEST_EQUAL:
+						new_node->op_type = OP_TEST_EQUAL;
+						break;
+
 					case TOKEN_ADD:
 						new_node->op_type = OP_ADD;
 						break;

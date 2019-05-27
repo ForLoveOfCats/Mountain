@@ -181,6 +181,8 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 	}
 	else if(child_count == 2)
 	{
+		assert(node->type == AST_OP);
+
 		char *left_type = typecheck_expression(node->first_child, scope, level + 1);
 		char *right_type = typecheck_expression(node->last_child, scope, level + 1);
 
@@ -190,14 +192,21 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 				   node->line_number);
 			exit(EXIT_FAILURE);
 		}
-		else if(node->type == AST_OP && (!type_is_number(left_type) || !type_is_number(right_type)) )
+
+		if(node->op_type == OP_TEST_EQUAL)
 		{
-			printf("Validation error @ line %i: Cannot perform arithmetic on one or more non-numerical values\n", //TODO: Include column
-				   node->line_number);
-			exit(EXIT_FAILURE);
+			return "Bool";
 		}
 		else
+		{
+			if(node->type == AST_OP && (!type_is_number(left_type) || !type_is_number(right_type)) )
+			{
+				printf("Validation error @ line %i: Cannot perform arithmetic on one or more non-numerical values\n", //TODO: Include column
+					   node->line_number);
+				exit(EXIT_FAILURE);
+			}
 			return left_type;
+		}
 	}
 	else
 	{

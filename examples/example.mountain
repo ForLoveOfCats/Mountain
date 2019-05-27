@@ -6,3 +6,5 @@ var:Bool my_bool = true!;
 {
     another_number = 3 - 2;
 }
+
+var:Bool result = true == false;
