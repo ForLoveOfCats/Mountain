@@ -11,7 +11,7 @@ if [ $? -eq 0 ]; then #if the compiler was built correctly
 		cat ./output/output.c
 
 		printf "\n\n===== Transpiled Source Building =====\n"
-		gcc -fsanitize=address -g -o ./output/output ./output/output.c #compile the transipile results
+		gcc -fsanitize=address -g -o ./output/output ./output/output.c #compile the transpile results
 
 			if [ $? -eq 0 ]; then #if the transpiled source compiled correctly
 				printf "\n\n===== Executing Final Binary =====\n"
