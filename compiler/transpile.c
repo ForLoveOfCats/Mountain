@@ -144,6 +144,14 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				transpile_block(target, node->last_child, level + 1);
 				break;
 
+			case AST_WHILE:
+				assert(count_node_children(node) == 2);
+				fprintf(target, "while");
+				transpile_expression(target, node->first_child);
+				fprintf(target, "\n");
+				transpile_block(target, node->last_child, level + 1);
+				break;
+
 			default:
 				printf("INTERNAL ERROR: We don't know how to transpile this statement\n");
 				exit(EXIT_FAILURE);

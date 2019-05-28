@@ -745,6 +745,43 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			add_node(current_parse_parent_node, new_node);
 		}
 
+		else if(strcmp(token->string, "while") == 0) //You guessed it, an while loop
+		{
+			struct NODE *new_node = create_node(AST_WHILE, token->line_number, token->start_char, token->end_char);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_OPEN_PARENTHESES);
+
+			NEXT_TOKEN(token);
+			struct TOKEN *start = token;
+			struct TOKEN *end = token;
+			while(token->type != TOKEN_CLOSE_PARENTHESES)
+			{
+				end = token;
+				NEXT_TOKEN(token);
+			}
+
+			if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES)
+				PARSE_ERROR_LC(end->line_number, end->start_char, "Expected Bool expresssion but found empty expression");
+			struct NODE *expression_root = create_node(AST_EXPRESSION, start->line_number, start->start_char, start->end_char);
+			parse_expression_bounds(expression_root, start, end);
+			add_node(new_node, expression_root);
+
+			if(token->next == NULL)
+				return NULL;
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_OPEN_BRACE);
+
+			NEXT_TOKEN(token);
+			struct NODE *old_parse_parent_node = current_parse_parent_node;
+			struct NODE *block = create_node(AST_BLOCK, token->line_number, token->start_char, token->end_char);
+			add_node(new_node, block);
+			current_parse_parent_node = block;
+			token = parse_block(token, true, 0);
+			current_parse_parent_node = old_parse_parent_node;
+			add_node(current_parse_parent_node, new_node);
+		}
+
 		else //It must be a variable set or a function call   TODO Add function calls
 		{
 			//HACK for now we are just assuming that it is a variable set

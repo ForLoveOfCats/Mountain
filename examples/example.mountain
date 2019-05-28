@@ -22,5 +22,10 @@ if(true == false!) {
     result = false;
 }
 
+var:Int32 iteration = 0;
+while(iteration <= 9) {
+    iteration = iteration + 1;
+}
+
 
 var:Int32 some_variable = 69;
