@@ -32,6 +32,9 @@ struct VAR_DATA
 };
 
 
+bool are_types_equivalent(char *type_one, char *type_two);
+
+
 struct SCOPE *create_scope(struct SCOPE *parent);
 
 

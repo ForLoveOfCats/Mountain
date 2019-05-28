@@ -33,6 +33,18 @@ bool type_is_number(char *type)
 }
 
 
+bool are_types_equivalent(char *type_one, char *type_two)
+{
+	if(strcmp(type_one, type_two) == 0)
+		return true;
+
+	if(type_is_number(type_one) && type_is_number(type_two))
+		return true;
+
+	return false;
+}
+
+
 struct VAR_DATA *add_var(struct SCOPE *scope, char *name, char *type, int line)
 {
 	struct VAR_DATA *var = malloc(sizeof(struct VAR_DATA));
@@ -198,7 +210,7 @@ char *typecheck_expression(struct NODE *node, struct SCOPE *scope, int level) //
 		char *left_type = typecheck_expression(node->first_child, scope, level + 1);
 		char *right_type = typecheck_expression(node->last_child, scope, level + 1);
 
-		if(strcmp(left_type, right_type) != 0 && !(type_is_number(left_type) && type_is_number(right_type)))
+		if(!are_types_equivalent(left_type, right_type))
 			VALIDATE_ERROR_L(node->line_number, "Type mismatch between left and right values for operation in expression");
 
 		//TODO: Use a switch statement here
@@ -260,7 +272,7 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				node->index = var->index;
 
 				char *expression_type = typecheck_expression(node->first_child, scope, 0);
-				if((strcmp(expression_type, node->type_name) != 0) && (type_is_number(expression_type) != type_is_number(node->type_name)))
+				if(!are_types_equivalent(expression_type, node->type_name))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
 									 node->variable_name, node->type_name, expression_type);
@@ -279,7 +291,7 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 					VALIDATE_ERROR_L(node->line_number, "Cannot set variable '%s' as it does not exist", node->variable_name);
 
 				char *expression_type = typecheck_expression(node->first_child, scope, 0);
-				if((strcmp(expression_type, var->type) != 0) && (type_is_number(expression_type) != type_is_number(var->type)))
+				if(!are_types_equivalent(expression_type, var->type))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch setting variable '%s' of type '%s' with expression of type '%s'",
 									 node->variable_name, var->type, expression_type);
