@@ -314,8 +314,9 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				break;
 			}
 
-			default: //To get ccls to shut up
-				break;
+			default:
+				printf("INTERNAL ERROR: We don't know how to validate this statement\n");
+				exit(EXIT_FAILURE);
 		}
 
 		node = node->next;
