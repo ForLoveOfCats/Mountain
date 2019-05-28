@@ -708,6 +708,43 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			NEXT_TOKEN(token);
 		}
 
+		else if(strcmp(token->string, "if") == 0) //You guessed it, an if statement
+		{
+			struct NODE *new_node = create_node(AST_IF, token->line_number, token->start_char, token->end_char);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_OPEN_PARENTHESES);
+
+			NEXT_TOKEN(token);
+			struct TOKEN *start = token;
+			struct TOKEN *end = token;
+			while(token->type != TOKEN_CLOSE_PARENTHESES)
+			{
+				end = token;
+				NEXT_TOKEN(token);
+			}
+
+			if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES)
+				PARSE_ERROR_LC(end->line_number, end->start_char, "Expected Bool expresssion but found empty expression");
+			struct NODE *expression_root = create_node(AST_EXPRESSION, start->line_number, start->start_char, start->end_char);
+			parse_expression_bounds(expression_root, start, end);
+			add_node(new_node, expression_root);
+
+			if(token->next == NULL)
+				return NULL;
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_OPEN_BRACE);
+
+			NEXT_TOKEN(token);
+			struct NODE *old_parse_parent_node = current_parse_parent_node;
+			struct NODE *block = create_node(AST_BLOCK, token->line_number, token->start_char, token->end_char);
+			add_node(new_node, block);
+			current_parse_parent_node = block;
+			token = parse_block(token, true, 0);
+			current_parse_parent_node = old_parse_parent_node;
+			add_node(current_parse_parent_node, new_node);
+		}
+
 		else //It must be a variable set or a function call   TODO Add function calls
 		{
 			//HACK for now we are just assuming that it is a variable set
@@ -737,22 +774,21 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 }
 
 
-struct TOKEN *parse_block(struct TOKEN *token, int level)
+struct TOKEN *parse_block(struct TOKEN *token, bool inner_block, int level)
 {
 	assert(level >= 0);
-	bool inner_block = level > 0;
-
-	if(inner_block)
-	{
-		struct NODE *block = create_node(AST_BLOCK, token->line_number, token->start_char, token->end_char);
-		add_node(current_parse_parent_node, block);
-		current_parse_parent_node = block;
-	}
 
 	while(true)
 	{
 		if(token->type == TOKEN_OPEN_BRACE)
-		  token = parse_block(token->next, level + 1);
+		{
+			struct NODE *block = create_node(AST_BLOCK, token->line_number, token->start_char, token->end_char);
+			add_node(current_parse_parent_node, block);
+			struct NODE *old_parse_parent_node = current_parse_parent_node;
+			current_parse_parent_node = block;
+			token = parse_block(token->next, true, level + 1);
+			current_parse_parent_node = old_parse_parent_node;
+		}
 		if(token == NULL)
 			break;
 
@@ -766,8 +802,6 @@ struct TOKEN *parse_block(struct TOKEN *token, int level)
 			{
 				PARSE_ERROR_LC(token->line_number, token->start_char, "Unexpected close brace");
 			}
-
-			current_parse_parent_node = current_parse_parent_node->parent;
 			return token->next;
 		}
 	}
@@ -775,7 +809,7 @@ struct TOKEN *parse_block(struct TOKEN *token, int level)
 	//At this point we know that we have reached the end of the file
 	if(inner_block)
 	{
-		PARSE_ERROR("Expected close brace but found end of file")
+		PARSE_ERROR("Expected close brace but found end of file");
 	}
 	return NULL;
 }

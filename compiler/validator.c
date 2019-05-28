@@ -298,6 +298,20 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				}
 
 				node->index = var->index;
+				break;
+			}
+
+			case AST_IF:
+			{
+				assert(count_node_children(node) == 2);
+
+				char *expression_type = typecheck_expression(node->first_child, scope, 0);
+				if(strcmp(expression_type, "Bool") != 0)
+					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type);
+
+				validate_block(node->last_child, scope, level + 1);
+
+				break;
 			}
 
 			default: //To get ccls to shut up

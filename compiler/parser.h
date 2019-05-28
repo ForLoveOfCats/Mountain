@@ -51,4 +51,4 @@ struct TOKEN *tokenize_file(FILE *source_file);
 struct TOKEN *parse_next_statement(struct TOKEN *token);
 
 
-struct TOKEN *parse_block(struct TOKEN *token, int level);
+struct TOKEN *parse_block(struct TOKEN *token, bool inner_block, int level);

@@ -40,7 +40,7 @@ int main(int arg_count, char *arg_array[])
 	current_parse_parent_node = root_node;
 
 	struct TOKEN *first_token = tokenize_file(source_file);
-	parse_block(first_token, 0);
+	parse_block(first_token, false, 0);
 	free_token_list(first_token);
 
 	struct SCOPE *scope = create_scope(NULL);

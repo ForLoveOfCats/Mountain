@@ -7,6 +7,7 @@ var:Bool my_bool = true!;
     another_number = another_number - 2;
 }
 
+
 var:Bool result = true == false!;
 result = true != false;
 result = 10 > 5;
@@ -14,3 +15,12 @@ result = 10 >= 5;
 result = 10 < 15;
 result = 10 <= 15;
 result = false == result!;
+
+
+if(true == false!) {
+    var:Bool inner_bool = true;
+    result = false;
+}
+
+
+var:Int32 some_variable = 69;
