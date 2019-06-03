@@ -29,3 +29,8 @@ while(iteration <= 9) {
 
 
 var:Int32 some_variable = 69;
+
+func:Int32 get_number(var:Int32 argument) {
+    some_variable = 42;
+    #return 2000;
+}

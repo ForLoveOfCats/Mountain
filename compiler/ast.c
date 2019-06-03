@@ -21,6 +21,9 @@ struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, in
 	new_node->first_child = NULL;
 	new_node->last_child = NULL;
 
+	new_node->first_arg = NULL;
+	new_node->last_arg = NULL;
+
 	new_node->line_number = line_number;
 	new_node->start_char = start_char;
 	new_node->end_char = end_char;
@@ -29,6 +32,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, in
 
 	new_node->type_name = strdup("");
 	new_node->variable_name = strdup("");
+	new_node->function_name = strdup("");
 
 	new_node->literal_string = strdup("");
 	new_node->literal_bool = false;
@@ -121,8 +125,34 @@ void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 		child = next_child;
 	}
 
+	struct ARG_DATA *arg = node->first_arg;
+	while(arg != NULL)
+	{
+		struct ARG_DATA *next_arg = arg->next;
+		free(arg->name);
+		free(arg->type);
+		free(arg);
+		arg = next_arg;
+	}
+
 	free(node->type_name);
 	free(node->variable_name);
+	free(node->function_name);
 	free(node->literal_string);
 	free(node);
+}
+
+
+struct ARG_DATA *create_arg_data(char *name, char *type)
+{
+	struct ARG_DATA *arg = malloc(sizeof(struct ARG_DATA));
+
+	arg->next = NULL;
+
+	arg->name = strdup(name);
+	arg->type = strdup(type);
+
+	arg->index = -1;
+
+	return arg;
 }

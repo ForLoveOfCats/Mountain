@@ -261,7 +261,7 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 				break;
 			}
 
-			case AST_VAR:
+			case AST_VAR: //TODO: Make sure that type is valid and known
 			{
 				assert(count_node_children(node) == 1);
 
@@ -323,6 +323,30 @@ void validate_block(struct NODE *node, struct SCOPE *scope, int level) //Exits o
 					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type);
 
 				validate_block(node->last_child, scope, level + 1);
+
+				break;
+			}
+
+			case AST_FUNC:
+			{
+				if(level > 0)
+					VALIDATE_ERROR_L(node->line_number, "Function declared outside global scope");
+
+				assert(count_node_children(node) == 1);
+
+				struct ARG_DATA *arg = node->first_arg;
+				while(arg != NULL) //TODO: Validate types as well
+				{
+					arg->index = count;
+					count++;
+
+					arg = arg->next;
+				}
+
+				validate_block(node->first_child, scope, level + 1);
+
+				node->index = count;
+				count++;
 
 				break;
 			}

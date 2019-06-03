@@ -782,6 +782,109 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			add_node(current_parse_parent_node, new_node);
 		}
 
+		else if(strcmp(token->string, "func") == 0) //You guessed it, a function declaration
+		{
+			struct NODE *new_node = create_node(AST_FUNC, token->line_number, token->start_char, token->end_char);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_COLON);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_WORD); //type of the function TODO: Allow subtypes
+			free(new_node->type_name);
+			new_node->type_name = strdup(token->string);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_WORD); //name of the function
+			free(new_node->function_name);
+			new_node->function_name = strdup(token->string);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_OPEN_PARENTHESES);
+
+			NEXT_TOKEN(token);
+			struct TOKEN *start = token;
+			struct TOKEN *end = token;
+			while(token->type != TOKEN_CLOSE_PARENTHESES)
+			{
+				end = token;
+				NEXT_TOKEN(token);
+			}
+
+			if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES) //No arguments
+			{}
+			else //One or more arguments to parse
+			{
+				struct TOKEN *current_arg_token = start;
+				while(true)
+				{
+					expect(current_arg_token, TOKEN_WORD);
+					if(strcmp(current_arg_token->string, "var") != 0)
+						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected function argument declaration to be variable declaration");
+					if(current_arg_token == end)
+						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type before close parentheses");
+
+					//TODO: Create a dedicated type parser function
+					NEXT_TOKEN(current_arg_token);
+					expect(current_arg_token, TOKEN_COLON);
+					if(current_arg_token == end)
+						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type before close parentheses");
+
+					NEXT_TOKEN(current_arg_token);
+					expect(current_arg_token, TOKEN_WORD);
+					char *type = current_arg_token->string;
+					if(current_arg_token == end)
+						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument name before close parentheses");
+
+					NEXT_TOKEN(current_arg_token);
+					expect(current_arg_token, TOKEN_WORD);
+					char *name = current_arg_token->string;
+
+					struct ARG_DATA *arg = create_arg_data(name, type);
+					if(new_node->first_arg == NULL)
+					{
+						new_node->first_arg = arg;
+						new_node->last_arg = arg;
+					}
+					else
+					{
+						new_node->last_arg->next = arg;
+						new_node->last_arg = arg;
+					}
+
+
+					if(current_arg_token == end)
+						break;
+					NEXT_TOKEN(current_arg_token);
+				}
+			}
+
+			if(token->next == NULL)
+				return NULL;
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_OPEN_BRACE);
+
+			NEXT_TOKEN(token);
+			struct NODE *old_parse_parent_node = current_parse_parent_node;
+			struct NODE *block = create_node(AST_BLOCK, token->line_number, token->start_char, token->end_char);
+			add_node(new_node, block);
+			current_parse_parent_node = block;
+			token = parse_block(token, true, 0);
+			current_parse_parent_node = old_parse_parent_node;
+			add_node(current_parse_parent_node, new_node);
+
+			if(first_function == NULL)
+			{
+				first_function = new_node;
+				last_function = new_node;
+			}
+			else
+			{
+				last_function->next = new_node;
+				last_function = new_node;
+			}
+		}
+
 		else //It must be a variable set or a function call   TODO Add function calls
 		{
 			//HACK for now we are just assuming that it is a variable set

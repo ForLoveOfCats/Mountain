@@ -47,6 +47,11 @@ int main(int arg_count, char *arg_array[])
 	validate_block(root_node, scope, 0);
 
 	FILE *output_file = fopen(arg_array[1], "w");
+	prepare_file(output_file);
+	prototype_globals(output_file, root_node);
+	prototype_functions(output_file);
+	transpile_functions(output_file);
+	fprintf(output_file, "int main()\n");;
 	transpile_block(output_file, root_node, 0);
 	fclose(output_file);
 

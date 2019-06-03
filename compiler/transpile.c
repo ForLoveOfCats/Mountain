@@ -6,12 +6,20 @@
 
 #include "ast.h"
 #include "validator.h"
+#include "transpile.h"
+
+
+
+void prepare_file(FILE *target)
+{
+	fprintf(target, "#include <stdint.h>\n#include <stdbool.h>\n\n\n\n");
+}
 
 
 char *type_to_c(char *type)
 {
 	if(strcmp(type, "Int32") == 0)
-	  return "int32_t";
+		return "int32_t";
 
 	if(strcmp(type, "Bool") == 0)
 		return "bool";
@@ -98,18 +106,84 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 }
 
 
+void transpile_var(FILE *target, struct NODE *node)
+{
+	assert(node->index >= 0);
+	fprintf(target, "%s var_%i = ", type_to_c(node->type_name), node->index);
+	transpile_expression(target, node->first_child);
+	fprintf(target, ";\n");
+}
+
+
+void prototype_globals(FILE *target, struct NODE *root)
+{
+	assert(root->type == AST_BLOCK);
+	struct NODE *node = root->first_child;
+	while(node != NULL)
+	{
+		if(node->type == AST_VAR)
+		{
+			fprintf(target, "%s var_%i;\n", type_to_c(node->type_name), node->index);
+		}
+
+		node = node->next;
+	}
+
+	fprintf(target, "\n\n\n");
+}
+
+
+void transpile_function_signature(FILE *target, struct NODE *node)
+{
+	fprintf(target, "%s func_%i(", type_to_c(node->type_name), node->index);
+	struct ARG_DATA *arg = node->first_arg;
+	while(arg != NULL)
+	{
+		fprintf(target, "%s arg_%i", type_to_c(arg->type), arg->index);
+		if(arg->next != NULL)
+			fprintf(target, ",");
+
+		arg = arg->next;
+	}
+	fprintf(target, ")");
+}
+
+
+void prototype_functions(FILE *target)
+{
+	struct NODE *node = first_function;
+	while(node != NULL)
+	{
+		transpile_function_signature(target, node);
+		fprintf(target, ";\n");
+
+		node = node->next;
+	}
+
+	fprintf(target, "\n\n\n");
+}
+
+
+void transpile_functions(FILE *target)
+{
+	struct NODE *node = first_function;
+	while(node != NULL)
+	{
+		transpile_function_signature(target, node);
+		transpile_block(target, node->first_child, 0);
+
+		node = node->next;
+	}
+
+	fprintf(target, "\n\n\n");
+}
+
+
 void transpile_block(FILE *target, struct NODE *node, int level) //This is in no way efficient...
 {
+	assert(level >= 0);
 	assert(node->type == AST_BLOCK);
 	node = node->first_child;
-
-	assert(level >= 0);
-	bool inner_block = level > 0;
-	if(!inner_block)
-	{
-		fprintf(target, "#include <stdint.h>\n#include <stdbool.h>\n\n");
-		fprintf(target, "int main()\n");
-	}
 
 	fprintf(target, "{\n");
 
@@ -123,10 +197,15 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				break;
 
 			case AST_VAR:
-				assert(node->index >= 0);
-				fprintf(target, "%s var_%i = ", type_to_c(node->type_name), node->index);
-				transpile_expression(target, node->first_child);
-				fprintf(target, ";\n");
+				if(level > 0)
+					transpile_var(target, node);
+				else
+				{
+					assert(node->index >= 0);
+					fprintf(target, "var_%i = ", node->index);
+					transpile_expression(target, node->first_child);
+					fprintf(target, ";\n");
+				}
 				break;
 
 			case AST_SET:
@@ -151,6 +230,9 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				fprintf(target, "\n");
 				transpile_block(target, node->last_child, level + 1);
 				break;
+
+			case AST_FUNC:
+				break; //This is transpiled elsewhere
 
 			default:
 				printf("INTERNAL ERROR: We don't know how to transpile this statement\n");
