@@ -1,6 +1,6 @@
 #Variable declaration with value
-var:Int32 lucky_number = 42;
-var:Int32 another_number = 2 * 3 + 1 / 5 + 4;
+var:i32 lucky_number = 42;
+var:i32 another_number = 2 * 3 + 1 / 5 + 4;
 var:Bool my_bool = true!;
 
 {
@@ -22,15 +22,15 @@ if(true == false!) {
     result = false;
 }
 
-var:Int32 iteration = 0;
+var:i32 iteration = 0;
 while(iteration <= 9) {
     iteration = iteration + 1;
 }
 
 
-var:Int32 some_variable = 69;
+var:i32 some_variable = 69;
 
-func:Int32 get_number(var:Int32 argument) {
+func:i32 get_number(var:i32 argument) {
     some_variable = 42;
     #return 2000;
 }

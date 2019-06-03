@@ -18,7 +18,7 @@ void prepare_file(FILE *target)
 
 char *type_to_c(char *type)
 {
-	if(strcmp(type, "Int32") == 0)
+	if(strcmp(type, "i32") == 0)
 		return "int32_t";
 
 	if(strcmp(type, "Bool") == 0)

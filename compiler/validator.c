@@ -26,7 +26,7 @@ bool type_is_number(char *type)
 	if(strcmp(type, "Number") == 0)
 		return true;
 
-	else if(strcmp(type, "Int32") == 0)
+	else if(strcmp(type, "i32") == 0)
 		return true;
 
 	return false;
