@@ -662,6 +662,14 @@ struct NODE *parse_expression_to_semicolon(struct TOKEN **token) //TODO: Error o
 }
 
 
+char *parse_type(struct TOKEN **token)
+{
+	expect(*token, TOKEN_WORD);
+
+	return strdup((*token)->string);
+}
+
+
 struct TOKEN *parse_next_statement(struct TOKEN *token)
 {
 	if(token == NULL)
