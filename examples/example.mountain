@@ -34,3 +34,8 @@ func:i32 get_number(var:i32 argument) {
     some_variable = 42;
     #return 2000;
 }
+
+
+struct:MyType { #Structs are currently only parsed
+    var:Bool field = true; #Fields are not parsed at all yet
+}

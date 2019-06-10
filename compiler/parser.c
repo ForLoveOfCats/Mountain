@@ -893,6 +893,29 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			}
 		}
 
+		else if(strcmp(token->string, "struct") == 0) //You guessed it, a struct declaration
+		{
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_COLON);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_WORD); //Our name
+			printf("new struct named '%s'\n", token->string);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_OPEN_BRACE);
+			while(true)
+			{
+				//TODO: Parse field declarations
+
+				if(token->type == TOKEN_CLOSE_BRACE)
+					break;
+				NEXT_TOKEN(token);
+			}
+
+			token = token->next; //Don't check for EOF
+		}
+
 		else //It must be a variable set or a function call   TODO Add function calls
 		{
 			//HACK for now we are just assuming that it is a variable set
