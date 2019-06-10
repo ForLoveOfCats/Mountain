@@ -6,6 +6,7 @@
 #include "compiler.h"
 #include "ast.h"
 #include "parser.h"
+#include "symbols.h"
 #include "validator.h"
 #include "transpile.h"
 
@@ -43,8 +44,9 @@ int main(int arg_count, char *arg_array[])
 	parse_block(first_token, false, 0);
 	free_token_list(first_token);
 
-	struct SCOPE *scope = create_scope(NULL);
-	validate_block(root_node, scope, 0);
+	next_index = 0;
+	struct SYMBOL_TABLE *table = create_symbol_table(NULL);
+	validate_block(root_node, table, 0);
 
 	FILE *output_file = fopen(arg_array[1], "w");
 	prepare_file(output_file);
@@ -55,7 +57,7 @@ int main(int arg_count, char *arg_array[])
 	transpile_block(output_file, root_node, 0);
 	fclose(output_file);
 
-	free_scope_tree(scope);
+	free_table_tree(table);
 	free_tree(root_node);
 
 	fclose(source_file);

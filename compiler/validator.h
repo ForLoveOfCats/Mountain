@@ -3,6 +3,7 @@
 
 
 #include "ast.h"
+#include "symbols.h"
 
 
 bool type_is_number(char *type);
@@ -20,18 +21,6 @@ struct SCOPE
 };
 
 
-struct VAR_DATA
-{
-	struct VAR_DATA *next;
-
-	char *name;
-	char *type;
-	int line;
-
-	int index;
-};
-
-
 bool are_types_equivalent(char *type_one, char *type_two);
 
 
@@ -41,4 +30,4 @@ struct SCOPE *create_scope(struct SCOPE *parent);
 void free_scope_tree(struct SCOPE *scope);
 
 
-void validate_block(struct NODE *node, struct SCOPE *scope, int level);
+void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int level);
