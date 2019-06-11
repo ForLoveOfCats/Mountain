@@ -36,6 +36,7 @@ struct NODE
 	int start_char;
 	int end_char;
 
+	struct SYMBOL_TABLE *symbol_table; //Not freed with NODE, freed in seperate call to free_table_tree
 	int index;
 
 	struct TYPE_DATA *type_name; //For var, get, and set

@@ -29,6 +29,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, in
 	new_node->start_char = start_char;
 	new_node->end_char = end_char;
 
+	new_node->symbol_table = NULL;
 	new_node->index = -1;
 
 	new_node->type_name = create_type("");

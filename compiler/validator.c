@@ -129,6 +129,8 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int level) //Exits on failure
 {
 	assert(node->type == AST_BLOCK);
+	assert(node->symbol_table == NULL);
+	node->symbol_table = symbol_table;
 	node = node->first_child;
 
 	assert(level >= 0);
