@@ -244,6 +244,15 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				break;
 			}
 
+			case AST_STRUCT:
+			{
+				struct SYMBOL *symbol = create_symbol(node->type_name->name, SYMBOL_STRUCT, node->line_number);
+				symbol->struct_data = create_struct();
+				add_symbol(symbol_table, symbol);
+
+				break;
+			}
+
 			default:
 				printf("INTERNAL ERROR: We don't know how to validate this statement\n");
 				exit(EXIT_FAILURE);

@@ -21,6 +21,11 @@ struct TYPE_DATA //TODO: Add type paremeters
 };
 
 
+struct STRUCT_DATA //Used for any type definition
+{
+};
+
+
 struct VAR_DATA
 {
 	struct TYPE_DATA *type;
@@ -36,6 +41,7 @@ struct SYMBOL
 	int index; //Used for name mangling in tranpiled C source
 
 	struct VAR_DATA *var_data;
+	struct STRUCT_DATA *struct_data;
 
 	struct SYMBOL *next;
 };
@@ -60,6 +66,12 @@ struct TYPE_DATA *copy_type(struct TYPE_DATA *type);
 
 
 void free_type(struct TYPE_DATA *type);
+
+
+struct STRUCT_DATA *create_struct();
+
+
+void free_struct(struct STRUCT_DATA *struct_data);
 
 
 struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int line);

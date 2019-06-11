@@ -154,8 +154,11 @@ void prototype_functions(FILE *target)
 	struct NODE *node = first_function;
 	while(node != NULL)
 	{
-		transpile_function_signature(target, node);
-		fprintf(target, ";\n");
+		if(node->type == AST_FUNC)
+		{
+			transpile_function_signature(target, node);
+			fprintf(target, ";\n");
+		}
 
 		node = node->next;
 	}
@@ -232,6 +235,9 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				break;
 
 			case AST_FUNC:
+				break; //This is transpiled elsewhere
+
+			case AST_STRUCT:
 				break; //This is transpiled elsewhere
 
 			default:

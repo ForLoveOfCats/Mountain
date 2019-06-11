@@ -36,6 +36,19 @@ void free_type(struct TYPE_DATA *type)
 }
 
 
+struct STRUCT_DATA *create_struct()
+{
+	struct STRUCT_DATA *struct_data = malloc(sizeof(struct STRUCT_DATA));
+	return struct_data;
+}
+
+
+void free_struct(struct STRUCT_DATA *struct_data)
+{
+	free(struct_data);
+}
+
+
 struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int line)
 {
 	struct SYMBOL *symbol = malloc(sizeof(struct SYMBOL));
@@ -48,6 +61,7 @@ struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int line)
 	next_index++;
 
 	symbol->var_data = NULL;
+	symbol->struct_data = NULL;
 
 	symbol->next = NULL;
 
@@ -61,6 +75,9 @@ void free_symbol(struct SYMBOL *symbol)
 
 	if(symbol->var_data != NULL)
 		free_var(symbol->var_data);
+
+	if(symbol->struct_data != NULL)
+		free_struct(symbol->struct_data);
 
 	free(symbol);
 }

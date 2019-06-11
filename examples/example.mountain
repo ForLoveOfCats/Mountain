@@ -28,14 +28,16 @@ while(iteration <= 9) {
 }
 
 
+struct:MyType { #Structs are currently only parsed
+    var:Bool field = true; #Fields are not parsed at all yet
+}
+
+
 var:i32 some_variable = 69;
 
 func:i32 get_number(var:i32 argument) {
     some_variable = 42;
     #return 2000;
-}
+} #Currently there are issues with stuff after a function
 
 
-struct:MyType { #Structs are currently only parsed
-    var:Bool field = true; #Fields are not parsed at all yet
-}

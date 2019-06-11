@@ -882,15 +882,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			add_node(current_parse_parent_node, new_node);
 
 			if(first_function == NULL)
-			{
 				first_function = new_node;
-				last_function = new_node;
-			}
-			else
-			{
-				last_function->next = new_node;
-				last_function = new_node;
-			}
 		}
 
 		else if(strcmp(token->string, "struct") == 0) //You guessed it, a struct declaration
@@ -901,6 +893,9 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_WORD); //Our name
 			printf("new struct named '%s'\n", token->string);
+			struct NODE *new_node = create_node(AST_STRUCT, token->line_number, token->start_char, token->end_char);
+			free_type(new_node->type_name);
+			new_node->type_name = create_type(token->string);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_BRACE);
@@ -912,6 +907,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 					break;
 				NEXT_TOKEN(token);
 			}
+
+			add_node(current_parse_parent_node, new_node);
 
 			token = token->next; //Don't check for EOF
 		}
