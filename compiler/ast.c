@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "compiler.h"
+#include "symbols.h"
 #include "parser.h"
 #include "ast.h"
 
@@ -30,7 +31,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, in
 
 	new_node->index = -1;
 
-	new_node->type_name = strdup("");
+	new_node->type_name = create_type("");
 	new_node->variable_name = strdup("");
 	new_node->function_name = strdup("");
 
@@ -135,7 +136,7 @@ void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 		arg = next_arg;
 	}
 
-	free(node->type_name);
+	free_type(node->type_name);
 	free(node->variable_name);
 	free(node->function_name);
 	free(node->literal_string);

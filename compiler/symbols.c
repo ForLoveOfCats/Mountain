@@ -11,6 +11,31 @@
 
 
 
+struct TYPE_DATA *create_type(char *name)
+{
+	struct TYPE_DATA *type = malloc(sizeof(struct TYPE_DATA));
+	type->name = strdup(name);
+
+	return type;
+}
+
+
+struct TYPE_DATA *copy_type(struct TYPE_DATA *type)
+{
+	struct TYPE_DATA *new_type = malloc(sizeof(struct TYPE_DATA));
+	new_type->name = strdup(type->name);
+
+	return new_type;
+}
+
+
+void free_type(struct TYPE_DATA *type)
+{
+	free(type->name);
+	free(type);
+}
+
+
 struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int line)
 {
 	struct SYMBOL *symbol = malloc(sizeof(struct SYMBOL));
@@ -113,10 +138,10 @@ void add_symbol(struct SYMBOL_TABLE *table, struct SYMBOL *symbol)
 }
 
 
-struct VAR_DATA *create_var(char *type)
+struct VAR_DATA *create_var(struct TYPE_DATA *type)
 {
 	struct VAR_DATA *var_data = malloc(sizeof(struct VAR_DATA));
-	var_data->type = strdup(type);
+	var_data->type = type;
 	return var_data;
 }
 
@@ -131,7 +156,6 @@ void add_var(struct SYMBOL_TABLE *table, char *name, struct VAR_DATA *var_data, 
 
 void free_var(struct VAR_DATA *var)
 {
-	free(var->type);
 	free(var);
 }
 

@@ -109,7 +109,7 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 void transpile_var(FILE *target, struct NODE *node)
 {
 	assert(node->index >= 0);
-	fprintf(target, "%s var_%i = ", type_to_c(node->type_name), node->index);
+	fprintf(target, "%s var_%i = ", type_to_c(node->type_name->name), node->index);
 	transpile_expression(target, node->first_child);
 	fprintf(target, ";\n");
 }
@@ -123,7 +123,7 @@ void prototype_globals(FILE *target, struct NODE *root)
 	{
 		if(node->type == AST_VAR)
 		{
-			fprintf(target, "%s var_%i;\n", type_to_c(node->type_name), node->index);
+			fprintf(target, "%s var_%i;\n", type_to_c(node->type_name->name), node->index);
 		}
 
 		node = node->next;
@@ -135,7 +135,7 @@ void prototype_globals(FILE *target, struct NODE *root)
 
 void transpile_function_signature(FILE *target, struct NODE *node)
 {
-	fprintf(target, "%s func_%i(", type_to_c(node->type_name), node->index);
+	fprintf(target, "%s func_%i(", type_to_c(node->type_name->name), node->index);
 	struct ARG_DATA *arg = node->first_arg;
 	while(arg != NULL)
 	{

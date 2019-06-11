@@ -5,8 +5,9 @@
 #include <stdio.h>
 
 #include "compiler.h"
-#include "parser.h"
+#include "symbols.h"
 #include "ast.h"
+#include "parser.h"
 
 
 #define PARSE_ERROR_LC(line, column, ...) \
@@ -560,8 +561,8 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			{
 				new_node = create_node(AST_LITERAL, token->line_number, token->start_char, token->end_char);
 				previous_node = new_node;
-				free(new_node->type_name);
-				new_node->type_name = strdup("Number");
+				free_type(new_node->type_name);
+				new_node->type_name = create_type("Number");
 				new_node->literal_type = LITERAL_NUMBER;
 				free(new_node->literal_string);
 				new_node->literal_string = strdup(token->string);
@@ -572,8 +573,8 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				{
 					new_node = create_node(AST_LITERAL, token->line_number, token->start_char, token->end_char);
 					previous_node = new_node;
-					free(new_node->type_name);
-					new_node->type_name = strdup("Bool");
+					free_type(new_node->type_name);
+					new_node->type_name = create_type("Bool");
 					new_node->literal_type = LITERAL_BOOL;
 					free(new_node->literal_string);
 					new_node->literal_string = strdup(token->string);
@@ -662,11 +663,10 @@ struct NODE *parse_expression_to_semicolon(struct TOKEN **token) //TODO: Error o
 }
 
 
-char *parse_type(struct TOKEN **token)
+struct TYPE_DATA *parse_type(struct TOKEN **token)
 {
 	expect(*token, TOKEN_WORD);
-
-	return strdup((*token)->string);
+	return create_type((*token)->string);
 }
 
 
@@ -695,8 +695,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_WORD);
-			free(new_node->type_name);
-			new_node->type_name = strdup(token->string);
+			free_type(new_node->type_name);
+			new_node->type_name = create_type(token->string);
 
 			NEXT_TOKEN(token);
 			free(new_node->variable_name);
@@ -799,8 +799,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_WORD); //type of the function TODO: Allow subtypes
-			free(new_node->type_name);
-			new_node->type_name = strdup(token->string);
+			free_type(new_node->type_name);
+			new_node->type_name = create_type(token->string);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_WORD); //name of the function
@@ -930,8 +930,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			NEXT_TOKEN(token);
 			struct NODE *expression = parse_expression_to_semicolon(&token);
 			add_node(new_node, expression);
-			free(new_node->type_name);
-			new_node->type_name = strdup(expression->type_name);
+			free_type(new_node->type_name);
+			new_node->type_name = copy_type(expression->type_name);
 
 			add_node(current_parse_parent_node, new_node);
 

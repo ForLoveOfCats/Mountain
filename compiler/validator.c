@@ -31,19 +31,19 @@ bool type_is_number(char *type)
 }
 
 
-bool are_types_equivalent(char *type_one, char *type_two)
+bool are_types_equivalent(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two)
 {
-	if(strcmp(type_one, type_two) == 0)
+	if(strcmp(type_one->name, type_two->name) == 0)
 		return true;
 
-	if(type_is_number(type_one) && type_is_number(type_two))
+	if(type_is_number(type_one->name) && type_is_number(type_two->name))
 		return true;
 
 	return false;
 }
 
 
-char *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int level) //Exits on failure
+struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int level) //Exits on failure
 {
 	if(node->type == AST_EXPRESSION)
 	{
@@ -62,22 +62,22 @@ char *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table,
 				VALIDATE_ERROR_L(node->line_number, "Cannot get variable '%s' as it does not exist", node->variable_name);
 
 			node->index = symbol->index;
-			return symbol->var_data->type;
+			return copy_type(symbol->var_data->type);
 		}
 		else
-			return node->type_name;
+			return copy_type(node->type_name);
 	}
 	else if(child_count == 1)
 	{
 		assert(node->type == AST_UNOP);
 
-		char *type = typecheck_expression(node->first_child, symbol_table, level + 1);
+		struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, level + 1);
 
 		switch(node->unop_type)
 		{
 			case UNOP_INVERT:
 			{
-				if(strcmp(type, "Bool") != 0)
+				if(strcmp(type->name, "Bool") != 0)
 					VALIDATE_ERROR_L(node->line_number, "Cannot invert non-boolean value of type '%s'", type);
 				break;
 			}
@@ -92,29 +92,29 @@ char *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table,
 	{
 		assert(node->type == AST_OP);
 
-		char *left_type = typecheck_expression(node->first_child, symbol_table, level + 1);
-		char *right_type = typecheck_expression(node->last_child, symbol_table, level + 1);
+		struct TYPE_DATA *left_type = typecheck_expression(node->first_child, symbol_table, level + 1);
+		struct TYPE_DATA *right_type = typecheck_expression(node->last_child, symbol_table, level + 1);
 
 		if(!are_types_equivalent(left_type, right_type))
 			VALIDATE_ERROR_L(node->line_number, "Type mismatch between left and right values for operation in expression");
 
-		//TODO: Use a switch statement here
-		if(node->op_type == OP_TEST_EQUAL)
-			return "Bool";
-		else if(node->op_type == OP_TEST_NOT_EQUAL)
-			return "Bool";
-		else if(node->op_type == OP_TEST_GREATER)
-			return "Bool";
-		else if(node->op_type == OP_TEST_GREATER_EQUAL)
-			return "Bool";
-		else if(node->op_type == OP_TEST_LESS)
-			return "Bool";
-		else if(node->op_type == OP_TEST_LESS_EQUAL)
-			return "Bool";
+		if(node->op_type == OP_TEST_EQUAL
+		   || node->op_type == OP_TEST_NOT_EQUAL
+		   || node->op_type == OP_TEST_GREATER
+		   || node->op_type == OP_TEST_GREATER_EQUAL
+		   || node->op_type == OP_TEST_LESS
+		   || node->op_type == OP_TEST_LESS_EQUAL)
+		{
+			free_type(left_type);
+			free_type(right_type);
+			return create_type("Bool");
+		}
 		else
 		{
-			if(node->type == AST_OP && (!type_is_number(left_type) || !type_is_number(right_type)) )
+			if(node->type == AST_OP && (!type_is_number(left_type->name) || !type_is_number(right_type->name)) )
 				VALIDATE_ERROR_L(node->line_number, "Cannot perform arithmetic on one or more non-numerical values");
+
+			free_type(right_type);
 			return left_type;
 		}
 	}
@@ -158,12 +158,13 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				struct VAR_DATA *var = create_var(node->type_name);
 				add_var(symbol_table, node->variable_name, var, node->line_number);
 
-				char *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
+				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
 				if(!are_types_equivalent(expression_type, node->type_name))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
 									 node->variable_name, node->type_name, expression_type);
 				}
+				free_type(expression_type);
 
 				break;
 			}
@@ -177,12 +178,13 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				if(symbol == NULL || symbol->type != SYMBOL_VAR)
 					VALIDATE_ERROR_L(node->line_number, "Cannot set variable '%s' as it does not exist", node->variable_name);
 
-				char *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
+				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
 				if(!are_types_equivalent(expression_type, symbol->var_data->type))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch setting variable '%s' of type '%s' with expression of type '%s'",
 									 node->variable_name, symbol->var_data->type, expression_type);
 				}
+				free_type(expression_type);
 
 				node->index = symbol->index;
 				break;
@@ -192,9 +194,10 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 			{
 				assert(count_node_children(node) == 2);
 
-				char *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
-				if(strcmp(expression_type, "Bool") != 0)
+				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
+				if(strcmp(expression_type->name, "Bool") != 0)
 					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type);
+				free_type(expression_type);
 
 				validate_block(node->last_child, symbol_table, level + 1);
 
@@ -205,9 +208,10 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 			{
 				assert(count_node_children(node) == 2);
 
-				char *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
-				if(strcmp(expression_type, "Bool") != 0)
+				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
+				if(strcmp(expression_type->name, "Bool") != 0)
 					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type);
+				free_type(expression_type);
 
 				validate_block(node->last_child, symbol_table, level + 1);
 

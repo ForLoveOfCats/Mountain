@@ -2,6 +2,9 @@
 #include <stdint.h>
 
 
+#include "symbols.h"
+
+
 
 struct NODE *root_node;
 struct NODE *current_parse_parent_node;
@@ -35,7 +38,7 @@ struct NODE
 
 	int index;
 
-	char *type_name; //For var, get, and set
+	struct TYPE_DATA *type_name; //For var, get, and set
 	char *variable_name; //var's and set's name
 	char *function_name; //for function declaration and calling
 
