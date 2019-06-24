@@ -10,6 +10,7 @@ struct NODE *root_node;
 struct NODE *current_parse_parent_node;
 
 struct NODE *first_function;
+struct NODE *last_function;
 
 
 enum AST_TYPE {AST_BLOCK, AST_IF, AST_WHILE, AST_FUNC, AST_STRUCT, AST_VAR, AST_SET, AST_GET, AST_EXPRESSION, AST_LITERAL, AST_OP, AST_UNOP};

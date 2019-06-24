@@ -879,10 +879,17 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			current_parse_parent_node = block;
 			token = parse_block(token, true, 0);
 			current_parse_parent_node = old_parse_parent_node;
-			add_node(current_parse_parent_node, new_node);
 
 			if(first_function == NULL)
+			{
 				first_function = new_node;
+				last_function = new_node;
+			}
+			else
+			{
+				last_function->next = new_node;
+				last_function = new_node;
+			}
 		}
 
 		else if(strcmp(token->string, "struct") == 0) //You guessed it, a struct declaration

@@ -31,3 +31,6 @@ void free_scope_tree(struct SCOPE *scope);
 
 
 void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int level);
+
+
+void validate_functions(struct SYMBOL_TABLE *symbol_table);

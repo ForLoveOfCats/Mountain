@@ -220,30 +220,6 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				break;
 			}
 
-			case AST_FUNC:
-			{
-				if(level > 0)
-					VALIDATE_ERROR_L(node->line_number, "Function declared outside global scope");
-
-				assert(count_node_children(node) == 1);
-
-				struct ARG_DATA *arg = node->first_arg;
-				while(arg != NULL) //TODO: Validate types as well
-				{
-					arg->index = next_index;
-					next_index++;
-
-					arg = arg->next;
-				}
-
-				validate_block(node->first_child, symbol_table, level + 1);
-
-				node->index = next_index;
-				next_index++;
-
-				break;
-			}
-
 			case AST_STRUCT:
 			{
 				struct SYMBOL *symbol = create_symbol(node->type_name->name, SYMBOL_STRUCT, node->line_number);
@@ -257,6 +233,34 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				printf("INTERNAL ERROR: We don't know how to validate this statement\n");
 				exit(EXIT_FAILURE);
 		}
+
+		node = node->next;
+	}
+}
+
+
+void validate_functions(struct SYMBOL_TABLE *symbol_table)
+{
+	struct NODE *node = first_function;
+	while(node != NULL)
+	{
+		assert(node->type == AST_FUNC);
+		assert(node->first_child->type == AST_BLOCK);
+		assert(count_node_children(node) == 1);
+
+		struct ARG_DATA *arg = node->first_arg;
+		while (arg != NULL) // TODO: Validate types as well
+		{
+			arg->index = next_index;
+			next_index++;
+
+			arg = arg->next;
+		}
+
+		validate_block(node->first_child, symbol_table, 0);
+
+		node->index = next_index;
+		next_index++;
 
 		node = node->next;
 	}

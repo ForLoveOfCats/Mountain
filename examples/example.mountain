@@ -38,6 +38,7 @@ var:i32 some_variable = 69;
 func:i32 get_number(var:i32 argument) {
     some_variable = 42;
     #return 2000;
-} #Currently there are issues with stuff after a function
+}
 
+var:i32 following_variable = 420;
 

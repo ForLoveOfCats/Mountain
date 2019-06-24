@@ -47,6 +47,7 @@ int main(int arg_count, char *arg_array[])
 	next_index = 0;
 	struct SYMBOL_TABLE *table = create_symbol_table(NULL);
 	validate_block(root_node, table, 0);
+	validate_functions(table); //TODO: Validate functions first, requires changes to disallow execution in global scope
 
 	FILE *output_file = fopen(arg_array[1], "w");
 	prepare_file(output_file);
