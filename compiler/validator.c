@@ -239,6 +239,17 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 }
 
 
+void populate_function_symbols(struct SYMBOL_TABLE *symbol_table)
+{
+	struct NODE *node = first_function;
+	while(node != NULL)
+	{
+		add_symbol(symbol_table, create_symbol(node->function_name, SYMBOL_FUNC, node->line_number));
+		node = node->next;
+	}
+}
+
+
 void validate_functions(struct SYMBOL_TABLE *symbol_table)
 {
 	struct NODE *node = first_function;
