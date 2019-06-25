@@ -78,7 +78,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			case UNOP_INVERT:
 			{
 				if(strcmp(type->name, "Bool") != 0)
-					VALIDATE_ERROR_L(node->line_number, "Cannot invert non-boolean value of type '%s'", type);
+					VALIDATE_ERROR_L(node->line_number, "Cannot invert non-boolean value of type '%s'", type->name);
 				break;
 			}
 
@@ -164,7 +164,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				if(!are_types_equivalent(expression_type, node->type_name))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
-									 node->variable_name, node->type_name, expression_type);
+									 node->variable_name, node->type_name->name, expression_type->name);
 				}
 				free_type(expression_type);
 
@@ -184,7 +184,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				if(!are_types_equivalent(expression_type, symbol->var_data->type))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch setting variable '%s' of type '%s' with expression of type '%s'",
-									 node->variable_name, symbol->var_data->type, expression_type);
+									 node->variable_name, symbol->var_data->type->name, expression_type->name);
 				}
 				free_type(expression_type);
 
@@ -198,7 +198,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 
 				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
 				if(strcmp(expression_type->name, "Bool") != 0)
-					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type);
+					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type->name);
 				free_type(expression_type);
 
 				validate_block(node->last_child, symbol_table, level + 1);
@@ -212,7 +212,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 
 				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
 				if(strcmp(expression_type->name, "Bool") != 0)
-					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type);
+					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type->name);
 				free_type(expression_type);
 
 				validate_block(node->last_child, symbol_table, level + 1);
