@@ -24,6 +24,7 @@ struct TYPE_DATA //TODO: Add type paremeters
 
 struct STRUCT_DATA //Used for any type definition
 {
+	int index;
 };
 
 

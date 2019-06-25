@@ -39,6 +39,9 @@ void free_type(struct TYPE_DATA *type)
 struct STRUCT_DATA *create_struct()
 {
 	struct STRUCT_DATA *struct_data = malloc(sizeof(struct STRUCT_DATA));
+
+	struct_data->index = -1;
+
 	return struct_data;
 }
 

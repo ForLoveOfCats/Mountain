@@ -224,6 +224,8 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 			{
 				struct SYMBOL *symbol = create_symbol(node->type_name->name, SYMBOL_STRUCT, node->line_number);
 				symbol->struct_data = create_struct();
+				symbol->struct_data->index = next_index;
+				next_index++;
 				add_symbol(symbol_table, symbol);
 
 				break;
