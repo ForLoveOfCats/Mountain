@@ -14,7 +14,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, in
 {
 	struct NODE *new_node = (struct NODE *)malloc(sizeof(struct NODE));
 
-	new_node->type = type;
+	new_node->node_type = type;
 
 	new_node->parent = NULL;
 	new_node->next = NULL;
@@ -32,7 +32,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, in
 	new_node->symbol_table = NULL;
 	new_node->index = -1;
 
-	new_node->type_name = create_type("");
+	new_node->type = create_type("");
 	new_node->variable_name = strdup("");
 	new_node->function_name = strdup("");
 
@@ -137,7 +137,7 @@ void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 		arg = next_arg;
 	}
 
-	free_type(node->type_name);
+	free_type(node->type);
 	free(node->variable_name);
 	free(node->function_name);
 	free(node->literal_string);

@@ -31,7 +31,7 @@ char *type_to_c(char *type)
 
 void transpile_expression(FILE *target, struct NODE *node) //TODO support non-numerical values
 {
-	if(node->type == AST_EXPRESSION)
+	if(node->node_type == AST_EXPRESSION)
 	{
 		transpile_expression(target, node->first_child);
 		return;
@@ -39,7 +39,7 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 
 	fprintf(target, "(");
 
-	if(node->type == AST_OP)
+	if(node->node_type == AST_OP)
 	{
 		transpile_expression(target, node->first_child);
 		switch(node->op_type)
@@ -90,12 +90,12 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 		}
 		transpile_expression(target, node->first_child->next);
 	}
-	else if(node->type == AST_UNOP)
+	else if(node->node_type == AST_UNOP)
 	{
 		fprintf(target, "!");
 		transpile_expression(target, node->first_child);
 	}
-	else if(node->type == AST_GET)
+	else if(node->node_type == AST_GET)
 	{
 		fprintf(target, "var_%i", node->index);
 	}
@@ -109,7 +109,7 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 void transpile_var(FILE *target, struct NODE *node)
 {
 	assert(node->index >= 0);
-	fprintf(target, "%s var_%i = ", type_to_c(node->type_name->name), node->index);
+	fprintf(target, "%s var_%i = ", type_to_c(node->type->name), node->index);
 	transpile_expression(target, node->first_child);
 	fprintf(target, ";\n");
 }
@@ -117,13 +117,13 @@ void transpile_var(FILE *target, struct NODE *node)
 
 void prototype_globals(FILE *target, struct NODE *root)
 {
-	assert(root->type == AST_BLOCK);
+	assert(root->node_type == AST_BLOCK);
 	struct NODE *node = root->first_child;
 	while(node != NULL)
 	{
-		if(node->type == AST_VAR)
+		if(node->node_type == AST_VAR)
 		{
-			fprintf(target, "%s var_%i;\n", type_to_c(node->type_name->name), node->index);
+			fprintf(target, "%s var_%i;\n", type_to_c(node->type->name), node->index);
 		}
 
 		node = node->next;
@@ -135,7 +135,7 @@ void prototype_globals(FILE *target, struct NODE *root)
 
 void transpile_function_signature(FILE *target, struct NODE *node)
 {
-	fprintf(target, "%s func_%i(", type_to_c(node->type_name->name), node->index);
+	fprintf(target, "%s func_%i(", type_to_c(node->type->name), node->index);
 	struct ARG_DATA *arg = node->first_arg;
 	while(arg != NULL)
 	{
@@ -154,7 +154,7 @@ void prototype_functions(FILE *target)
 	struct NODE *node = first_function;
 	while(node != NULL)
 	{
-		if(node->type == AST_FUNC)
+		if(node->node_type == AST_FUNC)
 		{
 			transpile_function_signature(target, node);
 			fprintf(target, ";\n");
@@ -185,7 +185,7 @@ void transpile_functions(FILE *target)
 void transpile_block(FILE *target, struct NODE *node, int level) //This is in no way efficient...
 {
 	assert(level >= 0);
-	assert(node->type == AST_BLOCK);
+	assert(node->node_type == AST_BLOCK);
 	node = node->first_child;
 
 	fprintf(target, "{\n");
@@ -193,7 +193,7 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 	//"foreach" node
 	while(node != NULL)
 	{
-		switch(node->type)
+		switch(node->node_type)
 		{
 			case AST_BLOCK:
 				transpile_block(target, node, level + 1);

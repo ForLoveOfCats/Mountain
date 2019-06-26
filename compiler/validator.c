@@ -45,7 +45,7 @@ bool are_types_equivalent(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two
 
 struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int level) //Exits on failure
 {
-	if(node->type == AST_EXPRESSION)
+	if(node->node_type == AST_EXPRESSION)
 	{
 		return typecheck_expression(node->first_child, symbol_table, level + 1);
 	}
@@ -55,7 +55,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 
 	if(child_count == 0)
 	{
-		if(node->type == AST_GET)
+		if(node->node_type == AST_GET)
 		{
 			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->variable_name);
 			if(symbol == NULL || symbol->type != SYMBOL_VAR)
@@ -65,11 +65,11 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			return copy_type(symbol->var_data->type);
 		}
 		else
-			return copy_type(node->type_name);
+			return copy_type(node->type);
 	}
 	else if(child_count == 1)
 	{
-		assert(node->type == AST_UNOP);
+		assert(node->node_type == AST_UNOP);
 
 		struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, level + 1);
 
@@ -90,7 +90,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	}
 	else if(child_count == 2)
 	{
-		assert(node->type == AST_OP);
+		assert(node->node_type == AST_OP);
 
 		struct TYPE_DATA *left_type = typecheck_expression(node->first_child, symbol_table, level + 1);
 		struct TYPE_DATA *right_type = typecheck_expression(node->last_child, symbol_table, level + 1);
@@ -111,7 +111,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		}
 		else
 		{
-			if(node->type == AST_OP && (!type_is_number(left_type->name) || !type_is_number(right_type->name)) )
+			if(node->node_type == AST_OP && (!type_is_number(left_type->name) || !type_is_number(right_type->name)) )
 				VALIDATE_ERROR_L(node->line_number, "Cannot perform arithmetic on one or more non-numerical values");
 
 			free_type(right_type);
@@ -128,7 +128,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 
 void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int level) //Exits on failure
 {
-	assert(node->type == AST_BLOCK);
+	assert(node->node_type == AST_BLOCK);
 	assert(node->symbol_table == NULL);
 	node->symbol_table = symbol_table;
 	node = node->first_child;
@@ -138,7 +138,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 	//"foreach" node
 	while(node != NULL)
 	{
-		switch(node->type)
+		switch(node->node_type)
 		{
 			case AST_BLOCK:
 			{
@@ -157,14 +157,14 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				}
 
 				node->index = next_index; //Not increasing as add_var will do that when creating the symbol
-				struct VAR_DATA *var = create_var(node->type_name);
+				struct VAR_DATA *var = create_var(node->type);
 				add_var(symbol_table, node->variable_name, var, node->line_number);
 
 				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
-				if(!are_types_equivalent(expression_type, node->type_name))
+				if(!are_types_equivalent(expression_type, node->type))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
-									 node->variable_name, node->type_name->name, expression_type->name);
+									 node->variable_name, node->type->name, expression_type->name);
 				}
 				free_type(expression_type);
 
@@ -222,7 +222,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 
 			case AST_STRUCT:
 			{
-				struct SYMBOL *symbol = create_symbol(node->type_name->name, SYMBOL_STRUCT, node->line_number);
+				struct SYMBOL *symbol = create_symbol(node->type->name, SYMBOL_STRUCT, node->line_number);
 				symbol->struct_data = create_struct();
 				symbol->struct_data->index = next_index;
 				next_index++;
@@ -257,8 +257,8 @@ void validate_functions(struct SYMBOL_TABLE *symbol_table)
 	struct NODE *node = first_function;
 	while(node != NULL)
 	{
-		assert(node->type == AST_FUNC);
-		assert(node->first_child->type == AST_BLOCK);
+		assert(node->node_type == AST_FUNC);
+		assert(node->first_child->node_type == AST_BLOCK);
 		assert(count_node_children(node) == 1);
 
 		struct ARG_DATA *arg = node->first_arg;

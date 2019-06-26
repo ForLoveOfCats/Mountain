@@ -21,7 +21,7 @@ enum LITERAL_TYPE {LITERAL_NUMBER, LITERAL_BOOL};
 
 struct NODE
 {
-	enum AST_TYPE type;
+	enum AST_TYPE node_type;
 
 	struct NODE *parent;
 	struct NODE *next;
@@ -39,7 +39,7 @@ struct NODE
 	struct SYMBOL_TABLE *symbol_table; //Not freed with NODE, freed in seperate call to free_table_tree
 	int index;
 
-	struct TYPE_DATA *type_name; //For var, get, and set
+	struct TYPE_DATA *type; //For var, get, and set
 	char *variable_name; //var's and set's name
 	char *function_name; //for function declaration and calling
 
