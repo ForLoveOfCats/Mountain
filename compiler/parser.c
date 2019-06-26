@@ -686,7 +686,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 	if(token->type == TOKEN_WORD)
 	{
-		if(strcmp(token->string, "var") == 0) //mutable variable declaration
+		if(strcmp(token->string, "let") == 0)
 		{
 			struct NODE *new_node = create_node(AST_VAR, token->line_number, token->start_char, token->end_char);
 
@@ -827,7 +827,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 				while(true)
 				{
 					expect(current_arg_token, TOKEN_WORD);
-					if(strcmp(current_arg_token->string, "var") != 0)
+					if(strcmp(current_arg_token->string, "let") != 0)
 						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected function argument declaration to be variable declaration");
 					if(current_arg_token == end)
 						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type before close parentheses");

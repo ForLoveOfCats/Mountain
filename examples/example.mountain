@@ -1,14 +1,14 @@
 #Variable declaration with value
-var:i32 lucky_number = 42;
-var:i32 another_number = 2 * 3 + 1 / 5 + 4;
-var:Bool my_bool = true!;
+let:i32 lucky_number = 42;
+let:i32 another_number = 2 * 3 + 1 / 5 + 4;
+let:Bool my_bool = true!;
 
 {
     another_number = another_number - 2;
 }
 
 
-var:Bool result = true == false!;
+let:Bool result = true == false!;
 result = true != false;
 result = 10 > 5;
 result = 10 >= 5;
@@ -18,27 +18,27 @@ result = false == result!;
 
 
 if(true == false!) {
-    var:Bool inner_bool = true;
+    let:Bool inner_bool = true;
     result = false;
 }
 
-var:i32 iteration = 0;
+let:i32 iteration = 0;
 while(iteration <= 9) {
     iteration = iteration + 1;
 }
 
 
 struct:MyType { #Structs are currently only parsed
-    var:Bool field = true; #Fields are not parsed at all yet
+    let:Bool field = true; #Fields are not parsed at all yet
 }
 
 
-var:i32 some_variable = 69;
+let:i32 some_variable = 69;
 
-func:i32 get_number(var:i32 argument) {
+func:i32 get_number(let:i32 argument) {
     some_variable = 42;
     #return 2000;
 }
 
-var:i32 following_variable = 420;
+let:i32 following_variable = 420;
 
