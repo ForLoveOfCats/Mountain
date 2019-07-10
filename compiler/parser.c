@@ -599,8 +599,8 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 					//TODO: Add function calls
 					new_node = create_node(AST_GET, token->line_number, token->start_char, token->end_char);
 					previous_node = new_node;
-					free(new_node->variable_name);
-					new_node->variable_name = strdup(token->string);
+					free(new_node->name);
+					new_node->name = strdup(token->string);
 				}
 			}
 			assert(new_node != NULL);
@@ -707,9 +707,9 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			free_type(new_node->type);
 			new_node->type = parse_type(&token);
 
-			free(new_node->variable_name);
+			free(new_node->name);
 			expect(token, TOKEN_WORD);
-			new_node->variable_name = strdup(token->string);
+			new_node->name = strdup(token->string);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_EQUALS);
@@ -811,8 +811,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			new_node->type = parse_type(&token);
 
 			expect(token, TOKEN_WORD); //name of the function
-			free(new_node->function_name);
-			new_node->function_name = strdup(token->string);
+			free(new_node->name);
+			new_node->name = strdup(token->string);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_PARENTHESES);
@@ -932,8 +932,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			//HACK for now we are just assuming that it is a variable set
 			expect(token, TOKEN_WORD);
 			struct NODE *new_node = create_node(AST_SET, token->line_number, token->start_char, token->end_char);
-			free(new_node->variable_name);
-			new_node->variable_name = strdup(token->string);
+			free(new_node->name);
+			new_node->name = strdup(token->string);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_EQUALS);

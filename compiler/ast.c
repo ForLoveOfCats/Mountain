@@ -33,8 +33,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, in
 	new_node->index = -1;
 
 	new_node->type = create_type("");
-	new_node->variable_name = strdup("");
-	new_node->function_name = strdup("");
+	new_node->name = strdup("");
 
 	new_node->literal_string = strdup("");
 	new_node->literal_bool = false;
@@ -138,8 +137,7 @@ void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 	}
 
 	free_type(node->type);
-	free(node->variable_name);
-	free(node->function_name);
+	free(node->name);
 	free(node->literal_string);
 	free(node);
 }

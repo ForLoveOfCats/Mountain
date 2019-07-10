@@ -57,9 +57,9 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	{
 		if(node->node_type == AST_GET)
 		{
-			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->variable_name);
+			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name);
 			if(symbol == NULL || symbol->type != SYMBOL_VAR)
-				VALIDATE_ERROR_L(node->line_number, "Cannot get variable '%s' as it does not exist", node->variable_name);
+				VALIDATE_ERROR_L(node->line_number, "Cannot get variable '%s' as it does not exist", node->name);
 
 			node->index = symbol->index;
 			return copy_type(symbol->var_data->type);
@@ -151,20 +151,20 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				assert(count_node_children(node) == 1);
 
 				{
-					struct SYMBOL *symbol = lookup_symbol(symbol_table, node->variable_name);
+					struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name);
 					if(symbol != NULL && symbol->type == SYMBOL_VAR)
-						VALIDATE_ERROR_L(node->line_number, "Variable '%s' already exists from line %i", node->variable_name, symbol->line);
+						VALIDATE_ERROR_L(node->line_number, "Variable '%s' already exists from line %i", node->name, symbol->line);
 				}
 
 				node->index = next_index; //Not increasing as add_var will do that when creating the symbol
 				struct VAR_DATA *var = create_var(node->type);
-				add_var(symbol_table, node->variable_name, var, node->line_number);
+				add_var(symbol_table, node->name, var, node->line_number);
 
 				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
 				if(!are_types_equivalent(expression_type, node->type))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
-									 node->variable_name, node->type->name, expression_type->name);
+									 node->name, node->type->name, expression_type->name);
 				}
 				free_type(expression_type);
 
@@ -175,16 +175,16 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 			{
 				assert(count_node_children(node) == 1);
 
-				struct SYMBOL *symbol = lookup_symbol(symbol_table, node->variable_name);
+				struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name);
 
 				if(symbol == NULL || symbol->type != SYMBOL_VAR)
-					VALIDATE_ERROR_L(node->line_number, "Cannot set variable '%s' as it does not exist", node->variable_name);
+					VALIDATE_ERROR_L(node->line_number, "Cannot set variable '%s' as it does not exist", node->name);
 
 				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
 				if(!are_types_equivalent(expression_type, symbol->var_data->type))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch setting variable '%s' of type '%s' with expression of type '%s'",
-									 node->variable_name, symbol->var_data->type->name, expression_type->name);
+									 node->name, symbol->var_data->type->name, expression_type->name);
 				}
 				free_type(expression_type);
 
@@ -246,7 +246,7 @@ void populate_function_symbols(struct SYMBOL_TABLE *symbol_table)
 	struct NODE *node = first_function;
 	while(node != NULL)
 	{
-		add_symbol(symbol_table, create_symbol(node->function_name, SYMBOL_FUNC, node->line_number));
+		add_symbol(symbol_table, create_symbol(node->name, SYMBOL_FUNC, node->line_number));
 		node = node->next;
 	}
 }

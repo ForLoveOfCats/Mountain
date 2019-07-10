@@ -40,8 +40,7 @@ struct NODE
 	int index;
 
 	struct TYPE_DATA *type; //For var, get, and set
-	char *variable_name; //var's and set's name
-	char *function_name; //for function declaration and calling
+	char *name; //var's and set's name
 
 	enum LITERAL_TYPE literal_type;
 	char *literal_string;
