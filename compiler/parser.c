@@ -908,8 +908,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			expect(token, TOKEN_WORD); //Our name
 			printf("new struct named '%s'\n", token->string);
 			struct NODE *new_node = create_node(AST_STRUCT, token->line_number, token->start_char, token->end_char);
-			free_type(new_node->type);
-			new_node->type = create_type(token->string); //TODO: Don't use type to indicate struct name
+			free(new_node->name);
+			new_node->name = strdup(token->string);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_BRACE);

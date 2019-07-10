@@ -222,7 +222,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 
 			case AST_STRUCT:
 			{
-				struct SYMBOL *symbol = create_symbol(node->type->name, SYMBOL_STRUCT, node->line_number);
+				struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->line_number);
 				symbol->struct_data = create_struct();
 				symbol->struct_data->index = next_index;
 				next_index++;
