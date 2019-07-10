@@ -951,6 +951,10 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			NEXT_TOKEN(token);
 		}
 	}
+	else
+	{
+		PARSE_ERROR_LC(token->line_number, token->start_char, "Unexpected token '%s' at beginning of new statement", token->string);
+	}
 
 	return token;
 }
