@@ -673,7 +673,9 @@ struct NODE *parse_expression_to_semicolon(struct TOKEN **token) //TODO: Error o
 struct TYPE_DATA *parse_type(struct TOKEN **token)
 {
 	expect(*token, TOKEN_WORD);
-	return create_type((*token)->string);
+	struct TYPE_DATA *instance = create_type((*token)->string);
+	*token = (*token)->next;
+	return instance;
 }
 
 
@@ -703,9 +705,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_WORD);
 			free_type(new_node->type);
-			new_node->type = create_type(token->string);
+			new_node->type = parse_type(&token);
 
-			NEXT_TOKEN(token);
 			free(new_node->variable_name);
 			expect(token, TOKEN_WORD);
 			new_node->variable_name = strdup(token->string);
@@ -807,9 +808,8 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_WORD); //type of the function TODO: Allow subtypes
 			free_type(new_node->type);
-			new_node->type = create_type(token->string);
+			new_node->type = parse_type(&token);
 
-			NEXT_TOKEN(token);
 			expect(token, TOKEN_WORD); //name of the function
 			free(new_node->function_name);
 			new_node->function_name = strdup(token->string);
@@ -909,7 +909,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			printf("new struct named '%s'\n", token->string);
 			struct NODE *new_node = create_node(AST_STRUCT, token->line_number, token->start_char, token->end_char);
 			free_type(new_node->type);
-			new_node->type = create_type(token->string);
+			new_node->type = create_type(token->string); //TODO: Don't use type to indicate struct name
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_BRACE);
