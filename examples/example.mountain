@@ -1,4 +1,4 @@
-#Variable declaration with value
+//Variable declaration with value
 let:i32 lucky_number = 42;
 let:i32 another_number = 2 * 3 + 1 / 5 + 4;
 let:Bool my_bool = true!;
@@ -28,8 +28,8 @@ while(iteration <= 9) {
 }
 
 
-struct:MyType { #Structs are currently only parsed
-    let:Bool field = true; #Fields are not parsed at all yet
+struct:MyType { //Structs are currently only parsed
+    let:Bool field = true; //Fields are not parsed at all yet
 }
 
 
@@ -37,7 +37,7 @@ let:i32 some_variable = 69;
 
 func:i32 get_number(let:i32 argument) {
     some_variable = 42;
-    #return 2000;
+    //return 2000;
 }
 
 let:i32 following_variable = 420;

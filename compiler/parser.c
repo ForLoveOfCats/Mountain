@@ -97,13 +97,8 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 
 				case '#':
 				{
-					while(car != '\n')
-					{
-						car = getc(source_file);
-					}
-					current_file_line++;
-					current_file_character = 0;
-					break;
+					token->type = TOKEN_HASH;
+					goto return_car_as_token;
 				}
 
 				case '=':
@@ -170,6 +165,18 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 
 				case '/':
 				{
+					char next_car = fgetc(source_file);
+					if(next_car == '/')
+					{
+						while(car != '\n')
+						{
+							car = getc(source_file);
+						}
+						current_file_line++;
+						current_file_character = 0;
+						break;
+					}
+
 					token->type = TOKEN_DIV;
 					goto return_car_as_token;
 				}
