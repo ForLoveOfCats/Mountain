@@ -13,5 +13,7 @@ they are doing.
 
 # This language is nowhere near usable for literally anything
 This is currently little more than a fun side project with hopes of
-eventually becoming more. Feel free to poke around and help if you
-want. Dunno, Cheers!
+eventually becoming more. Read the feature wishlist
+[here](WISHLIST.md) for more information about what Mountain hopes to
+be capable of. Feel free to poke around and help if you want. Dunno,
+Cheers!
