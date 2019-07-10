@@ -1,5 +1,5 @@
 # Mountain Programming Language
-## A fast, C compatible, language designed to enable greatness
+## A (hopefully) fast, C compatible, language designed to enable greatness
 
 
 Mountain has several core tenants (listed in order of inportance)
@@ -9,3 +9,9 @@ terms of developer time without sacrificing runtime performance to heavily.
 3. Stay out of the programmer's way and trust that the developer knows what
 they are doing.
 4. Writability counts
+
+
+# This language is nowhere near usable for literally anything
+This is currently little more than a fun side project with hopes of
+eventually becoming more. Feel free to poke around and help if you
+want. Dunno, Cheers!
