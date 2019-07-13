@@ -47,10 +47,17 @@ int current_token_start = 0;
 
 void free_token_list(struct TOKEN *token) //Frees a token and all next tokens
 {
-	free(token->string);
-	if(token->next != NULL)
-		free_token_list(token->next);
-	free(token);
+	struct TOKEN *next = NULL;
+
+	while(token != NULL)
+	{
+		next = token->next;
+
+		free(token->string);
+		free(token);
+
+		token = next;
+	}
 }
 
 
