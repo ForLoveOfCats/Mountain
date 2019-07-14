@@ -162,6 +162,8 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				struct VAR_DATA *var = create_var(node->type);
 				add_var(symbol_table, node->name, var, node->line_number);
 
+				if(strcmp(node->type->name, "Void") == 0)
+					VALIDATE_ERROR_L(node->line_number, "Invalid type 'Void' when declaring variable '%s'", node->name);
 				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
 				if(!are_types_equivalent(expression_type, node->type))
 				{

@@ -40,8 +40,17 @@ func:i32 get_number(let:i32 argument) {
 	{}
 
     some_variable = 42;
-    //return 2000;
+    //TODO: Add return statement and trace to ensure all paths return
 }
 
 let:i32 following_variable = 420;
 
+
+func:Void do_thing() {
+	if(true) { //TODO: Add args to symbol table of function
+		let:i32 index = 0;
+		while(index <= 10) {
+			index = index + 1;
+		}
+	}
+}

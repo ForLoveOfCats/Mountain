@@ -16,13 +16,16 @@ void prepare_file(FILE *target)
 }
 
 
-char *type_to_c(char *type)
+char *type_to_c(char *type) //TODO: Make this not suck
 {
 	if(strcmp(type, "i32") == 0)
 		return "int32_t";
 
 	if(strcmp(type, "Bool") == 0)
 		return "bool";
+
+	if(strcmp(type, "Void") == 0)
+		return "void";
 
 	printf("Invalid type to transpile '%s'\n", type);
 	exit(EXIT_FAILURE);
