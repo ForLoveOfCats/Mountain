@@ -69,7 +69,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 	token->next = NULL;
 
 	bool in_token = false;
-	char car;
+	int car; //Int so checking for EOF is safe
 	while(true)
 	{
 		car = fgetc(source_file);
