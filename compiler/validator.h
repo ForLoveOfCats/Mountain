@@ -33,7 +33,7 @@ void free_scope_tree(struct SCOPE *scope);
 void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int level);
 
 
-void populate_function_symbols(struct SYMBOL_TABLE *symbol_table);
+void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *block);
 
 
-void validate_functions(struct SYMBOL_TABLE *symbol_table);
+void validate_functions(struct SYMBOL_TABLE *symbol_table, struct NODE *block);

@@ -894,15 +894,27 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			token = parse_block(token, true, 0);
 			current_parse_parent_node = old_parse_parent_node;
 
-			if(first_function == NULL)
+			if(current_parse_parent_node->first_func == NULL)
 			{
-				first_function = new_node;
-				last_function = new_node;
+				current_parse_parent_node->first_func = new_node;
+				current_parse_parent_node->last_func = new_node;
 			}
 			else
 			{
-				last_function->next = new_node;
-				last_function = new_node;
+				current_parse_parent_node->last_func->next = new_node;
+				current_parse_parent_node->last_func = new_node;
+			}
+
+			struct FUNC_PROTOTYPE *prototype = create_func_prototype(new_node);
+			if(first_func_prototype == NULL)
+			{
+				first_func_prototype = prototype;
+				last_func_prototype = prototype;
+			}
+			else
+			{
+				last_func_prototype->next = prototype;
+				last_func_prototype = prototype;
 			}
 		}
 

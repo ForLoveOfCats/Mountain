@@ -22,6 +22,9 @@ struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, in
 	new_node->first_child = NULL;
 	new_node->last_child = NULL;
 
+	new_node->first_func = NULL;
+	new_node->last_func = NULL;
+
 	new_node->first_arg = NULL;
 	new_node->last_arg = NULL;
 
@@ -136,6 +139,15 @@ void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 		arg = next_arg;
 	}
 
+	struct NODE *func = node->first_func;
+	struct NODE *next_func = NULL;
+	while(func != NULL)
+	{
+		next_func = func->next;
+		free_tree(func);
+		func = next_func;
+	}
+
 	free_type(node->type);
 	free(node->name);
 	free(node->literal_string);
@@ -155,4 +167,31 @@ struct ARG_DATA *create_arg_data(char *name, char *type)
 	arg->index = -1;
 
 	return arg;
+}
+
+
+struct FUNC_PROTOTYPE *create_func_prototype(struct NODE *func)
+{
+	assert(func->node_type == AST_FUNC);
+
+	struct FUNC_PROTOTYPE *instance = malloc(sizeof(struct FUNC_PROTOTYPE));
+	instance->func = func;
+	instance->next = NULL;
+
+	return instance;
+}
+
+
+void free_func_prototype_list(struct FUNC_PROTOTYPE *func)
+{
+	//The actual AST node for the func will be freed while freeing the tree
+	//so all we need to do is free the prototype's themselves
+
+	struct FUNC_PROTOTYPE *next_func = NULL;
+	while(func != NULL)
+	{
+		next_func = func->next;
+		free(func);
+		func = next_func;
+	}
 }

@@ -151,16 +151,13 @@ void transpile_function_signature(FILE *target, struct NODE *node)
 
 void prototype_functions(FILE *target)
 {
-	struct NODE *node = first_function;
-	while(node != NULL)
+	struct FUNC_PROTOTYPE *prototype = first_func_prototype;
+	while(prototype != NULL)
 	{
-		if(node->node_type == AST_FUNC)
-		{
-			transpile_function_signature(target, node);
-			fprintf(target, ";\n");
-		}
+		transpile_function_signature(target, prototype->func);
+		fprintf(target, ";\n");
 
-		node = node->next;
+		prototype = prototype->next;
 	}
 
 	fprintf(target, "\n\n\n");
@@ -169,13 +166,13 @@ void prototype_functions(FILE *target)
 
 void transpile_functions(FILE *target)
 {
-	struct NODE *node = first_function;
-	while(node != NULL)
+	struct FUNC_PROTOTYPE *prototype = first_func_prototype;
+	while(prototype != NULL)
 	{
-		transpile_function_signature(target, node);
-		transpile_block(target, node->first_child, 0);
+		transpile_function_signature(target, prototype->func);
+		transpile_block(target, prototype->func->first_child, 0);
 
-		node = node->next;
+		prototype = prototype->next;
 	}
 
 	fprintf(target, "\n\n\n");

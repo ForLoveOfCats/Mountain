@@ -130,12 +130,14 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 {
 	assert(node->node_type == AST_BLOCK);
 	assert(node->symbol_table == NULL);
-	node->symbol_table = symbol_table;
-	node = node->first_child;
-
 	assert(level >= 0);
+	node->symbol_table = symbol_table;
+
+	struct NODE *block = node;
+	populate_function_symbols(symbol_table, block);
 
 	//"foreach" node
+	node = node->first_child;
 	while(node != NULL)
 	{
 		switch(node->node_type)
@@ -238,12 +240,14 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 
 		node = node->next;
 	}
+
+	validate_functions(symbol_table, block);
 }
 
 
-void populate_function_symbols(struct SYMBOL_TABLE *symbol_table)
+void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *block)
 {
-	struct NODE *node = first_function;
+	struct NODE *node = block->first_func;
 	while(node != NULL)
 	{
 		add_symbol(symbol_table, create_symbol(node->name, SYMBOL_FUNC, node->line_number));
@@ -252,9 +256,9 @@ void populate_function_symbols(struct SYMBOL_TABLE *symbol_table)
 }
 
 
-void validate_functions(struct SYMBOL_TABLE *symbol_table)
+void validate_functions(struct SYMBOL_TABLE *symbol_table, struct NODE *block)
 {
-	struct NODE *node = first_function;
+	struct NODE *node = block->first_func;
 	while(node != NULL)
 	{
 		assert(node->node_type == AST_FUNC);

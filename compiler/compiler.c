@@ -37,6 +37,8 @@ int main(int arg_count, char *arg_array[])
 
 	FILE *source_file = open_source_file(arg_array[2]);
 
+	first_func_prototype = NULL;
+	last_func_prototype = NULL;
 	root_node = create_node(AST_BLOCK, -1, -1, -1);
 	current_parse_parent_node = root_node;
 
@@ -46,9 +48,7 @@ int main(int arg_count, char *arg_array[])
 
 	next_index = 0;
 	struct SYMBOL_TABLE *table = create_symbol_table(NULL);
-	populate_function_symbols(table);
 	validate_block(root_node, table, 0);
-	validate_functions(table);
 
 	FILE *output_file = fopen(arg_array[1], "w");
 	prepare_file(output_file);
@@ -61,6 +61,7 @@ int main(int arg_count, char *arg_array[])
 
 	free_table_tree(table);
 	free_tree(root_node);
+	free_func_prototype_list(first_func_prototype);
 
 	fclose(source_file);
 	return EXIT_SUCCESS;

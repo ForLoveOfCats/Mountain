@@ -36,6 +36,11 @@ struct:MyType { //Structs are currently only parsed
 let:i32 some_variable = 69;
 
 func:i32 get_number(let:i32 argument) {
+	func:Bool is_true() //Functions can be declared in (almost?) any scope
+	{
+		some_variable = 3;
+	}
+
     some_variable = 42;
     //return 2000;
 }

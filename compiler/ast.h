@@ -9,8 +9,9 @@
 struct NODE *root_node;
 struct NODE *current_parse_parent_node;
 
-struct NODE *first_function;
-struct NODE *last_function;
+
+struct FUNC_PROTOTYPE *first_func_prototype;
+struct FUNC_PROTOTYPE *last_func_prototype;
 
 
 enum AST_TYPE {AST_BLOCK, AST_IF, AST_WHILE, AST_FUNC, AST_STRUCT, AST_VAR, AST_SET, AST_GET, AST_EXPRESSION, AST_LITERAL, AST_OP, AST_UNOP};
@@ -28,6 +29,9 @@ struct NODE
 	struct NODE *previous;
 	struct NODE *first_child;
 	struct NODE *last_child;
+
+	struct NODE *first_func;
+	struct NODE *last_func;
 
 	struct ARG_DATA *first_arg; //For func define and call
 	struct ARG_DATA *last_arg;
@@ -62,6 +66,13 @@ struct ARG_DATA
 };
 
 
+struct FUNC_PROTOTYPE
+{
+	struct NODE *func; //The actual AST_FUNC node
+	struct FUNC_PROTOTYPE *next;
+};
+
+
 struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, int end_char);
 
 
@@ -81,3 +92,8 @@ void free_tree(struct NODE *child);
 
 
 struct ARG_DATA *create_arg_data(char *name, char *type);
+
+
+struct FUNC_PROTOTYPE *create_func_prototype(struct NODE *func);
+
+void free_func_prototype_list(struct FUNC_PROTOTYPE *func);
