@@ -997,6 +997,15 @@ struct TOKEN *parse_block(struct TOKEN *token, bool inner_block, int level)
 		if(token == NULL)
 			break;
 
+		if(token->type == TOKEN_CLOSE_BRACE)
+		{
+			if(!inner_block)
+			{
+				PARSE_ERROR_LC(token->line_number, token->start_char, "Unexpected close brace");
+			}
+			return token->next;
+		}
+
 		token = parse_next_statement(token);
 		if(token == NULL)
 			break;
