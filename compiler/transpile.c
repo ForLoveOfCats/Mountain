@@ -142,7 +142,7 @@ void transpile_function_signature(FILE *target, struct NODE *node)
 	struct ARG_DATA *arg = node->first_arg;
 	while(arg != NULL)
 	{
-		fprintf(target, "%s arg_%i", type_to_c(arg->type), arg->index);
+		fprintf(target, "%s var_%i", type_to_c(arg->type->name), arg->index);
 		if(arg->next != NULL)
 			fprintf(target, ",");
 

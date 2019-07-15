@@ -270,8 +270,8 @@ void validate_functions(struct SYMBOL_TABLE *symbol_table, struct NODE *block)
 		struct ARG_DATA *arg = node->first_arg;
 		while (arg != NULL) // TODO: Validate types as well
 		{
-			arg->index = next_index;
-			next_index++;
+			arg->index = next_index; //next_index is incremented in add_var
+			add_var(symbol_table, arg->name, create_var(arg->type), arg->line_number);
 
 			arg = arg->next;
 		}

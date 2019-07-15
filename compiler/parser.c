@@ -862,7 +862,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 					expect(current_arg_token, TOKEN_WORD);
 					char *name = current_arg_token->string;
 
-					struct ARG_DATA *arg = create_arg_data(name, type);
+					struct ARG_DATA *arg = create_arg_data(name, type, token->line_number);
 					if(new_node->first_arg == NULL)
 					{
 						new_node->first_arg = arg;

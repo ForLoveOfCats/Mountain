@@ -60,7 +60,8 @@ struct ARG_DATA
 	struct ARG_DATA *next;
 
 	char *name;
-	char *type;
+	struct TYPE_DATA *type;
+	int line_number;
 
 	int index;
 };
@@ -91,7 +92,7 @@ int recursive_count_node_children(struct NODE *node);
 void free_tree(struct NODE *child);
 
 
-struct ARG_DATA *create_arg_data(char *name, char *type);
+struct ARG_DATA *create_arg_data(char *name, char *type, int line_number);
 
 
 struct FUNC_PROTOTYPE *create_func_prototype(struct NODE *func);

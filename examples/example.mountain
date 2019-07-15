@@ -46,8 +46,8 @@ func:i32 get_number(let:i32 argument) {
 let:i32 following_variable = 420;
 
 
-func:Void do_thing() {
-	if(true) { //TODO: Add args to symbol table of function
+func:Void do_thing(let:Bool arg) {
+	if(arg) {
 		let:i32 index = 0;
 		while(index <= 10) {
 			index = index + 1;
