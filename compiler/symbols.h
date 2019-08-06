@@ -34,6 +34,27 @@ struct VAR_DATA
 };
 
 
+struct ARG_DATA
+{
+	struct ARG_DATA *next;
+
+	char *name;
+	struct TYPE_DATA *type;
+	int line_number;
+
+	int index;
+};
+
+
+struct FUNC_DATA
+{
+	struct ARG_DATA *first_arg;
+	struct ARG_DATA *last_arg;
+
+	struct TYPE_DATA *return_type;
+};
+
+
 struct SYMBOL
 {
 	char *name;
@@ -44,6 +65,7 @@ struct SYMBOL
 
 	struct VAR_DATA *var_data;
 	struct STRUCT_DATA *struct_data;
+	struct FUNC_DATA *func_data;
 
 	struct SYMBOL *next;
 };
@@ -98,6 +120,12 @@ void add_var(struct SYMBOL_TABLE *table, char *name, struct VAR_DATA *var_data, 
 
 
 void free_var(struct VAR_DATA *var);
+
+
+struct FUNC_DATA *create_func(struct TYPE_DATA *return_type);
+
+
+void free_func(struct FUNC_DATA *func_data);
 
 
 struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name);

@@ -65,6 +65,7 @@ struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int line)
 
 	symbol->var_data = NULL;
 	symbol->struct_data = NULL;
+	symbol->func_data = NULL;
 
 	symbol->next = NULL;
 
@@ -81,6 +82,9 @@ void free_symbol(struct SYMBOL *symbol)
 
 	if(symbol->struct_data != NULL)
 		free_struct(symbol->struct_data);
+
+	if(symbol->func_data != NULL)
+		free_func(symbol->func_data);
 
 	free(symbol);
 }
@@ -177,6 +181,24 @@ void add_var(struct SYMBOL_TABLE *table, char *name, struct VAR_DATA *var_data, 
 void free_var(struct VAR_DATA *var)
 {
 	free(var);
+}
+
+
+struct FUNC_DATA *create_func(struct TYPE_DATA *return_type)
+{
+	struct FUNC_DATA *func_data = malloc(sizeof(struct FUNC_DATA));
+
+	func_data->first_arg = NULL;
+	func_data->last_arg = NULL;
+	func_data->return_type = return_type;
+
+	return func_data;
+}
+
+
+void free_func(struct FUNC_DATA *func_data)
+{
+	free(func_data); //The contents are freed by their original owners
 }
 
 

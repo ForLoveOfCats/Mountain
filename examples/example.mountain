@@ -46,11 +46,13 @@ func:i32 get_number(let:i32 argument) {
 let:i32 following_variable = 420;
 
 
-func:Void do_thing(let:Bool arg) {
-	if(arg) {
+func:Void do_thing(let:Bool should_do, let:i32 max) {
+	if(should_do) {
 		let:i32 index = 0;
-		while(index <= 10) {
+		while(index <= max) {
 			index = index + 1;
 		}
 	}
 }
+
+do_thing(true, 10);

@@ -144,7 +144,7 @@ void transpile_function_signature(FILE *target, struct NODE *node)
 	{
 		fprintf(target, "%s var_%i", type_to_c(arg->type->name), arg->index);
 		if(arg->next != NULL)
-			fprintf(target, ",");
+			fprintf(target, ", ");
 
 		arg = arg->next;
 	}
@@ -232,6 +232,22 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				transpile_expression(target, node->first_child);
 				fprintf(target, "\n");
 				transpile_block(target, node->last_child, level + 1);
+				break;
+
+			case AST_CALL:
+				fprintf(target, "func_%i(", node->index);
+
+				struct NODE *arg = node->first_child;
+				while(arg != NULL)
+				{
+					transpile_expression(target, arg);
+					if(arg->next != NULL)
+						fprintf(target, ", ");
+
+					arg = arg->next;
+				}
+
+				fprintf(target, ");\n");
 				break;
 
 			case AST_FUNC:

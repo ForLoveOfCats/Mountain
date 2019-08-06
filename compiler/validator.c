@@ -224,6 +224,34 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				break;
 			}
 
+			case AST_CALL:
+			{
+				struct SYMBOL *function = lookup_symbol(symbol_table, node->name);
+				if(function == NULL || function->type != SYMBOL_FUNC)
+					VALIDATE_ERROR_L(node->line_number, "No function named '%s'", node->name);
+
+				struct ARG_DATA *func_arg = function->func_data->first_arg;
+				struct NODE *call_arg = node->first_child; //The call args are expression nodes
+				while(func_arg != NULL)
+				{
+					if(call_arg == NULL)
+						VALIDATE_ERROR_L(node->line_number, "To few arguments when calling function '%s'", function->name);
+
+					struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, level + 1);
+					if(!are_types_equivalent(func_arg->type, call_arg_type))
+						VALIDATE_ERROR_L(node->line_number, "Type mismatch on parameter '%s'", func_arg->name);
+					free_type(call_arg_type);
+
+					func_arg = func_arg->next;
+					call_arg = call_arg->next;
+				}
+				if(call_arg != NULL)
+					VALIDATE_ERROR_L(node->line_number, "To many arguments when calling function '%s'", function->name);
+
+				node->index = function->index;
+				break;
+			}
+
 			case AST_STRUCT:
 			{
 				struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->line_number);
@@ -252,7 +280,18 @@ void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *b
 	struct NODE *node = block->first_func;
 	while(node != NULL)
 	{
-		add_symbol(symbol_table, create_symbol(node->name, SYMBOL_FUNC, node->line_number));
+		struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_FUNC, node->line_number);
+
+		struct FUNC_DATA *func_data = create_func(node->type);
+		func_data->first_arg = node->first_arg;
+		func_data->last_arg = node->last_arg;
+		symbol->func_data = func_data;
+
+		node->index = next_index;
+		symbol->index = next_index;
+		next_index++;
+
+		add_symbol(symbol_table, symbol);
 		node = node->next;
 	}
 }
@@ -277,9 +316,6 @@ void validate_functions(struct SYMBOL_TABLE *symbol_table, struct NODE *block)
 		}
 
 		validate_block(node->first_child, symbol_table, 0);
-
-		node->index = next_index;
-		next_index++;
 
 		node = node->next;
 	}

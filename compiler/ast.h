@@ -14,7 +14,7 @@ struct FUNC_PROTOTYPE *first_func_prototype;
 struct FUNC_PROTOTYPE *last_func_prototype;
 
 
-enum AST_TYPE {AST_BLOCK, AST_IF, AST_WHILE, AST_FUNC, AST_STRUCT, AST_VAR, AST_SET, AST_GET, AST_EXPRESSION, AST_LITERAL, AST_OP, AST_UNOP};
+enum AST_TYPE {AST_BLOCK, AST_IF, AST_WHILE, AST_FUNC, AST_STRUCT, AST_VAR, AST_SET, AST_GET, AST_CALL, AST_EXPRESSION, AST_LITERAL, AST_OP, AST_UNOP};
 enum OP_TYPE {OP_NONE, OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_TEST_EQUAL, OP_TEST_NOT_EQUAL, OP_TEST_GREATER, OP_TEST_GREATER_EQUAL, OP_TEST_LESS, OP_TEST_LESS_EQUAL};
 enum UNOP_TYPE {UNOP_NONE, UNOP_INVERT};
 enum LITERAL_TYPE {LITERAL_NUMBER, LITERAL_BOOL};
@@ -33,7 +33,7 @@ struct NODE
 	struct NODE *first_func;
 	struct NODE *last_func;
 
-	struct ARG_DATA *first_arg; //For func define and call
+	struct ARG_DATA *first_arg; //For function definitions (not calls)
 	struct ARG_DATA *last_arg;
 
 	int line_number;
@@ -52,18 +52,6 @@ struct NODE
 
 	enum OP_TYPE op_type;
 	enum UNOP_TYPE unop_type;
-};
-
-
-struct ARG_DATA
-{
-	struct ARG_DATA *next;
-
-	char *name;
-	struct TYPE_DATA *type;
-	int line_number;
-
-	int index;
 };
 
 

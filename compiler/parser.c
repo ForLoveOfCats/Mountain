@@ -102,6 +102,12 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					goto return_car_as_token;
 				}
 
+				case ',':
+				{
+					token->type = TOKEN_COMMA;
+					goto return_car_as_token;
+				}
+
 				case '#':
 				{
 					token->type = TOKEN_HASH;
@@ -235,6 +241,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 			case '\n':
 			case ':':
 			case ';':
+			case ',':
 			case '#':
 			case '=':
 			case '>':
@@ -316,6 +323,13 @@ struct TOKEN *tokenize_file(FILE *source_file)
 	}
 
 	return first_token;
+}
+
+
+struct TOKEN *peek_next_token(struct TOKEN *token)
+{
+	NEXT_TOKEN(token);
+	return token;
 }
 
 
@@ -677,6 +691,45 @@ struct NODE *parse_expression_to_semicolon(struct TOKEN **token) //TODO: Error o
 }
 
 
+//Consumes from open parentheses to close parentheses inclusively
+struct TOKEN *parse_function_args(struct NODE *func, struct TOKEN *token)
+{
+	assert(token->type == TOKEN_OPEN_PARENTHESES);
+	NEXT_TOKEN(token);
+
+	while(true) //Loops through each expression
+	{
+		struct TOKEN *expression_start = token;
+		struct TOKEN *expression_end = NULL;
+		while(true) //Loops through tokens until end of expression
+		{
+			struct TOKEN *peeked = peek_next_token(token);
+			if(peeked->type == TOKEN_CLOSE_PARENTHESES || peeked->type == TOKEN_COMMA) //Reached end
+			{
+				expression_end = token;
+
+				parse_expression_bounds(func, expression_start, expression_end);
+
+				NEXT_TOKEN(token); //Move to the peeked
+				if(token->type == TOKEN_COMMA)
+					NEXT_TOKEN(token); //Skip over the comma
+
+				break; //Continue to next expression
+			}
+
+			NEXT_TOKEN(token); //Otherwise move to next token
+		}
+
+		if(token->type == TOKEN_CLOSE_PARENTHESES)
+		  break;
+	}
+
+	assert(token->type == TOKEN_CLOSE_PARENTHESES);
+	NEXT_TOKEN(token);
+	return token;
+}
+
+
 struct TYPE_DATA *parse_type(struct TOKEN **token)
 {
 	expect(*token, TOKEN_WORD);
@@ -844,19 +897,19 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 					if(strcmp(current_arg_token->string, "let") != 0)
 						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected function argument declaration to be variable declaration");
 					if(current_arg_token == end)
-						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type before close parentheses");
+						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type");
 
 					//TODO: Create a dedicated type parser function
 					NEXT_TOKEN(current_arg_token);
 					expect(current_arg_token, TOKEN_COLON);
 					if(current_arg_token == end)
-						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type before close parentheses");
+						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type");
 
 					NEXT_TOKEN(current_arg_token);
 					expect(current_arg_token, TOKEN_WORD);
 					char *type = current_arg_token->string;
 					if(current_arg_token == end)
-						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument name before close parentheses");
+						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument name");
 
 					NEXT_TOKEN(current_arg_token);
 					expect(current_arg_token, TOKEN_WORD);
@@ -874,9 +927,11 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 						new_node->last_arg = arg;
 					}
 
-
 					if(current_arg_token == end)
 						break;
+
+					NEXT_TOKEN(current_arg_token);
+					expect(current_arg_token, TOKEN_COMMA);
 					NEXT_TOKEN(current_arg_token);
 				}
 			}
@@ -946,28 +1001,55 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			token = token->next; //Don't check for EOF
 		}
 
-		else //It must be a variable set or a function call   TODO Add function calls
+		else //It must be a variable set or a function call
 		{
-			//HACK for now we are just assuming that it is a variable set
-			expect(token, TOKEN_WORD);
-			struct NODE *new_node = create_node(AST_SET, token->line_number, token->start_char, token->end_char);
-			free(new_node->name);
-			new_node->name = strdup(token->string);
+			expect(token, TOKEN_WORD); //The variable or function name
 
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_EQUALS);
+			struct TOKEN *peeked = peek_next_token(token);
+			if(peeked->type == TOKEN_EQUALS) //Variable set
+			{
+				struct NODE *new_node = create_node(AST_SET, token->line_number, token->start_char, token->end_char);
+				free(new_node->name);
+				new_node->name = strdup(token->string);
 
-			NEXT_TOKEN(token);
-			struct NODE *expression = parse_expression_to_semicolon(&token);
-			add_node(new_node, expression);
-			free_type(new_node->type);
-			new_node->type = copy_type(expression->type);
+				NEXT_TOKEN(token);
+				expect(token, TOKEN_EQUALS);
 
-			add_node(current_parse_parent_node, new_node);
+				NEXT_TOKEN(token);
+				struct NODE *expression = parse_expression_to_semicolon(&token);
+				add_node(new_node, expression);
+				free_type(new_node->type);
+				new_node->type = copy_type(expression->type);
 
-			if(token->next == NULL)
-				return NULL;
-			NEXT_TOKEN(token);
+				add_node(current_parse_parent_node, new_node);
+
+				if(token->next == NULL)
+					return NULL;
+				NEXT_TOKEN(token);
+			}
+			else if(peeked->type == TOKEN_OPEN_PARENTHESES) //Function call
+			{
+				struct NODE *new_node = create_node(AST_CALL, token->line_number, token->start_char, token->end_char);
+				free(new_node->name);
+				new_node->name = strdup(token->string);
+
+				NEXT_TOKEN(token);
+				expect(token, TOKEN_OPEN_PARENTHESES);
+				token = parse_function_args(new_node, token); //Consumes to close parentheses inclusively
+				expect(token, TOKEN_SEMICOLON);
+
+				add_node(current_parse_parent_node, new_node);
+
+				if(token->next == NULL)
+					return NULL;
+				NEXT_TOKEN(token);
+			}
+			else
+			{
+				NEXT_TOKEN(token);
+				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected %s or %s but found %s",
+							   token_type_name[TOKEN_EQUALS], token_type_name[TOKEN_COLON], token_type_name[token->type]);
+			}
 		}
 	}
 	else
