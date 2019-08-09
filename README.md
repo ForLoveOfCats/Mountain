@@ -2,13 +2,21 @@
 ## A (hopefully) fast, C compatible, language designed to enable greatness
 
 
-Mountain has several core tenants (listed in order of inportance)
-1. Expose features which allow for tasks to be accomplished efficiently in
-terms of developer time without sacrificing runtime performance to heavily.
-2. Readability counts
-3. Stay out of the programmer's way and trust that the developer knows what
-they are doing.
-4. Writability counts
+### Welcome to the Github repo for the (WIP) Mountain bootstrap compiler
+
+The goal is to have a self hosted compiler by the end of
+summer 2020. At the moment Mountain rather far away from that goal.
+
+
+### Core Tenants
+
+Mountain has several core tenants
+* Expressiveness without sacrificing runtime performance.
+* Explicitness is important for readability.
+    * Explicit != Verbose
+* Seamless C interop is important for usefulness.
+* It is not the language's job to enforce a specific coding "style".
+
 
 
 # This language is nowhere near usable for literally anything
