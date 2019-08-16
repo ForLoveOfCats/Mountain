@@ -304,7 +304,7 @@ void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *b
 }
 
 
-void validate_functions(struct SYMBOL_TABLE *symbol_table, struct NODE *block)
+void validate_functions(struct SYMBOL_TABLE *root_symbol_table, struct NODE *block)
 {
 	struct NODE *node = block->first_func;
 	while(node != NULL)
@@ -312,6 +312,8 @@ void validate_functions(struct SYMBOL_TABLE *symbol_table, struct NODE *block)
 		assert(node->node_type == AST_FUNC);
 		assert(node->first_child->node_type == AST_BLOCK);
 		assert(count_node_children(node) == 1);
+
+		struct SYMBOL_TABLE *symbol_table = create_symbol_table(root_symbol_table);
 
 		struct ARG_DATA *arg = node->first_arg;
 		while (arg != NULL) // TODO: Validate types as well
