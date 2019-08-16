@@ -100,7 +100,7 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 	}
 	else if(node->node_type == AST_GET)
 	{
-		fprintf(target, "var_%i", node->index);
+		fprintf(target, "symbol_%i", node->index);
 	}
 	else
 		fprintf(target, "%s", node->literal_string);
@@ -112,7 +112,7 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 void transpile_var(FILE *target, struct NODE *node)
 {
 	assert(node->index >= 0);
-	fprintf(target, "%s var_%i = ", type_to_c(node->type->name), node->index);
+	fprintf(target, "%s symbol_%i = ", type_to_c(node->type->name), node->index);
 	transpile_expression(target, node->first_child);
 	fprintf(target, ";\n");
 }
@@ -126,7 +126,7 @@ void prototype_globals(FILE *target, struct NODE *root)
 	{
 		if(node->node_type == AST_VAR)
 		{
-			fprintf(target, "%s var_%i;\n", type_to_c(node->type->name), node->index);
+			fprintf(target, "%s symbol_%i;\n", type_to_c(node->type->name), node->index);
 		}
 
 		node = node->next;
@@ -138,11 +138,11 @@ void prototype_globals(FILE *target, struct NODE *root)
 
 void transpile_function_signature(FILE *target, struct NODE *node)
 {
-	fprintf(target, "%s func_%i(", type_to_c(node->type->name), node->index);
+	fprintf(target, "%s symbol_%i(", type_to_c(node->type->name), node->index);
 	struct ARG_DATA *arg = node->first_arg;
 	while(arg != NULL)
 	{
-		fprintf(target, "%s var_%i", type_to_c(arg->type->name), arg->index);
+		fprintf(target, "%s symbol_%i", type_to_c(arg->type->name), arg->index);
 		if(arg->next != NULL)
 			fprintf(target, ", ");
 
@@ -205,7 +205,7 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				else
 				{
 					assert(node->index >= 0);
-					fprintf(target, "var_%i = ", node->index);
+					fprintf(target, "symbol_%i = ", node->index);
 					transpile_expression(target, node->first_child);
 					fprintf(target, ";\n");
 				}
@@ -213,7 +213,7 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 
 			case AST_SET:
 				assert(node->index >= 0);
-				fprintf(target, "var_%i = ", node->index);
+				fprintf(target, "symbol_%i = ", node->index);
 				transpile_expression(target, node->first_child);
 				fprintf(target, ";\n");
 				break;
@@ -243,7 +243,7 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				break;
 
 			case AST_CALL:
-				fprintf(target, "func_%i(", node->index);
+				fprintf(target, "symbol_%i(", node->index);
 
 				struct NODE *arg = node->first_child;
 				while(arg != NULL)
