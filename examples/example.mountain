@@ -53,6 +53,12 @@ func:Void do_thing(let:Bool should_do, let:i32 max) {
 			index = index + 1;
 		}
 	}
+	elif(max < 10) {
+		max = max * 2;
+	}
+	elif(max >= 10) {
+		max = max * 5;
+	}
 }
 
 do_thing(true, 10);

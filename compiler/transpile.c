@@ -226,6 +226,14 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				transpile_block(target, node->last_child, level + 1);
 				break;
 
+			case AST_ELIF:
+				assert(count_node_children(node) == 2);
+				fprintf(target, "else if");
+				transpile_expression(target, node->first_child);
+				fprintf(target, "\n");
+				transpile_block(target, node->last_child, level + 1);
+				break;
+
 			case AST_WHILE:
 				assert(count_node_children(node) == 2);
 				fprintf(target, "while");

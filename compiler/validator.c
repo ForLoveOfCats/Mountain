@@ -197,8 +197,15 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 			}
 
 			case AST_IF:
+			case AST_ELIF:
 			{
 				assert(count_node_children(node) == 2);
+
+				if(node->node_type == AST_ELIF)
+				{
+					if(node->previous->node_type != AST_IF && node->previous->node_type != AST_ELIF)
+						VALIDATE_ERROR_L(node->line_number, "An 'elif' statement must follow an 'if' or 'elif'");
+				}
 
 				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
 				if(strcmp(expression_type->name, "Bool") != 0)

@@ -784,9 +784,13 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			NEXT_TOKEN(token);
 		}
 
-		else if(strcmp(token->string, "if") == 0) //You guessed it, an if statement
+		else if(strcmp(token->string, "if") == 0
+				|| strcmp(token->string, "elif") == 0)
 		{
-			struct NODE *new_node = create_node(AST_IF, token->line_number, token->start_char, token->end_char);
+			enum AST_TYPE node_type = AST_IF;
+			if(strcmp(token->string, "elif") == 0)
+				node_type = AST_ELIF;
+			struct NODE *new_node = create_node(node_type, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_PARENTHESES);
