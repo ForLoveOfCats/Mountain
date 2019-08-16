@@ -174,6 +174,7 @@ void transpile_functions(FILE *target)
 	{
 		transpile_function_signature(target, prototype->func);
 		transpile_block(target, prototype->func->first_child, 0);
+		fprintf(target, "\n");
 
 		prototype = prototype->next;
 	}
