@@ -212,7 +212,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type->name);
 				free_type(expression_type);
 
-				validate_block(node->last_child, symbol_table, level + 1);
+				validate_block(node->last_child, create_symbol_table(symbol_table), level + 1);
 
 				break;
 			}
