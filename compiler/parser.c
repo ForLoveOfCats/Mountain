@@ -861,6 +861,18 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			add_node(current_parse_parent_node, new_node);
 		}
 
+		else if(strcmp(token->string, "break") == 0)
+		{
+			struct NODE *new_node = create_node(AST_BREAK, token->line_number, token->start_char, token->end_char);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_SEMICOLON);
+
+			add_node(current_parse_parent_node, new_node);
+
+			token = token->next;
+		}
+
 		else if(strcmp(token->string, "func") == 0) //You guessed it, a function declaration
 		{
 			struct NODE *new_node = create_node(AST_FUNC, token->line_number, token->start_char, token->end_char);

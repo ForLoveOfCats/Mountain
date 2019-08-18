@@ -65,3 +65,14 @@ func:Void do_thing(let:Bool should_do, let:i32 max) {
 }
 
 do_thing(true, 10);
+
+
+let:i32 count = 0;
+while(true) {
+	count = count + 1;
+
+	if(count > 10) {
+		break;
+	}
+}
+

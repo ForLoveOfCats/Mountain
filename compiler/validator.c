@@ -243,6 +243,26 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				break;
 			}
 
+			case AST_BREAK:
+			{
+				assert(count_node_children(node) == 0);
+
+				struct NODE *parent = node->parent;
+				while(true)
+				{
+					if(parent->node_type == AST_WHILE)
+						break;
+
+					parent = parent->parent;
+					if(parent == NULL)
+						break;
+				}
+				if(parent == NULL)
+					VALIDATE_ERROR_L(node->line_number, "Cannot break, no loop found");
+
+				break;
+			}
+
 			case AST_CALL:
 			{
 				struct SYMBOL *function = lookup_symbol(symbol_table, node->name);
