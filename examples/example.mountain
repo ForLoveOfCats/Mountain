@@ -76,3 +76,8 @@ while(true) {
 	}
 }
 
+
+func:Void no_args()
+{}
+
+no_args();
