@@ -254,6 +254,11 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				fprintf(target, "break;\n");
 				break;
 
+			case AST_CONTINUE:
+				assert(count_node_children(node) == 0);
+				fprintf(target, "continue;\n");
+				break;
+
 			case AST_CALL:
 				fprintf(target, "symbol_%i(", node->index);
 

@@ -71,9 +71,10 @@ let:i32 count = 0;
 while(true) {
 	count = count + 1;
 
-	if(count > 10) {
-		break;
+	if(count <= 10) {
+		continue;
 	}
+	break;
 }
 
 
