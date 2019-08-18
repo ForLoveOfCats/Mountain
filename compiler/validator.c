@@ -284,6 +284,28 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				break;
 			}
 
+			case AST_RETURN:
+			{
+				struct NODE *parent = node->parent;
+				while(true)
+				{
+					if(parent->node_type == AST_FUNC)
+						break;
+
+					parent = parent->parent;
+					if(parent == NULL)
+						break;
+				}
+				if(parent == NULL)
+					VALIDATE_ERROR_L(node->line_number, "Cannot return, not in a function");
+
+				assert(parent->node_type == AST_FUNC);
+				if(strcmp(parent->type->name, "Void") != 0 && count_node_children(node) == 0)
+					VALIDATE_ERROR_L(node->line_number, "Must return a value of type '%s'", parent->type->name);
+
+				break;
+			}
+
 			case AST_CALL:
 			{
 				struct SYMBOL *function = lookup_symbol(symbol_table, node->name);

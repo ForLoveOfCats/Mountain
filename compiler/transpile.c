@@ -259,6 +259,10 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				fprintf(target, "continue;\n");
 				break;
 
+			case AST_RETURN:
+				fprintf(target, "return;\n");
+				break;
+
 			case AST_CALL:
 				fprintf(target, "symbol_%i(", node->index);
 

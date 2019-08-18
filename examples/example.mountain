@@ -78,7 +78,8 @@ while(true) {
 }
 
 
-func:Void no_args()
-{}
+func:Void no_args() {
+	return;
+}
 
 no_args();
