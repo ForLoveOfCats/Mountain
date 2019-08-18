@@ -893,7 +893,11 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			struct NODE *new_node = create_node(AST_RETURN, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
-			expect(token, TOKEN_SEMICOLON);
+			if(token->type != TOKEN_SEMICOLON)
+			{
+				struct NODE *expression = parse_expression_to_semicolon(&token);
+				add_node(new_node, expression);
+			}
 
 			add_node(current_parse_parent_node, new_node);
 

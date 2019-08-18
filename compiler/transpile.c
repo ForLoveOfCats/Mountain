@@ -260,7 +260,17 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				break;
 
 			case AST_RETURN:
-				fprintf(target, "return;\n");
+				if(count_node_children(node) == 0)
+					fprintf(target, "return;\n");
+				else
+				{
+					assert(count_node_children(node) == 1);
+
+					fprintf(target, "return ");
+					transpile_expression(target, node->first_child);
+					fprintf(target, ";\n");
+				}
+
 				break;
 
 			case AST_CALL:

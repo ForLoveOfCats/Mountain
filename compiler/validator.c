@@ -301,7 +301,17 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 
 				assert(parent->node_type == AST_FUNC);
 				if(strcmp(parent->type->name, "Void") != 0 && count_node_children(node) == 0)
+				{
 					VALIDATE_ERROR_L(node->line_number, "Must return a value of type '%s'", parent->type->name);
+				}
+				else if(count_node_children(node) == 1)
+				{
+					struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, level + 1);
+					if(!are_types_equivalent(type, parent->type))
+						VALIDATE_ERROR_L(node->line_number, "Type mismatch returning a value of type '%s' from a function of type '%s'",
+						                 type->name, parent->type->name);
+					free_type(type);
+				}
 
 				break;
 			}
