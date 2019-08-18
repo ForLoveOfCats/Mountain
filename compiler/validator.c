@@ -389,6 +389,51 @@ void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *b
 }
 
 
+bool is_return_satisfied(struct NODE *block)
+{
+	bool satisfied = false;
+	bool if_else_satisfied = false;
+
+	struct NODE *cursor = block->first_child;
+	while(cursor != NULL)
+	{
+		if(cursor->node_type == AST_RETURN)
+		{
+			satisfied = true;
+			break;
+		}
+
+		if(cursor->node_type == AST_IF)
+			if_else_satisfied = is_return_satisfied(cursor->first_child->next);
+		else if(cursor->node_type == AST_ELIF && if_else_satisfied)
+			if_else_satisfied = is_return_satisfied(cursor->first_child->next);
+		else if(cursor->node_type == AST_ELSE && if_else_satisfied)
+		{
+			if(is_return_satisfied(cursor->first_child))
+			{
+				satisfied = true;
+				break;
+			}
+		}
+
+		cursor = cursor->next;
+	}
+
+	return satisfied;
+}
+
+
+void trace_function_return(struct NODE *func)
+{
+	assert(func->node_type == AST_FUNC);
+	struct NODE *block = func->first_child;
+	assert(block->node_type == AST_BLOCK);
+
+	if(!is_return_satisfied(block))
+		VALIDATE_ERROR_L(func->line_number, "Not all code paths return a value");
+}
+
+
 void validate_functions(struct NODE *block)
 {
 	struct NODE *node = block->first_func;
@@ -410,6 +455,8 @@ void validate_functions(struct NODE *block)
 		}
 
 		validate_block(node->first_child, symbol_table, 0);
+		if(strcmp(node->type->name, "Void") != 0)
+			trace_function_return(node);
 
 		node = node->next;
 	}

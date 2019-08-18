@@ -85,3 +85,10 @@ func:Void no_args() {
 }
 
 no_args();
+
+
+func:i32 return_checking() {
+	if(false) { return 0; }
+	elif(false) { return 1; }
+	else { return 2; }
+}
