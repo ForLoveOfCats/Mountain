@@ -779,9 +779,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			add_node(current_parse_parent_node, new_node);
 
-			if(token->next == NULL)
-				return NULL;
-			NEXT_TOKEN(token);
+			token = token->next;
 		}
 
 		else if(strcmp(token->string, "if") == 0
@@ -810,8 +808,6 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			parse_expression_bounds(expression_root, start, end);
 			add_node(new_node, expression_root);
 
-			if(token->next == NULL)
-				return NULL;
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_BRACE);
 
@@ -864,8 +860,6 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			parse_expression_bounds(expression_root, start, end);
 			add_node(new_node, expression_root);
 
-			if(token->next == NULL)
-				return NULL;
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_BRACE);
 
@@ -957,8 +951,6 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 				}
 			}
 
-			if(token->next == NULL)
-				return NULL;
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_BRACE);
 
@@ -1044,9 +1036,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 				add_node(current_parse_parent_node, new_node);
 
-				if(token->next == NULL)
-					return NULL;
-				NEXT_TOKEN(token);
+				token = token->next;
 			}
 			else if(peeked->type == TOKEN_OPEN_PARENTHESES) //Function call
 			{
@@ -1061,9 +1051,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 				add_node(current_parse_parent_node, new_node);
 
-				if(token->next == NULL)
-					return NULL;
-				NEXT_TOKEN(token);
+				token = token->next;
 			}
 			else
 			{
