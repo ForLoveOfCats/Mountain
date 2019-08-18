@@ -217,6 +217,18 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				break;
 			}
 
+			case AST_ELSE:
+			{
+				assert(count_node_children(node) == 1);
+
+				if(node->previous->node_type != AST_IF && node->previous->node_type != AST_ELIF)
+					VALIDATE_ERROR_L(node->line_number, "An 'else' statement must follow an 'if' or 'elif'");
+
+				validate_block(node->last_child, create_symbol_table(symbol_table), level + 1);
+
+				break;
+			}
+
 			case AST_WHILE:
 			{
 				assert(count_node_children(node) == 2);

@@ -825,6 +825,23 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			add_node(current_parse_parent_node, new_node);
 		}
 
+		else if(strcmp(token->string, "else") == 0)
+		{
+			struct NODE *new_node = create_node(AST_ELSE, token->line_number, token->start_char, token->end_char);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_OPEN_BRACE);
+
+			NEXT_TOKEN(token);
+			struct NODE *old_parse_parent_node = current_parse_parent_node;
+			struct NODE *block = create_node(AST_BLOCK, token->line_number, token->start_char, token->end_char);
+			add_node(new_node, block);
+			current_parse_parent_node = block;
+			token = parse_block(token, true, 0);
+			current_parse_parent_node = old_parse_parent_node;
+			add_node(current_parse_parent_node, new_node);
+		}
+
 		else if(strcmp(token->string, "while") == 0) //You guessed it, an while loop
 		{
 			struct NODE *new_node = create_node(AST_WHILE, token->line_number, token->start_char, token->end_char);

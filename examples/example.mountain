@@ -59,6 +59,9 @@ func:Void do_thing(let:Bool should_do, let:i32 max) {
 	elif(max >= 10) {
 		max = max * 5;
 	}
+	else {
+		max = max * 9;
+	}
 }
 
 do_thing(true, 10);
