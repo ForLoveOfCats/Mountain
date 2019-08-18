@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "compiler.h"
 #include "ast.h"
 #include "symbols.h"
 #include "validator.h"
@@ -310,7 +311,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 		node = node->next;
 	}
 
-	validate_functions(symbol_table, block);
+	validate_functions(block);
 }
 
 
@@ -336,7 +337,7 @@ void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *b
 }
 
 
-void validate_functions(struct SYMBOL_TABLE *root_symbol_table, struct NODE *block)
+void validate_functions(struct NODE *block)
 {
 	struct NODE *node = block->first_func;
 	while(node != NULL)

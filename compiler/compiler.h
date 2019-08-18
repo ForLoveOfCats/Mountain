@@ -5,5 +5,11 @@
 #define GENERATE_STRING(STRING) #STRING,
 
 
+#include "symbols.h"
+
+
+
 int current_file_line;
 int current_file_character;
+
+struct SYMBOL_TABLE *root_symbol_table;

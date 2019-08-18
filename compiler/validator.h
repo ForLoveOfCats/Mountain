@@ -36,4 +36,4 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *block);
 
 
-void validate_functions(struct SYMBOL_TABLE *symbol_table, struct NODE *block);
+void validate_functions(struct NODE *block);

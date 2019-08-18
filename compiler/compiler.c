@@ -47,8 +47,8 @@ int main(int arg_count, char *arg_array[])
 	free_token_list(first_token);
 
 	next_index = 0;
-	struct SYMBOL_TABLE *table = create_symbol_table(NULL);
-	validate_block(root_node, table, 0);
+	root_symbol_table = create_symbol_table(NULL);
+	validate_block(root_node, root_symbol_table, 0);
 
 	FILE *output_file = fopen(arg_array[1], "w");
 	prepare_file(output_file);
@@ -59,7 +59,7 @@ int main(int arg_count, char *arg_array[])
 	transpile_block(output_file, root_node, 0);
 	fclose(output_file);
 
-	free_table_tree(table);
+	free_table_tree(root_symbol_table);
 	free_tree(root_node);
 	free_func_prototype_list(first_func_prototype);
 
