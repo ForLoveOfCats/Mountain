@@ -741,18 +741,6 @@ struct TYPE_DATA *parse_type(struct TOKEN **token)
 
 struct TOKEN *parse_next_statement(struct TOKEN *token)
 {
-	if(token == NULL)
-	{
-		printf("Reached end of file\n");
-		return NULL;
-	}
-
-	if(token->type == TOKEN_SEMICOLON)
-	{
-		printf("Reached end of statement\n");
-		return token;
-	}
-
 	if(token->type == TOKEN_WORD)
 	{
 		if(strcmp(token->string, "let") == 0)
