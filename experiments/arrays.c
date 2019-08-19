@@ -13,7 +13,7 @@
 //The below code is roughly equivalent to the following Mountain code
 //(If you spot any differences between it and the below C code please open a bug)
 #if 0 //Change to a 1 to get syntax highlighting in your editor
-module main;
+module Main;
 
 
 func:Void main() {
