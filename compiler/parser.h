@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "compiler.h"
+#include "ast.h"
 
 
 #define FOREACH_TOKEN_TYPE(TYPE) \
@@ -57,3 +58,6 @@ struct TOKEN *parse_block(struct TOKEN *token, bool inner_block, int level);
 
 
 void parse_file(FILE *file);
+
+
+struct TOKEN *parse_function_args(struct NODE *func, struct TOKEN *token);

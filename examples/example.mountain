@@ -38,14 +38,20 @@ struct:MyType { //Structs are currently only parsed
 
 let:i32 some_variable = 69;
 
-func:i32 get_number(let:i32 argument) {
+func:i32 get_number(let:Bool overwrite) {
 	func:Bool is_true(let:Bool arg) { //Functions can be declared in any scope
 		return arg == true;
 	}
 
-    some_variable = 42;
-	return some_variable;
+	if(overwrite) {
+		some_variable = 42;
+	}
+
+	return 9;
 }
+
+let:i32 returned_value = get_number(true) + 1;
+
 
 let:i32 following_variable = 420;
 

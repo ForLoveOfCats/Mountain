@@ -50,28 +50,48 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	{
 		return typecheck_expression(node->first_child, symbol_table, level + 1);
 	}
-
-	int child_count = count_node_children(node);
-	assert(child_count <= 2 && child_count >= 0);
-
-	if(child_count == 0)
+	else if(node->node_type == AST_LITERAL)
 	{
-		if(node->node_type == AST_GET)
-		{
-			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name);
-			if(symbol == NULL || symbol->type != SYMBOL_VAR)
-				VALIDATE_ERROR_L(node->line_number, "Cannot get variable '%s' as it does not exist", node->name);
-
-			node->index = symbol->index;
-			return copy_type(symbol->var_data->type);
-		}
-		else
-			return copy_type(node->type);
+		return copy_type(node->type);
 	}
-	else if(child_count == 1)
+	else if(node->node_type == AST_GET)
 	{
-		assert(node->node_type == AST_UNOP);
+		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name);
+		if(symbol == NULL || symbol->type != SYMBOL_VAR)
+			VALIDATE_ERROR_L(node->line_number, "Cannot get variable '%s' as it does not exist", node->name);
 
+		node->index = symbol->index;
+		return copy_type(symbol->var_data->type);
+	}
+	else if(node->node_type == AST_CALL)
+	{
+		struct SYMBOL *function = lookup_symbol(symbol_table, node->name);
+		if(function == NULL || function->type != SYMBOL_FUNC)
+			VALIDATE_ERROR_L(node->line_number, "No function named '%s'", node->name);
+
+		struct ARG_DATA *func_arg = function->func_data->first_arg;
+		struct NODE *call_arg = node->first_child; //The call args are expression nodes
+		while(func_arg != NULL)
+		{
+			if(call_arg == NULL)
+				VALIDATE_ERROR_L(node->line_number, "To few arguments when calling function '%s'", function->name);
+
+			struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, level + 1);
+			if(!are_types_equivalent(func_arg->type, call_arg_type))
+				VALIDATE_ERROR_L(node->line_number, "Type mismatch on parameter '%s'", func_arg->name);
+			free_type(call_arg_type);
+
+			func_arg = func_arg->next;
+			call_arg = call_arg->next;
+		}
+		if(call_arg != NULL)
+			VALIDATE_ERROR_L(node->line_number, "To many arguments when calling function '%s'", function->name);
+
+		node->index = function->index;
+		return copy_type(function->func_data->return_type);
+	}
+	else if(node->node_type == AST_UNOP)
+	{
 		struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, level + 1);
 
 		switch(node->unop_type)
@@ -89,10 +109,8 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 
 		return type;
 	}
-	else if(child_count == 2)
+	else if(node->node_type == AST_OP)
 	{
-		assert(node->node_type == AST_OP);
-
 		struct TYPE_DATA *left_type = typecheck_expression(node->first_child, symbol_table, level + 1);
 		struct TYPE_DATA *right_type = typecheck_expression(node->last_child, symbol_table, level + 1);
 
@@ -121,7 +139,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	}
 	else
 	{
-		printf("INTERNAL ERROR: Unsupported child count of expression subnode\n");
+		printf("INTERNAL ERROR: Unsupported expression subnode type %i\n", node->node_type);
 		exit(EXIT_FAILURE);
 	}
 }

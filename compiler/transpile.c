@@ -102,6 +102,22 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 	{
 		fprintf(target, "symbol_%i", node->index);
 	}
+	else if(node->node_type == AST_CALL)
+	{
+		fprintf(target, "symbol_%i(", node->index);
+
+		struct NODE *arg = node->first_child;
+		while(arg != NULL)
+		{
+			transpile_expression(target, arg);
+			if(arg->next != NULL)
+				fprintf(target, ", ");
+
+			arg = arg->next;
+		}
+
+		fprintf(target, ")");
+	}
 	else
 		fprintf(target, "%s", node->literal_string);
 

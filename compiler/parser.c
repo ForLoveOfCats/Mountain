@@ -617,11 +617,23 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				}
 				else //Must be a variable get or function call
 				{
-					//TODO: Add function calls
-					new_node = create_node(AST_GET, token->line_number, token->start_char, token->end_char);
-					previous_node = new_node;
-					free(new_node->name);
-					new_node->name = strdup(token->string);
+					if(peek_next_token(token)->type == TOKEN_OPEN_PARENTHESES) //Function call
+					{
+						new_node = create_node(AST_CALL, token->line_number, token->start_char, token->end_char);
+						free(new_node->name);
+						new_node->name = strdup(token->string);
+
+						NEXT_TOKEN(token);
+						expect(token, TOKEN_OPEN_PARENTHESES);
+						token = parse_function_args(new_node, token);
+					}
+					else //Variable get
+					{
+						new_node = create_node(AST_GET, token->line_number, token->start_char, token->end_char);
+						previous_node = new_node;
+						free(new_node->name);
+						new_node->name = strdup(token->string);
+					}
 				}
 			}
 			assert(new_node != NULL);
@@ -691,7 +703,7 @@ struct NODE *parse_expression_to_semicolon(struct TOKEN **token) //TODO: Error o
 }
 
 
-//Consumes from open parentheses to close parentheses inclusively
+//Consumes from open parentheses to close parentheses
 struct TOKEN *parse_function_args(struct NODE *func, struct TOKEN *token)
 {
 	assert(token->type == TOKEN_OPEN_PARENTHESES);
@@ -728,7 +740,6 @@ struct TOKEN *parse_function_args(struct NODE *func, struct TOKEN *token)
 	}
 
 	assert(token->type == TOKEN_CLOSE_PARENTHESES);
-	NEXT_TOKEN(token);
 	return token;
 }
 
@@ -1077,7 +1088,9 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 				NEXT_TOKEN(token);
 				expect(token, TOKEN_OPEN_PARENTHESES);
-				token = parse_function_args(new_node, token); //Consumes to close parentheses inclusively
+				token = parse_function_args(new_node, token);
+
+				NEXT_TOKEN(token);
 				expect(token, TOKEN_SEMICOLON);
 
 				add_node(current_parse_parent_node, new_node);
