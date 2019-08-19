@@ -1,3 +1,6 @@
+module Main;
+
+
 //Variable declaration with value
 let:i32 lucky_number = 42;
 let:i32 another_number = 2 * 3 + 1 / 5 + 4;

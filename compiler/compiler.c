@@ -41,10 +41,7 @@ int main(int arg_count, char *arg_array[])
 	last_func_prototype = NULL;
 	root_node = create_node(AST_BLOCK, -1, -1, -1);
 	current_parse_parent_node = root_node;
-
-	struct TOKEN *first_token = tokenize_file(source_file);
-	parse_block(first_token, false, 0);
-	free_token_list(first_token);
+	parse_file(source_file);
 
 	next_index = 0;
 	root_symbol_table = create_symbol_table(NULL);

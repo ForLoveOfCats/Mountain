@@ -1149,3 +1149,27 @@ struct TOKEN *parse_block(struct TOKEN *token, bool inner_block, int level)
 	}
 	return NULL;
 }
+
+
+void parse_file(FILE *file)
+{
+	struct TOKEN *first_token = tokenize_file(file);
+	struct TOKEN *token = first_token;
+
+	expect(token, TOKEN_WORD);
+	if(strcmp(token->string, "module") != 0)
+		PARSE_ERROR_LC(token->line_number, token->start_char, "File must first declare a module");
+
+	NEXT_TOKEN(token);
+	expect(token, TOKEN_WORD);
+	if(strcmp(token->string, "Main") != 0)
+		PARSE_ERROR_LC(token->line_number, token->start_char, "Primary file must be in 'Main' module");
+
+	NEXT_TOKEN(token);
+	expect(token, TOKEN_SEMICOLON);
+	token = token->next;
+
+	parse_block(token, false, 0);
+
+	free_token_list(first_token);
+}

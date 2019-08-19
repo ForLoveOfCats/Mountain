@@ -54,3 +54,6 @@ struct TOKEN *parse_next_statement(struct TOKEN *token);
 
 
 struct TOKEN *parse_block(struct TOKEN *token, bool inner_block, int level);
+
+
+void parse_file(FILE *file);
