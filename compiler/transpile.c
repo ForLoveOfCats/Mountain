@@ -125,15 +125,6 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 }
 
 
-void transpile_var(FILE *target, struct NODE *node)
-{
-	assert(node->index >= 0);
-	fprintf(target, "%s symbol_%i = ", type_to_c(node->type->name), node->index);
-	transpile_expression(target, node->first_child);
-	fprintf(target, ";\n");
-}
-
-
 void prototype_globals(FILE *target, struct NODE *root)
 {
 	assert(root->node_type == AST_BLOCK);
@@ -217,15 +208,10 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				break;
 
 			case AST_VAR:
-				if(level > 0)
-					transpile_var(target, node);
-				else
-				{
-					assert(node->index >= 0);
-					fprintf(target, "symbol_%i = ", node->index);
-					transpile_expression(target, node->first_child);
-					fprintf(target, ";\n");
-				}
+				assert(node->index >= 0);
+				fprintf(target, "%s symbol_%i = ", type_to_c(node->type->name), node->index);
+				transpile_expression(target, node->first_child);
+				fprintf(target, ";\n");
 				break;
 
 			case AST_SET:
