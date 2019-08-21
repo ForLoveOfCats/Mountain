@@ -2,7 +2,7 @@ module Main;
 
 
 struct:MyType { //Structs are currently only parsed
-    let:Bool field = true; //Fields are not parsed at all yet
+	let:Bool field = true; //Fields are not parsed at all yet
 }
 
 
@@ -86,8 +86,8 @@ func:Void main() {
 	let:i32 returned_value = get_number(true) + 1;
 	do_thing(true, 10);
 
-    let:i32 count = 0;
-    while(true) {
+	let:i32 count = 0;
+	while(true) {
 		count = count + 1;
 
 		if(count <= 10) {
@@ -96,5 +96,5 @@ func:Void main() {
 		break;
 	}
 
-    no_args();
+	no_args();
 }
