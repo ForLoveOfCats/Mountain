@@ -19,6 +19,14 @@
 		exit(EXIT_FAILURE); \
 	} \
 
+#define VALIDATE_ERROR(...) \
+	{ \
+		printf("Validation error: "); \
+		printf(__VA_ARGS__); \
+		printf("\n"); \
+		exit(EXIT_FAILURE); \
+	} \
+
 
 bool type_is_number(char *type)
 {
@@ -410,6 +418,20 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 	}
 
 	validate_functions(block);
+
+	if(root)
+	{
+		struct SYMBOL *main_func = lookup_symbol(symbol_table, "main");
+
+		if(main_func == NULL)
+			VALIDATE_ERROR("No 'main' function found in the 'Main' module");
+
+		if(strcmp(main_func->func_data->return_type->name, "Void") != 0)
+			VALIDATE_ERROR_L(main_func->line, "Function 'main' in module 'Main' must have return type of 'Void'");
+
+		if(main_func->func_data->first_arg != NULL)
+			VALIDATE_ERROR_L(main_func->line, "Function 'main' in module 'Main' should expect no arguments");
+	}
 }
 
 

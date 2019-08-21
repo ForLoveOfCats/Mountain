@@ -52,9 +52,11 @@ int main(int arg_count, char *arg_array[])
 	prototype_globals(output_file, root_node);
 	prototype_functions(output_file);
 	transpile_functions(output_file);
+
 	fprintf(output_file, "int main()\n{\n");;
 	transpile_global_sets(output_file, root_node);
 	fprintf(output_file, "\n\nsymbol_%i();\n}\n", lookup_symbol(root_symbol_table, "main")->index);
+
 	fclose(output_file);
 
 	free_table_tree(root_symbol_table);
