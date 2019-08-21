@@ -80,7 +80,7 @@ int recursive_count_node_children(struct NODE *node);
 void free_tree(struct NODE *child);
 
 
-struct ARG_DATA *create_arg_data(char *name, char *type, int line_number);
+struct ARG_DATA *create_arg_data(char *name, struct TYPE_DATA *type, int line_number);
 
 
 struct FUNC_PROTOTYPE *create_func_prototype(struct NODE *func);

@@ -929,7 +929,6 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			expect(token, TOKEN_COLON);
 
 			NEXT_TOKEN(token);
-			expect(token, TOKEN_WORD); //type of the function TODO: Allow subtypes
 			free_type(new_node->type);
 			new_node->type = parse_type(&token);
 
@@ -962,20 +961,16 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 					if(current_arg_token == end)
 						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type");
 
-					//TODO: Create a dedicated type parser function
 					NEXT_TOKEN(current_arg_token);
 					expect(current_arg_token, TOKEN_COLON);
 					if(current_arg_token == end)
 						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type");
 
 					NEXT_TOKEN(current_arg_token);
-					expect(current_arg_token, TOKEN_WORD);
-					char *type = current_arg_token->string;
-					if(current_arg_token == end)
-						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument name");
+					struct TYPE_DATA *type = parse_type(&current_arg_token);
 
-					NEXT_TOKEN(current_arg_token);
-					expect(current_arg_token, TOKEN_WORD);
+					if(current_arg_token->type != TOKEN_WORD)
+						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument name");
 					char *name = current_arg_token->string;
 
 					struct ARG_DATA *arg = create_arg_data(name, type, token->line_number);
