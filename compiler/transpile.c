@@ -149,7 +149,7 @@ void transpile_global_sets(FILE *target, struct NODE *root)
 	struct NODE *node = root->first_child;
 	while(node != NULL)
 	{
-		if(node->node_type == AST_VAR)
+		if(node->node_type == AST_VAR && count_node_children(node) == 1)
 		{
 			fprintf(target, "symbol_%i = ", node->index);
 			transpile_expression(target, node->first_child);
