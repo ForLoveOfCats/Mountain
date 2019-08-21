@@ -44,11 +44,11 @@ bool are_types_equivalent(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two
 }
 
 
-struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int level) //Exits on failure
+struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool global, int level) //Exits on failure
 {
 	if(node->node_type == AST_EXPRESSION)
 	{
-		return typecheck_expression(node->first_child, symbol_table, level + 1);
+		return typecheck_expression(node->first_child, symbol_table, global, level + 1);
 	}
 	else if(node->node_type == AST_LITERAL)
 	{
@@ -56,6 +56,9 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	}
 	else if(node->node_type == AST_GET)
 	{
+		if(global)
+			VALIDATE_ERROR_L(node->line_number, "Cannot get variable contents in root scope");
+
 		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name);
 		if(symbol == NULL || symbol->type != SYMBOL_VAR)
 			VALIDATE_ERROR_L(node->line_number, "Cannot get variable '%s' as it does not exist", node->name);
@@ -65,6 +68,9 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	}
 	else if(node->node_type == AST_CALL)
 	{
+		if(global)
+			VALIDATE_ERROR_L(node->line_number, "Cannot call function in root scope");
+
 		struct SYMBOL *function = lookup_symbol(symbol_table, node->name);
 		if(function == NULL || function->type != SYMBOL_FUNC)
 			VALIDATE_ERROR_L(node->line_number, "No function named '%s'", node->name);
@@ -76,7 +82,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			if(call_arg == NULL)
 				VALIDATE_ERROR_L(node->line_number, "To few arguments when calling function '%s'", function->name);
 
-			struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, level + 1);
+			struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, global, level + 1);
 			if(!are_types_equivalent(func_arg->type, call_arg_type))
 				VALIDATE_ERROR_L(node->line_number, "Type mismatch on parameter '%s'", func_arg->name);
 			free_type(call_arg_type);
@@ -92,7 +98,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	}
 	else if(node->node_type == AST_UNOP)
 	{
-		struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, level + 1);
+		struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, global, level + 1);
 
 		switch(node->unop_type)
 		{
@@ -111,8 +117,8 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	}
 	else if(node->node_type == AST_OP)
 	{
-		struct TYPE_DATA *left_type = typecheck_expression(node->first_child, symbol_table, level + 1);
-		struct TYPE_DATA *right_type = typecheck_expression(node->last_child, symbol_table, level + 1);
+		struct TYPE_DATA *left_type = typecheck_expression(node->first_child, symbol_table, global, level + 1);
+		struct TYPE_DATA *right_type = typecheck_expression(node->last_child, symbol_table, global, level + 1);
 
 		if(!are_types_equivalent(left_type, right_type))
 			VALIDATE_ERROR_L(node->line_number, "Type mismatch between left and right values for operation in expression");
@@ -145,7 +151,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 }
 
 
-void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int level) //Exits on failure
+void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool root, int level) //Exits on failure
 {
 	assert(node->node_type == AST_BLOCK);
 	assert(node->symbol_table == NULL);
@@ -159,11 +165,28 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 	node = node->first_child;
 	while(node != NULL)
 	{
+		//If in root scope disallow execution
+		if(root)
+		{
+			switch(node->node_type)
+			{
+				case AST_VAR:
+				case AST_FUNC:
+				case AST_STRUCT:
+					break;
+
+				default: //TODO: Improve error message
+					VALIDATE_ERROR_L(node->line_number, "Disallowed in root scope");
+					break;
+			}
+		}
+
+		//Validate the node
 		switch(node->node_type)
 		{
 			case AST_BLOCK:
 			{
-				validate_block(node, create_symbol_table(symbol_table), level + 1);
+				validate_block(node, create_symbol_table(symbol_table), false, level + 1);
 				break;
 			}
 
@@ -187,7 +210,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 
 				if(child_count == 1)
 				{
-					struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
+					struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, 0);
 					if(!are_types_equivalent(expression_type, node->type))
 					{
 						VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
@@ -208,7 +231,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				if(symbol == NULL || symbol->type != SYMBOL_VAR)
 					VALIDATE_ERROR_L(node->line_number, "Cannot set variable '%s' as it does not exist", node->name);
 
-				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
+				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, 0);
 				if(!are_types_equivalent(expression_type, symbol->var_data->type))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch setting variable '%s' of type '%s' with expression of type '%s'",
@@ -231,12 +254,12 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 						VALIDATE_ERROR_L(node->line_number, "An 'elif' statement must follow an 'if' or 'elif'");
 				}
 
-				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
+				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, 0);
 				if(strcmp(expression_type->name, "Bool") != 0)
 					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type->name);
 				free_type(expression_type);
 
-				validate_block(node->last_child, create_symbol_table(symbol_table), level + 1);
+				validate_block(node->last_child, create_symbol_table(symbol_table), false, level + 1);
 
 				break;
 			}
@@ -248,7 +271,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				if(node->previous->node_type != AST_IF && node->previous->node_type != AST_ELIF)
 					VALIDATE_ERROR_L(node->line_number, "An 'else' statement must follow an 'if' or 'elif'");
 
-				validate_block(node->last_child, create_symbol_table(symbol_table), level + 1);
+				validate_block(node->last_child, create_symbol_table(symbol_table), false, level + 1);
 
 				break;
 			}
@@ -257,12 +280,12 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 			{
 				assert(count_node_children(node) == 2);
 
-				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, 0);
+				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, 0);
 				if(strcmp(expression_type->name, "Bool") != 0)
 					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type->name);
 				free_type(expression_type);
 
-				validate_block(node->last_child, symbol_table, level + 1);
+				validate_block(node->last_child, symbol_table, false, level + 1);
 
 				break;
 			}
@@ -329,7 +352,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 				}
 				else if(count_node_children(node) == 1)
 				{
-					struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, level + 1);
+					struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, root, level + 1);
 					if(!are_types_equivalent(type, parent->type))
 						VALIDATE_ERROR_L(node->line_number, "Type mismatch returning a value of type '%s' from a function of type '%s'",
 						                 type->name, parent->type->name);
@@ -352,7 +375,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, int le
 					if(call_arg == NULL)
 						VALIDATE_ERROR_L(node->line_number, "To few arguments when calling function '%s'", function->name);
 
-					struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, level + 1);
+					struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, root, level + 1);
 					if(!are_types_equivalent(func_arg->type, call_arg_type))
 						VALIDATE_ERROR_L(node->line_number, "Type mismatch on parameter '%s'", func_arg->name);
 					free_type(call_arg_type);
@@ -477,7 +500,7 @@ void validate_functions(struct NODE *block)
 			arg = arg->next;
 		}
 
-		validate_block(node->first_child, symbol_table, 0);
+		validate_block(node->first_child, symbol_table, false, 0);
 		if(strcmp(node->type->name, "Void") != 0)
 			trace_function_return(node);
 

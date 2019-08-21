@@ -11,6 +11,9 @@ void prepare_file(FILE *target);
 void prototype_globals(FILE *target, struct NODE *root);
 
 
+void transpile_global_sets(FILE *target, struct NODE *root);
+
+
 void prototype_functions(FILE *target);
 
 

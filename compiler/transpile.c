@@ -143,6 +143,24 @@ void prototype_globals(FILE *target, struct NODE *root)
 }
 
 
+void transpile_global_sets(FILE *target, struct NODE *root)
+{
+	assert(root->node_type == AST_BLOCK);
+	struct NODE *node = root->first_child;
+	while(node != NULL)
+	{
+		if(node->node_type == AST_VAR)
+		{
+			fprintf(target, "symbol_%i = ", node->index);
+			transpile_expression(target, node->first_child);
+			fprintf(target, ";\n");
+		}
+
+		node = node->next;
+	}
+}
+
+
 void transpile_function_signature(FILE *target, struct NODE *node)
 {
 	fprintf(target, "%s symbol_%i(", type_to_c(node->type->name), node->index);

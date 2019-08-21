@@ -1,39 +1,6 @@
 module Main;
 
 
-//Variable declaration with value
-let:i32 lucky_number = 42;
-let:i32 another_number = 2 * 3 + 1 / 5 + 4;
-let:Bool my_bool = true!;
-
-{
-    another_number = another_number - 2;
-}
-
-
-let:i32 garbage_data = undefined;
-
-
-let:Bool result = true == false!;
-result = true != false;
-result = 10 > 5;
-result = 10 >= 5;
-result = 10 < 15;
-result = 10 <= 15;
-result = false == result!;
-
-
-if(true == false!) {
-    let:Bool inner_bool = true;
-    result = false;
-}
-
-let:i32 iteration = 0;
-while(iteration <= 9) {
-    iteration = iteration + 1;
-}
-
-
 struct:MyType { //Structs are currently only parsed
     let:Bool field = true; //Fields are not parsed at all yet
 }
@@ -52,11 +19,6 @@ func:i32 get_number(let:Bool overwrite) {
 
 	return 9;
 }
-
-let:i32 returned_value = get_number(true) + 1;
-
-
-let:i32 following_variable = 420;
 
 
 func:Void do_thing(let:Bool should_do, let:i32 max) {
@@ -77,29 +39,64 @@ func:Void do_thing(let:Bool should_do, let:i32 max) {
 	}
 }
 
-do_thing(true, 10);
-
-
-let:i32 count = 0;
-while(true) {
-	count = count + 1;
-
-	if(count <= 10) {
-		continue;
-	}
-	break;
-}
-
 
 func:Void no_args() {
 	return;
 }
-
-no_args();
 
 
 func:i32 return_checking() {
 	if(false) { return 0; }
 	elif(false) { return 1; }
 	else { return 2; }
+}
+
+
+func:Void main() {
+	//Variable declaration with value
+	let:i32 lucky_number = 42;
+	let:i32 another_number = 2 * 3 + 1 / 5 + 4;
+	let:Bool my_bool = true!;
+
+	{
+		another_number = another_number - 2;
+	}
+
+
+	let:i32 garbage_data = undefined;
+
+
+	let:Bool result = true == false!;
+	result = true != false;
+	result = 10 > 5;
+	result = 10 >= 5;
+	result = 10 < 15;
+	result = 10 <= 15;
+	result = false == result!;
+
+	if(true == false!) {
+		let:Bool inner_bool = true;
+		result = false;
+	}
+
+
+	let:i32 iteration = 0;
+	while(iteration <= 9) {
+		iteration = iteration + 1;
+	}
+
+	let:i32 returned_value = get_number(true) + 1;
+	do_thing(true, 10);
+
+    let:i32 count = 0;
+    while(true) {
+		count = count + 1;
+
+		if(count <= 10) {
+			continue;
+		}
+		break;
+	}
+
+    no_args();
 }

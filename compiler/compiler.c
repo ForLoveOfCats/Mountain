@@ -45,15 +45,16 @@ int main(int arg_count, char *arg_array[])
 
 	next_index = 0;
 	root_symbol_table = create_symbol_table(NULL);
-	validate_block(root_node, root_symbol_table, 0);
+	validate_block(root_node, root_symbol_table, true, 0);
 
 	FILE *output_file = fopen(arg_array[1], "w");
 	prepare_file(output_file);
 	prototype_globals(output_file, root_node);
 	prototype_functions(output_file);
 	transpile_functions(output_file);
-	fprintf(output_file, "int main()\n");;
-	transpile_block(output_file, root_node, 0);
+	fprintf(output_file, "int main()\n{\n");;
+	transpile_global_sets(output_file, root_node);
+	fprintf(output_file, "\n\nsymbol_%i();\n}\n", lookup_symbol(root_symbol_table, "main")->index);
 	fclose(output_file);
 
 	free_table_tree(root_symbol_table);
