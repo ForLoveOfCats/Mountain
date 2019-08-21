@@ -209,8 +209,12 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 
 			case AST_VAR:
 				assert(node->index >= 0);
-				fprintf(target, "%s symbol_%i = ", type_to_c(node->type->name), node->index);
-				transpile_expression(target, node->first_child);
+				fprintf(target, "%s symbol_%i", type_to_c(node->type->name), node->index);
+				if(count_node_children(node) == 1)
+				{
+					fprintf(target, " = ");
+					transpile_expression(target, node->first_child);
+				}
 				fprintf(target, ";\n");
 				break;
 

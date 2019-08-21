@@ -777,7 +777,13 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			expect(token, TOKEN_EQUALS);
 
 			NEXT_TOKEN(token);
-			add_node(new_node, parse_expression_to_semicolon(&token));
+			if(strcmp(token->string, "undefined") == 0)
+			{
+				NEXT_TOKEN(token);
+				expect(token, TOKEN_SEMICOLON);
+			}
+			else
+				add_node(new_node, parse_expression_to_semicolon(&token));
 
 			add_node(current_parse_parent_node, new_node);
 

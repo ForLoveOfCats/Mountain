@@ -11,6 +11,9 @@ let:Bool my_bool = true!;
 }
 
 
+let:i32 garbage_data = undefined;
+
+
 let:Bool result = true == false!;
 result = true != false;
 result = 10 > 5;
