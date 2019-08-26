@@ -6,9 +6,6 @@
 #include "symbols.h"
 
 
-bool type_is_number(char *type);
-
-
 struct SCOPE
 {
 	struct SCOPE *parent;
@@ -21,7 +18,7 @@ struct SCOPE
 };
 
 
-bool are_types_equivalent(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two);
+bool are_types_equal(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two);
 
 
 struct SCOPE *create_scope(struct SCOPE *parent);

@@ -590,7 +590,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				new_node = create_node(AST_LITERAL, token->line_number, token->start_char, token->end_char);
 				previous_node = new_node;
 				free_type(new_node->type);
-				new_node->type = create_type("Number");
+				new_node->type = create_type("i32"); //TODO: Test for floating point
 				new_node->literal_type = LITERAL_NUMBER;
 				free(new_node->literal_string);
 				new_node->literal_string = strdup(token->string);

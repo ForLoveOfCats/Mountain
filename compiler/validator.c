@@ -30,22 +30,16 @@
 
 bool type_is_number(char *type)
 {
-	if(strcmp(type, "Number") == 0)
-		return true;
-
-	else if(strcmp(type, "i32") == 0)
+	if(strcmp(type, "i32") == 0)
 		return true;
 
 	return false;
 }
 
 
-bool are_types_equivalent(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two)
+bool are_types_equal(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two)
 {
 	if(strcmp(type_one->name, type_two->name) == 0)
-		return true;
-
-	if(type_is_number(type_one->name) && type_is_number(type_two->name))
 		return true;
 
 	return false;
@@ -91,7 +85,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 				VALIDATE_ERROR_L(node->line_number, "To few arguments when calling function '%s'", function->name);
 
 			struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, global, level + 1);
-			if(!are_types_equivalent(func_arg->type, call_arg_type))
+			if(!are_types_equal(func_arg->type, call_arg_type))
 				VALIDATE_ERROR_L(node->line_number, "Type mismatch on parameter '%s'", func_arg->name);
 			free_type(call_arg_type);
 
@@ -128,7 +122,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		struct TYPE_DATA *left_type = typecheck_expression(node->first_child, symbol_table, global, level + 1);
 		struct TYPE_DATA *right_type = typecheck_expression(node->last_child, symbol_table, global, level + 1);
 
-		if(!are_types_equivalent(left_type, right_type))
+		if(!are_types_equal(left_type, right_type))
 			VALIDATE_ERROR_L(node->line_number, "Type mismatch between left and right values for operation in expression");
 
 		if(node->op_type == OP_TEST_EQUAL
@@ -219,7 +213,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				if(child_count == 1)
 				{
 					struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, 0);
-					if(!are_types_equivalent(expression_type, node->type))
+					if(!are_types_equal(expression_type, node->type))
 					{
 						VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
 										 node->name, node->type->name, expression_type->name);
@@ -240,7 +234,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 					VALIDATE_ERROR_L(node->line_number, "Cannot set variable '%s' as it does not exist", node->name);
 
 				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, 0);
-				if(!are_types_equivalent(expression_type, symbol->var_data->type))
+				if(!are_types_equal(expression_type, symbol->var_data->type))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch setting variable '%s' of type '%s' with expression of type '%s'",
 									 node->name, symbol->var_data->type->name, expression_type->name);
@@ -361,7 +355,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				else if(count_node_children(node) == 1)
 				{
 					struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, root, level + 1);
-					if(!are_types_equivalent(type, parent->type))
+					if(!are_types_equal(type, parent->type))
 						VALIDATE_ERROR_L(node->line_number, "Type mismatch returning a value of type '%s' from a function of type '%s'",
 						                 type->name, parent->type->name);
 					free_type(type);
@@ -384,7 +378,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 						VALIDATE_ERROR_L(node->line_number, "To few arguments when calling function '%s'", function->name);
 
 					struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, root, level + 1);
-					if(!are_types_equivalent(func_arg->type, call_arg_type))
+					if(!are_types_equal(func_arg->type, call_arg_type))
 						VALIDATE_ERROR_L(node->line_number, "Type mismatch on parameter '%s'", func_arg->name);
 					free_type(call_arg_type);
 
