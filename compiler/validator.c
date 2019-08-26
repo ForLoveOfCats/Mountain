@@ -39,10 +39,21 @@ bool type_is_number(char *type)
 
 bool are_types_equal(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two)
 {
-	if(strcmp(type_one->name, type_two->name) == 0)
-		return true;
+	if(strcmp(type_one->name, type_two->name) != 0)
+		return false;
 
-	return false;
+	if(type_one->child == NULL && type_two->child == NULL)
+	  return true;
+	else
+	{
+		//We know that at least one child is not null
+		//So it stands to reason that if either is null then !=
+		if(type_one->child == NULL || type_two->child == NULL)
+		  return false;
+
+		//Both children are not null so recurse
+		return are_types_equal(type_one->child, type_two->child);
+	}
 }
 
 
