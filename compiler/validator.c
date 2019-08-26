@@ -28,6 +28,29 @@
 	} \
 
 
+char *pretty_type_name(struct TYPE_DATA *type)
+{
+	if(type->child != NULL)
+	{
+		char *child_name = pretty_type_name(type->child);
+		int child_name_len = strlen(child_name);
+		int name_len = strlen(type->name);
+
+		char *output = malloc(child_name_len + name_len + 2);
+		strcpy(output, child_name);
+		output[child_name_len] = ':';
+		output[child_name_len + 1] = '\0';
+		strcat(output, type->name);
+		output[child_name_len + name_len + 1] = '\0';
+
+		free(child_name);
+		return output;
+	}
+	else
+		return strdup(type->name);
+}
+
+
 bool type_is_number(char *type)
 {
 	if(strcmp(type, "i32") == 0)
@@ -227,7 +250,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 					if(!are_types_equal(expression_type, node->type))
 					{
 						VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
-										 node->name, node->type->name, expression_type->name);
+										 node->name, pretty_type_name(node->type), pretty_type_name(expression_type));
 					}
 					free_type(expression_type);
 				}
@@ -248,7 +271,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				if(!are_types_equal(expression_type, symbol->var_data->type))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch setting variable '%s' of type '%s' with expression of type '%s'",
-									 node->name, symbol->var_data->type->name, expression_type->name);
+									 node->name, pretty_type_name(symbol->var_data->type), pretty_type_name(expression_type));
 				}
 				free_type(expression_type);
 
@@ -368,7 +391,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 					struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, root, level + 1);
 					if(!are_types_equal(type, parent->type))
 						VALIDATE_ERROR_L(node->line_number, "Type mismatch returning a value of type '%s' from a function of type '%s'",
-						                 type->name, parent->type->name);
+						                 pretty_type_name(type), pretty_type_name(parent->type));
 					free_type(type);
 				}
 
