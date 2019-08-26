@@ -97,4 +97,8 @@ func:Void main() {
 	}
 
 	no_args();
+
+
+	let:i32 original_variable = 2000;
+	let:i32:Ptr pointer = undefined;
 }

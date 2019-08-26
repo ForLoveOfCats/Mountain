@@ -16,18 +16,32 @@ void prepare_file(FILE *target)
 }
 
 
-char *type_to_c(char *type) //TODO: Make this not suck
+char *type_to_c(struct TYPE_DATA *type) //TODO: Make this not suck
 {
-	if(strcmp(type, "i32") == 0)
-		return "int32_t";
+	if(strcmp(type->name, "i32") == 0)
+		return strdup("int32_t");
 
-	if(strcmp(type, "Bool") == 0)
-		return "bool";
+	if(strcmp(type->name, "Bool") == 0)
+		return strdup("bool");
 
-	if(strcmp(type, "Void") == 0)
-		return "void";
+	if(strcmp(type->name, "Void") == 0)
+		return strdup("void");
 
-	printf("Invalid type to transpile '%s'\n", type);
+	if(strcmp(type->name, "Ptr") == 0)
+	{
+		char *child_transpiled = type_to_c(type->child);
+		int child_transpiled_len = strlen(child_transpiled);
+		char *output = malloc(child_transpiled_len+2);
+
+		strcpy(output, child_transpiled);
+		output[child_transpiled_len] = '*';
+		output[child_transpiled_len + 1] = '\0';
+
+		free(child_transpiled);
+		return output;
+	}
+
+	printf("Invalid type to transpile '%s'\n", type->name);
 	exit(EXIT_FAILURE);
 }
 
@@ -133,7 +147,9 @@ void prototype_globals(FILE *target, struct NODE *root)
 	{
 		if(node->node_type == AST_VAR)
 		{
-			fprintf(target, "%s symbol_%i;\n", type_to_c(node->type->name), node->index);
+			char *type_str = type_to_c(node->type);
+			fprintf(target, "%s symbol_%i;\n", type_str, node->index);
+			free(type_str);
 		}
 
 		node = node->next;
@@ -163,11 +179,17 @@ void transpile_global_sets(FILE *target, struct NODE *root)
 
 void transpile_function_signature(FILE *target, struct NODE *node)
 {
-	fprintf(target, "%s symbol_%i(", type_to_c(node->type->name), node->index);
+	char *type_str = type_to_c(node->type);
+	fprintf(target, "%s symbol_%i(", type_str, node->index);
+	free(type_str);
+
 	struct ARG_DATA *arg = node->first_arg;
 	while(arg != NULL)
 	{
-		fprintf(target, "%s symbol_%i", type_to_c(arg->type->name), arg->index);
+		type_str = type_to_c(arg->type);
+		fprintf(target, "%s symbol_%i", type_str, arg->index);
+		free(type_str);
+
 		if(arg->next != NULL)
 			fprintf(target, ", ");
 
@@ -227,12 +249,17 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 
 			case AST_VAR:
 				assert(node->index >= 0);
-				fprintf(target, "%s symbol_%i", type_to_c(node->type->name), node->index);
+
+				char *type_str = type_to_c(node->type);
+				fprintf(target, "%s symbol_%i", type_str, node->index);
+				free(type_str);
+
 				if(count_node_children(node) == 1)
 				{
 					fprintf(target, " = ");
 					transpile_expression(target, node->first_child);
 				}
+
 				fprintf(target, ";\n");
 				break;
 

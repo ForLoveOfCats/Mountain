@@ -19,6 +19,7 @@ int next_index;
 struct TYPE_DATA //TODO: Add type paremeters
 {
 	char *name;
+	struct TYPE_DATA *child;
 };
 
 

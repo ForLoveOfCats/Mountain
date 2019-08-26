@@ -744,11 +744,27 @@ struct TOKEN *parse_function_args(struct NODE *func, struct TOKEN *token)
 }
 
 
-struct TYPE_DATA *parse_type(struct TOKEN **token)
+struct TYPE_DATA *parse_type(struct TOKEN **callsite_token)
 {
-	expect(*token, TOKEN_WORD);
-	struct TYPE_DATA *instance = create_type((*token)->string);
-	*token = (*token)->next;
+	struct TOKEN *token = *callsite_token;
+
+	expect(token, TOKEN_WORD);
+
+	struct TYPE_DATA *instance = create_type(token->string);
+	token = token->next;
+
+	if(token->type == TOKEN_COLON)
+	{
+		NEXT_TOKEN(token);
+
+		struct TYPE_DATA *parent = parse_type(&token);
+		parent->child = instance;
+
+		*callsite_token = token;
+		return parent;
+	}
+
+	*callsite_token = token;
 	return instance;
 }
 

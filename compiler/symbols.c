@@ -14,7 +14,9 @@
 struct TYPE_DATA *create_type(char *name)
 {
 	struct TYPE_DATA *type = malloc(sizeof(struct TYPE_DATA));
+
 	type->name = strdup(name);
+	type->child = NULL;
 
 	return type;
 }
@@ -22,8 +24,9 @@ struct TYPE_DATA *create_type(char *name)
 
 struct TYPE_DATA *copy_type(struct TYPE_DATA *type)
 {
-	struct TYPE_DATA *new_type = malloc(sizeof(struct TYPE_DATA));
-	new_type->name = strdup(type->name);
+	struct TYPE_DATA *new_type = create_type(type->name);
+	if(type->child != NULL)
+		new_type->child = copy_type(type->child);
 
 	return new_type;
 }
@@ -32,6 +35,10 @@ struct TYPE_DATA *copy_type(struct TYPE_DATA *type)
 void free_type(struct TYPE_DATA *type)
 {
 	free(type->name);
+
+	if(type->child != NULL)
+		free_type(type->child);
+
 	free(type);
 }
 
