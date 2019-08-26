@@ -109,7 +109,21 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 	}
 	else if(node->node_type == AST_UNOP)
 	{
-		fprintf(target, "!");
+		switch(node->unop_type)
+		{
+			case UNOP_INVERT:
+				fprintf(target, "!");
+				break;
+
+			case UNOP_ADDRESS_OF:
+				fprintf(target, "&");
+				break;
+
+			default:
+				printf("INTERNAL ERROR: We don't know how to transpile this unop\n");
+				exit(EXIT_FAILURE);
+		}
+
 		transpile_expression(target, node->first_child);
 	}
 	else if(node->node_type == AST_GET)

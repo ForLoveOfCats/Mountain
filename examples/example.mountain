@@ -100,7 +100,7 @@ func:Void main() {
 
 
 	let:i32 original_variable = 2000;
-	let:i32:Ptr pointer = undefined;
+	let:i32:Ptr pointer = original_variable&;
 	let:i32:Ptr another_pointer = undefined;
 	if(pointer == another_pointer) { }
 }

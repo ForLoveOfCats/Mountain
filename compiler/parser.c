@@ -208,6 +208,12 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					goto return_token;
 				}
 
+				case '&':
+				{
+					token->type = TOKEN_ADDRESS_OF;
+					goto return_car_as_token;
+				}
+
 				case '(':
 				{
 					token->type = TOKEN_OPEN_PARENTHESES;
@@ -251,6 +257,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 			case '*':
 			case '/':
 			case '!':
+			case '&':
 			case '(':
 			case ')':
 			case '{':
@@ -380,6 +387,7 @@ bool token_is_unop(struct TOKEN *token)
 	switch(token->type)
 	{
 		case TOKEN_EXCLAMATION:
+		case TOKEN_ADDRESS_OF:
 			return true;
 
  		default:
@@ -552,6 +560,10 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			{
 				case TOKEN_EXCLAMATION:
 					new_node->unop_type = UNOP_INVERT;
+					break;
+
+				case TOKEN_ADDRESS_OF:
+					new_node->unop_type = UNOP_ADDRESS_OF;
 					break;
 
 				default:

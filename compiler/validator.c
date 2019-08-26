@@ -134,22 +134,29 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	}
 	else if(node->node_type == AST_UNOP)
 	{
-		struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, global, level + 1);
+		struct TYPE_DATA *child_type = typecheck_expression(node->first_child, symbol_table, global, level + 1);
 
 		switch(node->unop_type)
 		{
 			case UNOP_INVERT:
 			{
-				if(strcmp(type->name, "Bool") != 0)
-					VALIDATE_ERROR_L(node->line_number, "Cannot invert non-boolean value of type '%s'", type->name);
+				if(strcmp(child_type->name, "Bool") != 0)
+					VALIDATE_ERROR_L(node->line_number, "Cannot invert non-boolean value of type '%s'", child_type->name);
 				break;
+			}
+
+			case UNOP_ADDRESS_OF:
+			{
+				struct TYPE_DATA *type = create_type("Ptr");
+				type->child = child_type;
+				return type;
 			}
 
 			default:
 				VALIDATE_ERROR_L(node->line_number, "We don't know how to typecheck this unop");
 		}
 
-		return type;
+		return child_type;
 	}
 	else if(node->node_type == AST_OP)
 	{
