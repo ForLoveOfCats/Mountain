@@ -119,6 +119,10 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 				fprintf(target, "&");
 				break;
 
+			case UNOP_DEREFERENCE:
+				fprintf(target, "*");
+				break;
+
 			default:
 				printf("INTERNAL ERROR: We don't know how to transpile this unop\n");
 				exit(EXIT_FAILURE);

@@ -152,6 +152,18 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 				return type;
 			}
 
+			case UNOP_DEREFERENCE:
+			{
+				if(strcmp(child_type->name, "Ptr") != 0)
+					VALIDATE_ERROR_L(node->line_number, "Cannot dereference a non-pointer value");
+
+				assert(child_type->child != NULL); //if a pointer doesn't have a child type then we did an oopsie
+
+				struct TYPE_DATA *type = copy_type(child_type->child);
+				free_type(child_type);
+				return type;
+			}
+
 			default:
 				VALIDATE_ERROR_L(node->line_number, "We don't know how to typecheck this unop");
 		}
