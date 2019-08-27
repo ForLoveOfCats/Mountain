@@ -103,6 +103,7 @@ func:Void main() {
 	let:i32:Ptr pointer = original_variable&;
 
 	let:i32:Ptr another_pointer = undefined;
+	another_pointer = pointer;
 	if(pointer == another_pointer) { }
 
 	let:i32 new_variable = pointer$;
