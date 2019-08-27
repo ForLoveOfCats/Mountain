@@ -265,6 +265,11 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 
 				if(strcmp(node->type->name, "Void") == 0)
 					VALIDATE_ERROR_L(node->line_number, "Invalid type 'Void' when declaring variable '%s'", node->name);
+				if(strcmp(node->type->name, "Ptr") == 0)
+				{
+					if(node->type->child == NULL)
+						VALIDATE_ERROR_L(node->line_number, "Pointer must have child type");
+				}
 
 				if(child_count == 1)
 				{
