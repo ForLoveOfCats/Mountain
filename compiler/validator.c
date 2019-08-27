@@ -147,6 +147,9 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 
 			case UNOP_ADDRESS_OF:
 			{
+				if(node->first_child->node_type != AST_GET)
+					VALIDATE_ERROR_L(node->line_number, "Can only take the address of an lvalue");
+
 				struct TYPE_DATA *type = create_type("Ptr");
 				type->child = child_type;
 				return type;
