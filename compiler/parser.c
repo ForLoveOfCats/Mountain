@@ -371,6 +371,7 @@ bool token_is_op(struct TOKEN *token)
 {
 	switch(token->type)
 	{
+		case TOKEN_EQUALS:
 		case TOKEN_TEST_EQUAL:
 		case TOKEN_TEST_NOT_EQUAL:
 		case TOKEN_TEST_GREATER:
@@ -408,21 +409,24 @@ int get_op_precedence(enum OP_TYPE op)
 {
 	switch(op)
 	{
+		case OP_EQUALS:
+			return 1;
+
 		case OP_TEST_EQUAL:
 		case OP_TEST_NOT_EQUAL:
 		case OP_TEST_GREATER:
 		case OP_TEST_GREATER_EQUAL:
 		case OP_TEST_LESS:
 		case OP_TEST_LESS_EQUAL:
-			return 1;
+			return 2;
 
 		case OP_ADD:
 		case OP_SUB:
-			return 2;
+			return 3;
 
 		case OP_MUL:
 		case OP_DIV:
-			return 3;
+			return 4;
 
 		default:
 			printf("INTERNAL ERROR: Unimplimented op precedence\n");
@@ -464,9 +468,15 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				}
 
 				struct NODE *new_node = create_node(AST_OP, token->line_number, token->start_char, token->end_char);
+				free(new_node->literal_string);
+				new_node->literal_string = strdup(token->string);
 				previous_node = new_node;
 				switch(token->type)
 				{
+					case TOKEN_EQUALS:
+						new_node->op_type = OP_EQUALS;
+						break;
+
 					case TOKEN_TEST_EQUAL:
 						new_node->op_type = OP_TEST_EQUAL;
 						break;

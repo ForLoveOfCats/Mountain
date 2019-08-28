@@ -179,9 +179,20 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		struct TYPE_DATA *right_type = typecheck_expression(node->last_child, symbol_table, global, level + 1);
 
 		if(!are_types_equal(left_type, right_type))
-			VALIDATE_ERROR_L(node->line_number, "Type mismatch between left and right values for operation in expression");
+			VALIDATE_ERROR_L(node->line_number,
+			                 "Type mismatch between '%s' and '%s' values for operation '%s'",
+			                 pretty_type_name(left_type), pretty_type_name(right_type), node->literal_string);
 
-		if(node->op_type == OP_TEST_EQUAL
+		if(node->op_type == OP_EQUALS)
+		{
+			if(node->first_child->node_type != AST_GET)
+				VALIDATE_ERROR_L(node->line_number, "Can only set to an lvalue");
+
+			free_type(left_type);
+			return right_type;
+		}
+
+		else if(node->op_type == OP_TEST_EQUAL
 		   || node->op_type == OP_TEST_NOT_EQUAL
 		   || node->op_type == OP_TEST_GREATER
 		   || node->op_type == OP_TEST_GREATER_EQUAL
@@ -192,13 +203,23 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			free_type(right_type);
 			return create_type("Bool");
 		}
-		else
+
+		else if(node->op_type == OP_ADD
+				|| node->op_type == OP_SUB
+				|| node->op_type == OP_MUL
+				|| node->op_type == OP_DIV)
 		{
-			if(node->node_type == AST_OP && (!type_is_number(left_type->name) || !type_is_number(right_type->name)) )
+			if(!type_is_number(left_type->name) || !type_is_number(right_type->name))
 				VALIDATE_ERROR_L(node->line_number, "Cannot perform arithmetic on one or more non-numerical values");
 
 			free_type(right_type);
 			return left_type;
+		}
+
+		else
+		{
+			printf("INTERNAL ERROR: We don't know how to validate this op");
+			exit(EXIT_FAILURE);
 		}
 	}
 	else

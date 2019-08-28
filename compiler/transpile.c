@@ -61,6 +61,10 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 		transpile_expression(target, node->first_child);
 		switch(node->op_type)
 		{
+			case OP_EQUALS:
+				fprintf(target, " = ");
+				break;
+
 			case OP_TEST_EQUAL:
 				fprintf(target, " == ");
 				break;
