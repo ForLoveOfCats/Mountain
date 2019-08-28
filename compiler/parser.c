@@ -1107,53 +1107,11 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			token = token->next; //Don't check for EOF
 		}
 
-		else //It must be a variable set or a function call
+		else //Not a statement
 		{
-			expect(token, TOKEN_WORD); //The variable or function name
-
-			struct TOKEN *peeked = peek_next_token(token);
-			if(peeked->type == TOKEN_EQUALS) //Variable set
-			{
-				struct NODE *new_node = create_node(AST_SET, token->line_number, token->start_char, token->end_char);
-				free(new_node->name);
-				new_node->name = strdup(token->string);
-
-				NEXT_TOKEN(token);
-				expect(token, TOKEN_EQUALS);
-
-				NEXT_TOKEN(token);
-				struct NODE *expression = parse_expression_to_semicolon(&token);
-				add_node(new_node, expression);
-				free_type(new_node->type);
-				new_node->type = copy_type(expression->type);
-
-				add_node(current_parse_parent_node, new_node);
-
-				token = token->next;
-			}
-			else if(peeked->type == TOKEN_OPEN_PARENTHESES) //Function call
-			{
-				struct NODE *new_node = create_node(AST_CALL, token->line_number, token->start_char, token->end_char);
-				free(new_node->name);
-				new_node->name = strdup(token->string);
-
-				NEXT_TOKEN(token);
-				expect(token, TOKEN_OPEN_PARENTHESES);
-				token = parse_function_args(new_node, token);
-
-				NEXT_TOKEN(token);
-				expect(token, TOKEN_SEMICOLON);
-
-				add_node(current_parse_parent_node, new_node);
-
-				token = token->next;
-			}
-			else
-			{
-				NEXT_TOKEN(token);
-				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected %s or %s but found %s",
-							   token_type_name[TOKEN_EQUALS], token_type_name[TOKEN_COLON], token_type_name[token->type]);
-			}
+			add_node(current_parse_parent_node, parse_expression_to_semicolon(&token));
+			expect(token, TOKEN_SEMICOLON);
+			token = token->next;
 		}
 	}
 	else

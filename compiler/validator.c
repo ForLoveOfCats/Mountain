@@ -270,6 +270,12 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				break;
 			}
 
+			case AST_EXPRESSION:
+			{
+				free_type(typecheck_expression(node, symbol_table, root, 0));
+				break;
+			}
+
 			case AST_LET: //TODO: Make sure that type is valid and known
 			{
 				int child_count = count_node_children(node);

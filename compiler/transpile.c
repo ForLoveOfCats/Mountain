@@ -269,6 +269,11 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				transpile_block(target, node, level + 1);
 				break;
 
+			case AST_EXPRESSION:
+				transpile_expression(target, node);
+				fprintf(target, ";\n");
+				break;
+
 			case AST_LET:
 				assert(node->index >= 0);
 
