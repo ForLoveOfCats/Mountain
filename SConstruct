@@ -1,7 +1,7 @@
 import platform
 env = Environment()
 if platform.system().lower() == "linux":
-    env = Environment(CC = 'gcc',
+    env = Environment(CC = 'clang',
                       CCFLAGS=["-fsanitize=address", "-fsanitize=undefined", "-g", "-Wall", "-Wextra", "-Wpedantic"],
                       LINKFLAGS=["-fsanitize=address", "-fsanitize=undefined", "-g"])
 
