@@ -809,7 +809,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 	{
 		if(strcmp(token->string, "let") == 0)
 		{
-			struct NODE *new_node = create_node(AST_VAR, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(AST_LET, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_COLON);

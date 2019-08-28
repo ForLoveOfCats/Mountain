@@ -250,7 +250,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 		{
 			switch(node->node_type)
 			{
-				case AST_VAR:
+				case AST_LET:
 				case AST_FUNC:
 				case AST_STRUCT:
 					break;
@@ -270,7 +270,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				break;
 			}
 
-			case AST_VAR: //TODO: Make sure that type is valid and known
+			case AST_LET: //TODO: Make sure that type is valid and known
 			{
 				int child_count = count_node_children(node);
 				assert(child_count == 0 || child_count == 1);

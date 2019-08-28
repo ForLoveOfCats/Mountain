@@ -167,7 +167,7 @@ void prototype_globals(FILE *target, struct NODE *root)
 	struct NODE *node = root->first_child;
 	while(node != NULL)
 	{
-		if(node->node_type == AST_VAR)
+		if(node->node_type == AST_LET)
 		{
 			char *type_str = type_to_c(node->type);
 			fprintf(target, "%s symbol_%i;\n", type_str, node->index);
@@ -187,7 +187,7 @@ void transpile_global_sets(FILE *target, struct NODE *root)
 	struct NODE *node = root->first_child;
 	while(node != NULL)
 	{
-		if(node->node_type == AST_VAR && count_node_children(node) == 1)
+		if(node->node_type == AST_LET && count_node_children(node) == 1)
 		{
 			fprintf(target, "symbol_%i = ", node->index);
 			transpile_expression(target, node->first_child);
@@ -269,7 +269,7 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				transpile_block(target, node, level + 1);
 				break;
 
-			case AST_VAR:
+			case AST_LET:
 				assert(node->index >= 0);
 
 				char *type_str = type_to_c(node->type);
