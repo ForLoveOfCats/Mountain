@@ -28,11 +28,12 @@
 	} \
 
 
-char *pretty_type_name(struct TYPE_DATA *type)
+//NOTE: Only call when about to exit(EXIT_FAILURE)
+char *fatal_pretty_type_name(struct TYPE_DATA *type)
 {
 	if(type->child != NULL)
 	{
-		char *child_name = pretty_type_name(type->child);
+		char *child_name = fatal_pretty_type_name(type->child);
 		int child_name_len = strlen(child_name);
 		int name_len = strlen(type->name);
 
@@ -47,7 +48,7 @@ char *pretty_type_name(struct TYPE_DATA *type)
 		return output;
 	}
 	else
-		return strdup(type->name);
+		return type->name;
 }
 
 
@@ -181,7 +182,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		if(!are_types_equal(left_type, right_type))
 			VALIDATE_ERROR_L(node->line_number,
 			                 "Type mismatch between '%s' and '%s' values for operation '%s'",
-			                 pretty_type_name(left_type), pretty_type_name(right_type), node->literal_string);
+			                 fatal_pretty_type_name(left_type), fatal_pretty_type_name(right_type), node->literal_string);
 
 		if(node->op_type == OP_EQUALS)
 		{
@@ -298,7 +299,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 					if(!are_types_equal(expression_type, node->type))
 					{
 						VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
-										 node->name, pretty_type_name(node->type), pretty_type_name(expression_type));
+										 node->name, fatal_pretty_type_name(node->type), fatal_pretty_type_name(expression_type));
 					}
 					free_type(expression_type);
 				}
@@ -319,7 +320,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				if(!are_types_equal(expression_type, symbol->var_data->type))
 				{
 					VALIDATE_ERROR_L(node->line_number, "Type mismatch setting variable '%s' of type '%s' with expression of type '%s'",
-									 node->name, pretty_type_name(symbol->var_data->type), pretty_type_name(expression_type));
+									 node->name, fatal_pretty_type_name(symbol->var_data->type), fatal_pretty_type_name(expression_type));
 				}
 				free_type(expression_type);
 
@@ -439,7 +440,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 					struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, root, level + 1);
 					if(!are_types_equal(type, parent->type))
 						VALIDATE_ERROR_L(node->line_number, "Type mismatch returning a value of type '%s' from a function of type '%s'",
-						                 pretty_type_name(type), pretty_type_name(parent->type));
+						                 fatal_pretty_type_name(type), fatal_pretty_type_name(parent->type));
 					free_type(type);
 				}
 

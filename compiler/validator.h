@@ -18,7 +18,7 @@ struct SCOPE
 };
 
 
-char *pretty_type_name(struct TYPE_DATA *type);
+char *fatal_pretty_type_name(struct TYPE_DATA *type);
 
 
 bool are_types_equal(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two);
