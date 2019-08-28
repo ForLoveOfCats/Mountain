@@ -110,5 +110,5 @@ func:Void main() {
 
 
 	let:i32 first_var = 9;
-	let:i32 second_var = first_var = true;
+	let:i32 second_var = first_var = 50;
 }
