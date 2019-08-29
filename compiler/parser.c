@@ -1176,6 +1176,11 @@ struct TOKEN *parse_block(struct TOKEN *token, bool inner_block, int level)
 void parse_file(FILE *file)
 {
 	struct TOKEN *first_token = tokenize_file(file);
+	if(first_token == NULL)
+	{
+		return;
+	}
+
 	struct TOKEN *token = first_token;
 
 	expect(token, TOKEN_WORD);
