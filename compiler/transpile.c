@@ -290,13 +290,6 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				fprintf(target, ";\n");
 				break;
 
-			case AST_SET:
-				assert(node->index >= 0);
-				fprintf(target, "symbol_%i = ", node->index);
-				transpile_expression(target, node->first_child);
-				fprintf(target, ";\n");
-				break;
-
 			case AST_IF:
 				assert(count_node_children(node) == 2);
 				fprintf(target, "if");
@@ -349,22 +342,6 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 					fprintf(target, ";\n");
 				}
 
-				break;
-
-			case AST_CALL:
-				fprintf(target, "symbol_%i(", node->index);
-
-				struct NODE *arg = node->first_child;
-				while(arg != NULL)
-				{
-					transpile_expression(target, arg);
-					if(arg->next != NULL)
-						fprintf(target, ", ");
-
-					arg = arg->next;
-				}
-
-				fprintf(target, ");\n");
 				break;
 
 			case AST_FUNC:

@@ -313,27 +313,6 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				break;
 			}
 
-			case AST_SET:
-			{
-				assert(count_node_children(node) == 1);
-
-				struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name);
-
-				if(symbol == NULL || symbol->type != SYMBOL_VAR)
-					VALIDATE_ERROR_L(node->line_number, "Cannot set variable '%s' as it does not exist", node->name);
-
-				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, 0);
-				if(!are_types_equal(expression_type, symbol->var_data->type))
-				{
-					VALIDATE_ERROR_L(node->line_number, "Type mismatch setting variable '%s' of type '%s' with expression of type '%s'",
-									 node->name, fatal_pretty_type_name(symbol->var_data->type), fatal_pretty_type_name(expression_type));
-				}
-				free_type(expression_type);
-
-				node->index = symbol->index;
-				break;
-			}
-
 			case AST_IF:
 			case AST_ELIF:
 			{
@@ -450,34 +429,6 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 					free_type(type);
 				}
 
-				break;
-			}
-
-			case AST_CALL:
-			{
-				struct SYMBOL *function = lookup_symbol(symbol_table, node->name);
-				if(function == NULL || function->type != SYMBOL_FUNC)
-					VALIDATE_ERROR_L(node->line_number, "No function named '%s'", node->name);
-
-				struct ARG_DATA *func_arg = function->func_data->first_arg;
-				struct NODE *call_arg = node->first_child; //The call args are expression nodes
-				while(func_arg != NULL)
-				{
-					if(call_arg == NULL)
-						VALIDATE_ERROR_L(node->line_number, "To few arguments when calling function '%s'", function->name);
-
-					struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, root, level + 1);
-					if(!are_types_equal(func_arg->type, call_arg_type))
-						VALIDATE_ERROR_L(node->line_number, "Type mismatch on parameter '%s'", func_arg->name);
-					free_type(call_arg_type);
-
-					func_arg = func_arg->next;
-					call_arg = call_arg->next;
-				}
-				if(call_arg != NULL)
-					VALIDATE_ERROR_L(node->line_number, "To many arguments when calling function '%s'", function->name);
-
-				node->index = function->index;
 				break;
 			}
 
