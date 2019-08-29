@@ -4,7 +4,7 @@ scons #build
 
 if [ $? -eq 0 ]; then #if the compiler was built correctly
 	printf "\n\n===== Example Building =====\n"
-	./build/compiler ./output/output.c ./examples/example.mountain #run the compiler
+	./build/compiler ./output/output.c ./examples #run the compiler
 
 	if [ $? -eq 0 ]; then #if the compiler succeeded
 		printf "\n\n===== Resulting C Source =====\n"

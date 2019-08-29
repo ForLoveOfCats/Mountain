@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <dirent.h>
 
 #include "compiler.h"
 #include "ast.h"
@@ -31,17 +32,66 @@ int main(int arg_count, char *arg_array[])
 {
 	if(arg_count != 3)
 	{
-		printf("Please provide an output path and an input path to compile\n");
+		printf("Please provide an output file to emit to and an input dir to compile\n");
 		return EXIT_FAILURE;
 	}
 
-	FILE *source_file = open_source_file(arg_array[2]);
+
+	#define input_path arg_array[2]
+	DIR *input_dir = opendir(input_path);
+	if(input_dir == NULL)
+	{
+		printf("Please provide a valid input directory\n");
+		exit(EXIT_FAILURE);
+	}
+
+	int file_count = 0;
+	FILE **files = malloc(sizeof(FILE) * 0);
+	struct dirent *ent;
+	while((ent = readdir(input_dir)) != NULL)
+	{
+		switch(ent->d_type)
+		{
+			case DT_REG:
+			case DT_LNK:
+			{
+
+				char *path = malloc(sizeof(char) * (strlen(input_path) + strlen(ent->d_name) + 2));
+				sprintf(path, "%s/%s", input_path, ent->d_name);
+
+				FILE *source_file = open_source_file(path);
+
+				free(path);
+
+				FILE **new_files = malloc(sizeof(FILE) * (file_count+1));
+				for(int index = 0; index < file_count; index++)
+				{
+					new_files[index] = files[index];
+				}
+				new_files[file_count] = source_file;
+
+				free(files);
+				files = new_files;
+
+				file_count++;
+				break;
+			}
+
+			default:
+				break;
+		}
+	}
+	closedir(input_dir);
 
 	first_func_prototype = NULL;
 	last_func_prototype = NULL;
 	root_node = create_node(AST_BLOCK, -1, -1, -1);
 	current_parse_parent_node = root_node;
-	parse_file(source_file);
+
+	for(int index = 0; index < file_count; index++)
+	{
+		parse_file(files[index]);
+	}
 
 	next_index = 0;
 	root_symbol_table = create_symbol_table(NULL);
@@ -63,6 +113,11 @@ int main(int arg_count, char *arg_array[])
 	free_tree(root_node);
 	free_func_prototype_list(first_func_prototype);
 
-	fclose(source_file);
+	for(int index = 0; index < file_count; index++)
+	{
+		fclose(files[index]);
+	}
+	free(files);
+
 	return EXIT_SUCCESS;
 }

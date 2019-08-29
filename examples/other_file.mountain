@@ -1,0 +1,10 @@
+module Main;
+
+
+func:i32 some_func_in_other_file(let:Bool arg) {
+	if(arg) {
+		return 1;
+	}
+
+	return 0;
+}

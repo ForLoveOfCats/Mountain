@@ -111,4 +111,7 @@ func:Void main() {
 
 	let:i32 first_var = 9;
 	let:i32 second_var = first_var = 50;
+
+
+	let:i32 value_from_other_file = some_func_in_other_file(true);
 }
