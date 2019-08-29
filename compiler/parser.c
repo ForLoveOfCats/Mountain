@@ -709,7 +709,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 }
 
 
-struct NODE *parse_expression_to_semicolon(struct TOKEN **token) //TODO: Error on no token before semicolon
+struct NODE *parse_expression_to_semicolon(struct TOKEN **token)
 {
 	struct NODE *expression_root = create_node(AST_EXPRESSION, (*token)->line_number, (*token)->start_char, (*token)->end_char);
 
