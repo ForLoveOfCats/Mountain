@@ -47,6 +47,7 @@ int main(int arg_count, char *arg_array[])
 
 	int file_count = 0;
 	FILE **files = malloc(sizeof(FILE*) * 0);
+	char **paths = malloc(sizeof(char) * 0);
 	struct dirent *ent;
 	while((ent = readdir(input_dir)) != NULL)
 	{
@@ -58,10 +59,21 @@ int main(int arg_count, char *arg_array[])
 
 				char *path = malloc(sizeof(char) * (strlen(input_path) + strlen(ent->d_name) + 2));
 				sprintf(path, "%s/%s", input_path, ent->d_name);
+				char *old_path = path;
+				path = realpath(path, NULL);
+				free(old_path);
+
+				char **new_paths = malloc(sizeof(char*) * (file_count+1));
+				for(int index = 0; index < file_count; index++)
+				{
+					new_paths[index] = paths[index];
+				}
+				new_paths[file_count] = path;
+
+				free(paths);
+				paths = new_paths;
 
 				FILE *source_file = open_source_file(path);
-
-				free(path);
 
 				FILE **new_files = malloc(sizeof(FILE*) * (file_count+1));
 				for(int index = 0; index < file_count; index++)
@@ -116,6 +128,7 @@ int main(int arg_count, char *arg_array[])
 	for(int index = 0; index < file_count; index++)
 	{
 		fclose(files[index]);
+		free(paths[index]);
 	}
 	free(files);
 
