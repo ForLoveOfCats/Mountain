@@ -46,7 +46,7 @@ int main(int arg_count, char *arg_array[])
 	}
 
 	int file_count = 0;
-	FILE **files = malloc(sizeof(FILE) * 0);
+	FILE **files = malloc(sizeof(FILE*) * 0);
 	struct dirent *ent;
 	while((ent = readdir(input_dir)) != NULL)
 	{
@@ -63,7 +63,7 @@ int main(int arg_count, char *arg_array[])
 
 				free(path);
 
-				FILE **new_files = malloc(sizeof(FILE) * (file_count+1));
+				FILE **new_files = malloc(sizeof(FILE*) * (file_count+1));
 				for(int index = 0; index < file_count; index++)
 				{
 					new_files[index] = files[index];
