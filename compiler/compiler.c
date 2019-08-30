@@ -97,13 +97,15 @@ int main(int arg_count, char *arg_array[])
 
 	first_func_prototype = NULL;
 	last_func_prototype = NULL;
-	root_node = create_node(AST_BLOCK, -1, -1, -1);
+	root_node = create_node(AST_BLOCK, -1, -1, -1, -1);
 	current_parse_parent_node = root_node;
 
 	for(int index = 0; index < file_count; index++)
 	{
+		current_file = index;
 		parse_file(files[index]);
 	}
+	current_file = -1;
 
 	next_index = 0;
 	root_symbol_table = create_symbol_table(NULL);

@@ -10,7 +10,7 @@
 #include "ast.h"
 
 
-struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, int end_char)
+struct NODE *create_node(enum AST_TYPE type, int file, int line_number, int start_char, int end_char)
 {
 	struct NODE *new_node = (struct NODE *)malloc(sizeof(struct NODE));
 
@@ -28,6 +28,7 @@ struct NODE *create_node(enum AST_TYPE type, int line_number, int start_char, in
 	new_node->first_arg = NULL;
 	new_node->last_arg = NULL;
 
+	new_node->file = file;
 	new_node->line_number = line_number;
 	new_node->start_char = start_char;
 	new_node->end_char = end_char;
