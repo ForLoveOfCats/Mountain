@@ -21,9 +21,6 @@ FILE *open_source_file(char *path)
 		exit(EXIT_FAILURE);
 	}
 
-	current_file_character = 0;
-	current_file_line = 1;
-
 	return source_file;
 }
 
@@ -103,6 +100,10 @@ int main(int arg_count, char *arg_array[])
 	for(int index = 0; index < file_count; index++)
 	{
 		current_file = index;
+
+		current_file_character = 0;
+		current_file_line = 1;
+
 		parse_file(files[index]);
 	}
 	current_file = -1;
