@@ -12,7 +12,7 @@
 
 #define PARSE_ERROR_LC(line, column, ...) \
 	{ \
-		printf("Parse error @ line %i column %i: ", line, column); \
+		printf("Parse error in %s @ line %i column %i: ", paths[current_file], line, column); \
 		printf(__VA_ARGS__); \
 		printf("\n"); \
 		exit(EXIT_FAILURE); \
@@ -21,7 +21,7 @@
 
 #define PARSE_ERROR(...) \
 	{ \
-		printf("Parse error: "); \
+		printf("Parse error in %s: ", paths[current_file]); \
 		printf(__VA_ARGS__); \
 		printf("\n"); \
 		exit(EXIT_FAILURE); \
@@ -32,7 +32,7 @@
 	{ \
 		if(token->next == NULL) \
 		{ \
-			printf("Parse error: Encountered end of file unexpectedly on line %i, column %i\n", token->line_number, token->end_char + 1); \
+			PARSE_ERROR_LC(token->line_number, token->end_char + 1, "Encountered end of file unexpectedly"); \
 			exit(EXIT_FAILURE); \
 		} \
 		token = token->next; \

@@ -47,7 +47,7 @@ int main(int arg_count, char *arg_array[])
 
 	int file_count = 0;
 	FILE **files = malloc(sizeof(FILE*) * 0);
-	char **paths = malloc(sizeof(char) * 0);
+	paths = malloc(sizeof(char) * 0);
 	struct dirent *ent;
 	while((ent = readdir(input_dir)) != NULL)
 	{

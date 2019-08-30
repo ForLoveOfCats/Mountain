@@ -13,4 +13,6 @@ int current_file;
 int current_file_line;
 int current_file_character;
 
+char **paths;
+
 struct SYMBOL_TABLE *root_symbol_table;
