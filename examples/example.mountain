@@ -1,4 +1,8 @@
+//Hey look!
+//Comments before the module declaration!
+
 module Main;
+
 
 
 struct:MyType { //Structs are currently only parsed
