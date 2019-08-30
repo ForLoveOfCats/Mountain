@@ -11,17 +11,17 @@
 
 
 //TODO: Add column information to message
-#define VALIDATE_ERROR_L(line, ...) \
+#define VALIDATE_ERROR_LF(line, file, ...) \
 	{ \
-		printf("Validation error @ line %i: ", line); \
+		printf("Validation error in %s @ line %i: ", paths[file], line); \
 		printf(__VA_ARGS__); \
 		printf("\n"); \
 		exit(EXIT_FAILURE); \
 	} \
 
-#define VALIDATE_ERROR(...) \
+#define VALIDATE_ERROR_F(file, ...) \
 	{ \
-		printf("Validation error: "); \
+		printf("Validation error in %s: ", paths[file]); \
 		printf(__VA_ARGS__); \
 		printf("\n"); \
 		exit(EXIT_FAILURE); \
@@ -94,11 +94,11 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	else if(node->node_type == AST_GET)
 	{
 		if(global)
-			VALIDATE_ERROR_L(node->line_number, "Cannot get variable contents in root scope");
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot get variable contents in root scope");
 
 		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name);
 		if(symbol == NULL || symbol->type != SYMBOL_VAR)
-			VALIDATE_ERROR_L(node->line_number, "Cannot get variable '%s' as it does not exist", node->name);
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot get variable '%s' as it does not exist", node->name);
 
 		node->index = symbol->index;
 		return copy_type(symbol->var_data->type);
@@ -106,29 +106,29 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	else if(node->node_type == AST_CALL)
 	{
 		if(global)
-			VALIDATE_ERROR_L(node->line_number, "Cannot call function in root scope");
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot call function in root scope");
 
 		struct SYMBOL *function = lookup_symbol(symbol_table, node->name);
 		if(function == NULL || function->type != SYMBOL_FUNC)
-			VALIDATE_ERROR_L(node->line_number, "No function named '%s'", node->name);
+			VALIDATE_ERROR_LF(node->line_number, node->file, "No function named '%s'", node->name);
 
 		struct ARG_DATA *func_arg = function->func_data->first_arg;
 		struct NODE *call_arg = node->first_child; //The call args are expression nodes
 		while(func_arg != NULL)
 		{
 			if(call_arg == NULL)
-				VALIDATE_ERROR_L(node->line_number, "To few arguments when calling function '%s'", function->name);
+				VALIDATE_ERROR_LF(node->line_number, node->file, "To few arguments when calling function '%s'", function->name);
 
 			struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, global, level + 1);
 			if(!are_types_equal(func_arg->type, call_arg_type))
-				VALIDATE_ERROR_L(node->line_number, "Type mismatch on parameter '%s'", func_arg->name);
+				VALIDATE_ERROR_LF(node->line_number, node->file, "Type mismatch on parameter '%s'", func_arg->name);
 			free_type(call_arg_type);
 
 			func_arg = func_arg->next;
 			call_arg = call_arg->next;
 		}
 		if(call_arg != NULL)
-			VALIDATE_ERROR_L(node->line_number, "To many arguments when calling function '%s'", function->name);
+			VALIDATE_ERROR_LF(node->line_number, node->file, "To many arguments when calling function '%s'", function->name);
 
 		node->index = function->index;
 		return copy_type(function->func_data->return_type);
@@ -142,14 +142,14 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			case UNOP_INVERT:
 			{
 				if(strcmp(child_type->name, "Bool") != 0)
-					VALIDATE_ERROR_L(node->line_number, "Cannot invert non-boolean value of type '%s'", child_type->name);
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot invert non-boolean value of type '%s'", child_type->name);
 				break;
 			}
 
 			case UNOP_ADDRESS_OF:
 			{
 				if(node->first_child->node_type != AST_GET)
-					VALIDATE_ERROR_L(node->line_number, "Can only take the address of an lvalue");
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Can only take the address of an lvalue");
 
 				struct TYPE_DATA *type = create_type("Ptr");
 				type->child = child_type;
@@ -159,7 +159,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			case UNOP_DEREFERENCE:
 			{
 				if(strcmp(child_type->name, "Ptr") != 0)
-					VALIDATE_ERROR_L(node->line_number, "Cannot dereference a non-pointer value");
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot dereference a non-pointer value");
 
 				assert(child_type->child != NULL); //if a pointer doesn't have a child type then we did an oopsie
 
@@ -169,7 +169,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			}
 
 			default:
-				VALIDATE_ERROR_L(node->line_number, "We don't know how to typecheck this unop");
+				VALIDATE_ERROR_LF(node->line_number, node->file, "We don't know how to typecheck this unop");
 		}
 
 		return child_type;
@@ -180,14 +180,14 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		struct TYPE_DATA *right_type = typecheck_expression(node->last_child, symbol_table, global, level + 1);
 
 		if(!are_types_equal(left_type, right_type))
-			VALIDATE_ERROR_L(node->line_number,
+			VALIDATE_ERROR_LF(node->line_number, node->file,
 			                 "Type mismatch between '%s' and '%s' values for operation '%s'",
 			                 fatal_pretty_type_name(left_type), fatal_pretty_type_name(right_type), node->literal_string);
 
 		if(node->op_type == OP_EQUALS)
 		{
 			if(node->first_child->node_type != AST_GET)
-				VALIDATE_ERROR_L(node->line_number, "Can only set to an lvalue");
+				VALIDATE_ERROR_LF(node->line_number, node->file, "Can only set to an lvalue");
 
 			free_type(left_type);
 			return right_type;
@@ -211,7 +211,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 				|| node->op_type == OP_DIV)
 		{
 			if(!type_is_number(left_type->name) || !type_is_number(right_type->name))
-				VALIDATE_ERROR_L(node->line_number, "Cannot perform arithmetic on one or more non-numerical values");
+				VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot perform arithmetic on one or more non-numerical values");
 
 			free_type(right_type);
 			return left_type;
@@ -256,7 +256,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 					break;
 
 				default: //TODO: Improve error message
-					VALIDATE_ERROR_L(node->line_number, "Disallowed in root scope");
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Disallowed in root scope");
 					break;
 			}
 		}
@@ -284,7 +284,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				{
 					struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name);
 					if(symbol != NULL && symbol->type == SYMBOL_VAR)
-						VALIDATE_ERROR_L(node->line_number, "Variable '%s' already exists from line %i", node->name, symbol->line);
+						VALIDATE_ERROR_LF(node->line_number, node->file, "Variable '%s' already exists from line %i", node->name, symbol->line);
 				}
 
 				node->index = next_index; //Not increasing as add_var will do that when creating the symbol
@@ -292,11 +292,11 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				add_var(symbol_table, node->name, var, node->line_number);
 
 				if(strcmp(node->type->name, "Void") == 0)
-					VALIDATE_ERROR_L(node->line_number, "Invalid type 'Void' when declaring variable '%s'", node->name);
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Invalid type 'Void' when declaring variable '%s'", node->name);
 				if(strcmp(node->type->name, "Ptr") == 0)
 				{
 					if(node->type->child == NULL)
-						VALIDATE_ERROR_L(node->line_number, "Pointer must have child type");
+						VALIDATE_ERROR_LF(node->line_number, node->file, "Pointer must have child type");
 				}
 
 				if(child_count == 1)
@@ -304,7 +304,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 					struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, 0);
 					if(!are_types_equal(expression_type, node->type))
 					{
-						VALIDATE_ERROR_L(node->line_number, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
+						VALIDATE_ERROR_LF(node->line_number, node->file, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
 										 node->name, fatal_pretty_type_name(node->type), fatal_pretty_type_name(expression_type));
 					}
 					free_type(expression_type);
@@ -321,12 +321,12 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				if(node->node_type == AST_ELIF)
 				{
 					if(node->previous->node_type != AST_IF && node->previous->node_type != AST_ELIF)
-						VALIDATE_ERROR_L(node->line_number, "An 'elif' statement must follow an 'if' or 'elif'");
+						VALIDATE_ERROR_LF(node->line_number, node->file, "An 'elif' statement must follow an 'if' or 'elif'");
 				}
 
 				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, 0);
 				if(strcmp(expression_type->name, "Bool") != 0)
-					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type->name);
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Expected a Bool expression but found expression of type '%s'", expression_type->name);
 				free_type(expression_type);
 
 				validate_block(node->last_child, create_symbol_table(symbol_table), false, level + 1);
@@ -339,7 +339,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				assert(count_node_children(node) == 1);
 
 				if(node->previous->node_type != AST_IF && node->previous->node_type != AST_ELIF)
-					VALIDATE_ERROR_L(node->line_number, "An 'else' statement must follow an 'if' or 'elif'");
+					VALIDATE_ERROR_LF(node->line_number, node->file, "An 'else' statement must follow an 'if' or 'elif'");
 
 				validate_block(node->last_child, create_symbol_table(symbol_table), false, level + 1);
 
@@ -352,7 +352,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 
 				struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, 0);
 				if(strcmp(expression_type->name, "Bool") != 0)
-					VALIDATE_ERROR_L(node->line_number, "Expected a Bool expression but found expression of type '%s'", expression_type->name);
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Expected a Bool expression but found expression of type '%s'", expression_type->name);
 				free_type(expression_type);
 
 				validate_block(node->last_child, symbol_table, false, level + 1);
@@ -375,7 +375,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 						break;
 				}
 				if(parent == NULL)
-					VALIDATE_ERROR_L(node->line_number, "Cannot break, no loop found");
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot break, no loop found");
 
 				break;
 			}
@@ -395,7 +395,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 						break;
 				}
 				if(parent == NULL)
-					VALIDATE_ERROR_L(node->line_number, "Cannot continue, no loop found");
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot continue, no loop found");
 
 				break;
 			}
@@ -413,18 +413,18 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 						break;
 				}
 				if(parent == NULL)
-					VALIDATE_ERROR_L(node->line_number, "Cannot return, not in a function");
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot return, not in a function");
 
 				assert(parent->node_type == AST_FUNC);
 				if(strcmp(parent->type->name, "Void") != 0 && count_node_children(node) == 0)
 				{
-					VALIDATE_ERROR_L(node->line_number, "Must return a value of type '%s'", parent->type->name);
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Must return a value of type '%s'", parent->type->name);
 				}
 				else if(count_node_children(node) == 1)
 				{
 					struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, root, level + 1);
 					if(!are_types_equal(type, parent->type))
-						VALIDATE_ERROR_L(node->line_number, "Type mismatch returning a value of type '%s' from a function of type '%s'",
+						VALIDATE_ERROR_LF(node->line_number, node->file, "Type mismatch returning a value of type '%s' from a function of type '%s'",
 						                 fatal_pretty_type_name(type), fatal_pretty_type_name(parent->type));
 					free_type(type);
 				}
@@ -458,13 +458,13 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 		struct SYMBOL *main_func = lookup_symbol(symbol_table, "main");
 
 		if(main_func == NULL)
-			VALIDATE_ERROR("No 'main' function found in the 'Main' module");
+			VALIDATE_ERROR_F(node->file, "No 'main' function found in the 'Main' module");
 
 		if(strcmp(main_func->func_data->return_type->name, "Void") != 0)
-			VALIDATE_ERROR_L(main_func->line, "Function 'main' in module 'Main' must have return type of 'Void'");
+			VALIDATE_ERROR_LF(main_func->line, node->file, "Function 'main' in module 'Main' must have return type of 'Void'");
 
 		if(main_func->func_data->first_arg != NULL)
-			VALIDATE_ERROR_L(main_func->line, "Function 'main' in module 'Main' should expect no arguments");
+			VALIDATE_ERROR_LF(main_func->line, node->file, "Function 'main' in module 'Main' should expect no arguments");
 	}
 }
 
@@ -532,7 +532,7 @@ void trace_function_return(struct NODE *func)
 	assert(block->node_type == AST_BLOCK);
 
 	if(!is_return_satisfied(block))
-		VALIDATE_ERROR_L(func->line_number, "Not all code paths return a value");
+		VALIDATE_ERROR_LF(func->line_number, func->file, "Not all code paths return a value");
 }
 
 
