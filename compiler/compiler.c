@@ -53,7 +53,6 @@ int main(int arg_count, char *arg_array[])
 			case DT_REG:
 			case DT_LNK:
 			{
-
 				char *path = malloc(sizeof(char) * (strlen(input_path) + strlen(ent->d_name) + 2));
 				sprintf(path, "%s/%s", input_path, ent->d_name);
 				char *old_path = path;
@@ -92,10 +91,10 @@ int main(int arg_count, char *arg_array[])
 	}
 	closedir(input_dir);
 
+	first_module = NULL;
+	last_module = NULL;
 	first_func_prototype = NULL;
 	last_func_prototype = NULL;
-	root_node = create_node(AST_BLOCK, -1, -1, -1, -1);
-	current_parse_parent_node = root_node;
 
 	for(int index = 0; index < file_count; index++)
 	{
@@ -109,23 +108,65 @@ int main(int arg_count, char *arg_array[])
 	current_file = -1;
 
 	next_index = 0;
-	root_symbol_table = create_symbol_table(NULL);
-	validate_block(root_node, root_symbol_table, true, 0);
+	struct NODE *current_module = first_module;
+	while(current_module != NULL)
+	{
+		struct SYMBOL_TABLE *root_symbol_table = create_symbol_table(NULL);
+
+		bool is_main = strcmp(current_module->name, "Main") == 0;
+		validate_block(current_module, root_symbol_table, is_main, 0);
+
+		current_module = current_module->next;
+	}
 
 	FILE *output_file = fopen(arg_array[1], "w");
 	prepare_file(output_file);
-	prototype_globals(output_file, root_node);
+	{
+		current_module = first_module;
+		while(current_module != NULL)
+		{
+			prototype_globals(output_file, current_module);
+			current_module = current_module->next;
+		}
+	}
 	prototype_functions(output_file);
 	transpile_functions(output_file);
 
 	fprintf(output_file, "int main()\n{\n");;
-	transpile_global_sets(output_file, root_node);
-	fprintf(output_file, "\n\nsymbol_%i();\n}\n", lookup_symbol(root_symbol_table, "main")->index);
+	{
+		current_module = first_module;
+		while(current_module != NULL)
+		{
+			transpile_global_sets(output_file, current_module);
+			current_module = current_module->next;
+		}
+	}
+
+	{
+		current_module = first_module;
+		while(current_module != NULL)
+		{
+			if(strcmp(current_module->name, "Main") == 0)
+				fprintf(output_file, "\n\nsymbol_%i();\n}\n", lookup_symbol(current_module->symbol_table, "main")->index);
+
+			current_module = current_module->next;
+		}
+	}
 
 	fclose(output_file);
 
-	free_table_tree(root_symbol_table);
-	free_tree(root_node);
+	{
+		current_module = first_module;
+		while(current_module != NULL)
+		{
+			free_table_tree(current_module->symbol_table);
+
+			struct NODE *next_module = current_module->next;
+			free_tree(current_module);
+			current_module = next_module;
+		}
+	}
+
 	free_func_prototype_list(first_func_prototype);
 
 	for(int index = 0; index < file_count; index++)

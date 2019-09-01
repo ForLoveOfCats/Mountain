@@ -1188,8 +1188,42 @@ void parse_file(FILE *file)
 
 	NEXT_TOKEN(token);
 	expect(token, TOKEN_WORD);
-	if(strcmp(token->string, "Main") != 0)
-		PARSE_ERROR_LC(token->line_number, token->start_char, "Primary file must be in 'Main' module");
+
+	bool found = false;
+	struct NODE *module_root = first_module;
+	while(module_root != NULL)
+	{
+		if(strcmp(module_root->name, token->string) == 0)
+		{
+			printf("Joining pre-existing module '%s'\n", token->string);
+			found = true;
+			break;
+		}
+
+		module_root = module_root->next;
+	}
+
+	if(!found)
+	{
+		printf("Creating module '%s'\n", token->string);
+
+		module_root = create_node(AST_MODULE, -1, -1, -1, -1);
+		free(module_root->name);
+		module_root->name = strdup(token->string);
+
+		if(first_module == NULL)
+		{
+			first_module = module_root;
+			last_module = module_root;
+		}
+		else
+		{
+			last_module->next = module_root;
+			last_module = module_root;
+		}
+	}
+
+	current_parse_parent_node = module_root;
 
 	NEXT_TOKEN(token);
 	expect(token, TOKEN_SEMICOLON);

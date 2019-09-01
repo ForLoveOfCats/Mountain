@@ -163,7 +163,8 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 
 void prototype_globals(FILE *target, struct NODE *root)
 {
-	assert(root->node_type == AST_BLOCK);
+	assert(root->node_type == AST_BLOCK || root->node_type == AST_MODULE);
+
 	struct NODE *node = root->first_child;
 	while(node != NULL)
 	{
@@ -183,7 +184,8 @@ void prototype_globals(FILE *target, struct NODE *root)
 
 void transpile_global_sets(FILE *target, struct NODE *root)
 {
-	assert(root->node_type == AST_BLOCK);
+	assert(root->node_type == AST_BLOCK || root->node_type == AST_MODULE);
+
 	struct NODE *node = root->first_child;
 	while(node != NULL)
 	{

@@ -1,0 +1,7 @@
+module AnotherModule;
+
+
+
+func:Void some_func() {
+	let:Bool result = in_another_module();
+}

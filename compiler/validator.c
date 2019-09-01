@@ -19,9 +19,9 @@
 		exit(EXIT_FAILURE); \
 	} \
 
-#define VALIDATE_ERROR_F(file, ...) \
+#define VALIDATE_ERROR(...) \
 	{ \
-		printf("Validation error in %s: ", paths[file]); \
+		printf("Validation error: "); \
 		printf(__VA_ARGS__); \
 		printf("\n"); \
 		exit(EXIT_FAILURE); \
@@ -233,7 +233,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 
 void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool root, int level) //Exits on failure
 {
-	assert(node->node_type == AST_BLOCK);
+	assert(node->node_type == AST_BLOCK || node->node_type == AST_MODULE);
 	assert(node->symbol_table == NULL);
 	assert(level >= 0);
 	node->symbol_table = symbol_table;
@@ -451,14 +451,20 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 		node = node->next;
 	}
 
-	validate_functions(block);
+	{
+		struct SYMBOL_TABLE *root_symbol_table = symbol_table;
+		while(root_symbol_table->parent != NULL)
+			root_symbol_table = root_symbol_table->parent;
+
+		validate_functions(block, root_symbol_table);
+	}
 
 	if(root)
 	{
 		struct SYMBOL *main_func = lookup_symbol(symbol_table, "main");
 
 		if(main_func == NULL)
-			VALIDATE_ERROR_F(node->file, "No 'main' function found in the 'Main' module");
+			VALIDATE_ERROR("No 'main' function found in the 'Main' module");
 
 		if(strcmp(main_func->func_data->return_type->name, "Void") != 0)
 			VALIDATE_ERROR_LF(main_func->line, node->file, "Function 'main' in module 'Main' must have return type of 'Void'");
@@ -536,7 +542,7 @@ void trace_function_return(struct NODE *func)
 }
 
 
-void validate_functions(struct NODE *block)
+void validate_functions(struct NODE *block, struct SYMBOL_TABLE *root_symbol_table)
 {
 	struct NODE *node = block->first_func;
 	while(node != NULL)

@@ -1,0 +1,7 @@
+module AnotherModule;
+
+
+
+func:Bool in_another_module() {
+	return true == false; //Returns false
+}
