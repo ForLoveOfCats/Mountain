@@ -57,6 +57,11 @@ func:i32 return_checking() {
 }
 
 
+func:Bool returns_bool() {
+	return true;
+}
+
+
 func:Void main() {
 	//Variable declaration with value
 	let:i32 lucky_number = 42;
@@ -117,5 +122,8 @@ func:Void main() {
 	let:i32 second_var = first_var = 50;
 
 
-	let:i32 value_from_other_file = some_func_in_other_file(true);
+	let:i32 value_from_other_file = some_func_in_other_file(returns_bool());
+
+
+	if(returns_bool()) { }
 }

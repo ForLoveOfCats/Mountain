@@ -747,24 +747,29 @@ struct TOKEN *parse_function_args(struct NODE *func, struct TOKEN *token)
 	{
 		while(true) //Loops through each expression
 		{
+			int open = 0;
 			struct TOKEN *expression_start = token;
 			struct TOKEN *expression_end = NULL;
 			while(true) //Loops through tokens until end of expression
 			{
-				struct TOKEN *peeked = peek_next_token(token);
-				if(peeked->type == TOKEN_CLOSE_PARENTHESES || peeked->type == TOKEN_COMMA) //Reached end
-				{
-					expression_end = token;
+				if(token->type == TOKEN_OPEN_PARENTHESES)
+					open++;
 
+				if((token->type == TOKEN_CLOSE_PARENTHESES || token->type == TOKEN_COMMA)
+					&& open <= 0) //Reached end
+				{
 					parse_expression_bounds(func, expression_start, expression_end);
 
-					NEXT_TOKEN(token); //Move to the peeked
 					if(token->type == TOKEN_COMMA)
 						NEXT_TOKEN(token); //Skip over the comma
 
 					break; //Continue to next expression
 				}
 
+				if(token->type == TOKEN_CLOSE_PARENTHESES)
+					open--;
+
+				expression_end = token;
 				NEXT_TOKEN(token); //Otherwise move to next token
 			}
 
@@ -854,10 +859,21 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			NEXT_TOKEN(token);
 			struct TOKEN *start = token;
 			struct TOKEN *end = token;
-			while(token->type != TOKEN_CLOSE_PARENTHESES)
+			int open = 0;
+			while(true)
 			{
 				end = token;
 				NEXT_TOKEN(token);
+
+				if(token->type == TOKEN_OPEN_PARENTHESES)
+					open++;
+				else if(token->type == TOKEN_CLOSE_PARENTHESES)
+				{
+					if(open > 0)
+						open--;
+					else
+						break;
+				}
 			}
 
 			if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES)
