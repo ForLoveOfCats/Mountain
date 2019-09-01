@@ -41,6 +41,7 @@ struct ARG_DATA
 
 	char *name;
 	struct TYPE_DATA *type;
+	int file;
 	int line_number;
 
 	int index;
@@ -60,6 +61,7 @@ struct SYMBOL
 {
 	char *name;
 	enum SYMBOL_TYPE type;
+	int file;
 	int line;
 
 	int index; //Used for name mangling in tranpiled C source
@@ -99,7 +101,7 @@ struct STRUCT_DATA *create_struct();
 void free_struct(struct STRUCT_DATA *struct_data);
 
 
-struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int line);
+struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int file, int line);
 
 
 struct SYMBOL_TABLE *create_symbol_table();
@@ -117,7 +119,7 @@ void add_symbol(struct SYMBOL_TABLE *table, struct SYMBOL *symbol);
 struct VAR_DATA *create_var(struct TYPE_DATA *type);
 
 
-void add_var(struct SYMBOL_TABLE *table, char *name, struct VAR_DATA *var_data, int line);
+void add_var(struct SYMBOL_TABLE *table, char *name, struct VAR_DATA *var_data, int file, int line);
 
 
 void free_var(struct VAR_DATA *var);

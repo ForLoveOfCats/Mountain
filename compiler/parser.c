@@ -1023,7 +1023,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument name");
 					char *name = current_arg_token->string;
 
-					struct ARG_DATA *arg = create_arg_data(name, type, token->line_number);
+					struct ARG_DATA *arg = create_arg_data(name, type, current_file, token->line_number);
 					if(new_node->first_arg == NULL)
 					{
 						new_node->first_arg = arg;

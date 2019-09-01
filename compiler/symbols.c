@@ -59,12 +59,13 @@ void free_struct(struct STRUCT_DATA *struct_data)
 }
 
 
-struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int line)
+struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int file, int line)
 {
 	struct SYMBOL *symbol = malloc(sizeof(struct SYMBOL));
 
 	symbol->name = strdup(name);
 	symbol->type = type;
+	symbol->file = file;
 	symbol->line = line;
 
 	symbol->index = next_index;
@@ -177,9 +178,9 @@ struct VAR_DATA *create_var(struct TYPE_DATA *type)
 }
 
 
-void add_var(struct SYMBOL_TABLE *table, char *name, struct VAR_DATA *var_data, int line)
+void add_var(struct SYMBOL_TABLE *table, char *name, struct VAR_DATA *var_data, int file, int line)
 {
-	struct SYMBOL *symbol = create_symbol(name, SYMBOL_VAR, line);
+	struct SYMBOL *symbol = create_symbol(name, SYMBOL_VAR, file, line);
 	symbol->var_data = var_data;
 	add_symbol(table, symbol);
 }

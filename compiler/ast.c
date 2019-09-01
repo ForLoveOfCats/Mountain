@@ -156,7 +156,7 @@ void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 }
 
 
-struct ARG_DATA *create_arg_data(char *name, struct TYPE_DATA *type, int line_number)
+struct ARG_DATA *create_arg_data(char *name, struct TYPE_DATA *type, int file, int line_number)
 {
 	struct ARG_DATA *arg = malloc(sizeof(struct ARG_DATA));
 
@@ -164,6 +164,7 @@ struct ARG_DATA *create_arg_data(char *name, struct TYPE_DATA *type, int line_nu
 
 	arg->name = strdup(name);
 	arg->type = type;
+	arg->file = file;
 	arg->line_number = line_number;
 
 	arg->index = -1;

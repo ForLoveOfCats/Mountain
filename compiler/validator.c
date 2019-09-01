@@ -289,7 +289,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 
 				node->index = next_index; //Not increasing as add_var will do that when creating the symbol
 				struct VAR_DATA *var = create_var(node->type);
-				add_var(symbol_table, node->name, var, node->line_number);
+				add_var(symbol_table, node->name, var, node->file, node->line_number);
 
 				if(strcmp(node->type->name, "Void") == 0)
 					VALIDATE_ERROR_LF(node->line_number, node->file, "Invalid type 'Void' when declaring variable '%s'", node->name);
@@ -434,7 +434,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 
 			case AST_STRUCT:
 			{
-				struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->line_number);
+				struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
 				symbol->struct_data = create_struct();
 				symbol->struct_data->index = next_index;
 				next_index++;
@@ -467,10 +467,10 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 			VALIDATE_ERROR("No 'main' function found in the 'Main' module");
 
 		if(strcmp(main_func->func_data->return_type->name, "Void") != 0)
-			VALIDATE_ERROR_LF(main_func->line, node->file, "Function 'main' in module 'Main' must have return type of 'Void'");
+			VALIDATE_ERROR_LF(main_func->line, main_func->file, "Function 'main' in module 'Main' must have return type of 'Void'");
 
 		if(main_func->func_data->first_arg != NULL)
-			VALIDATE_ERROR_LF(main_func->line, node->file, "Function 'main' in module 'Main' should expect no arguments");
+			VALIDATE_ERROR_LF(main_func->line, main_func->file, "Function 'main' in module 'Main' should expect no arguments");
 	}
 }
 
@@ -480,7 +480,7 @@ void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *b
 	struct NODE *node = block->first_func;
 	while(node != NULL)
 	{
-		struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_FUNC, node->line_number);
+		struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_FUNC, node->file, node->line_number);
 
 		struct FUNC_DATA *func_data = create_func(node->type);
 		func_data->first_arg = node->first_arg;
@@ -557,7 +557,7 @@ void validate_functions(struct NODE *block, struct SYMBOL_TABLE *root_symbol_tab
 		while (arg != NULL) // TODO: Validate types as well
 		{
 			arg->index = next_index; //next_index is incremented in add_var
-			add_var(symbol_table, arg->name, create_var(arg->type), arg->line_number);
+			add_var(symbol_table, arg->name, create_var(arg->type), arg->file, arg->line_number);
 
 			arg = arg->next;
 		}
