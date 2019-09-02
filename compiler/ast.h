@@ -78,6 +78,9 @@ struct NODE
 	struct NODE *first_func;
 	struct NODE *last_func;
 
+	struct IMPORT_DATA *first_import;
+	struct IMPORT_DATA *last_import;
+
 	struct ARG_DATA *first_arg; //For function definitions (not calls)
 	struct ARG_DATA *last_arg;
 
@@ -101,11 +104,28 @@ struct NODE
 };
 
 
+struct IMPORT_DATA
+{
+	char *name;
+
+	int file;
+	int line_number;
+
+	struct IMPORT_DATA *next;
+};
+
+
 struct FUNC_PROTOTYPE
 {
 	struct NODE *func; //The actual AST_FUNC node
 	struct FUNC_PROTOTYPE *next;
 };
+
+
+struct IMPORT_DATA *create_import_data(char *name, int file, int line_number);
+
+
+void free_import_data(struct IMPORT_DATA *import_data);
 
 
 struct NODE *create_node(enum AST_TYPE type, int file, int line_number, int start_char, int end_char);

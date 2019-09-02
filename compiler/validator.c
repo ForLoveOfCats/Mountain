@@ -241,6 +241,35 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 	struct NODE *block = node;
 	populate_function_symbols(symbol_table, block);
 
+	if(node->first_import != NULL && !root)
+	{
+		VALIDATE_ERROR_LF(node->first_import->line_number, node->first_import->file,
+		                  "Can only import in the file root scope");
+	}
+
+	if(root && node->first_import != NULL)
+	{
+		struct IMPORT_DATA *import_data = node->first_import;
+		while(import_data != NULL)
+		{
+			bool found = false;
+			struct NODE *module = first_module;
+			while(module != NULL)
+			{
+				if(strcmp(module->name, import_data->name) == 0)
+					found = true;
+
+				module = module->next;
+			}
+
+			if(!found)
+				VALIDATE_ERROR_LF(import_data->line_number, import_data->file,
+				                  "No module named '%s'", import_data->name);
+
+			import_data = import_data->next;
+		}
+	}
+
 	//"foreach" node
 	node = node->first_child;
 	while(node != NULL)

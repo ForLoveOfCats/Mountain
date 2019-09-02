@@ -3,6 +3,8 @@
 
 module Main;
 
+import AnotherModule; //Imports are parsed, tracked, and validated but not usable
+
 
 
 struct:MyType { //Structs are currently only parsed

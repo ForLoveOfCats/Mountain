@@ -10,6 +10,29 @@
 #include "ast.h"
 
 
+
+struct IMPORT_DATA *create_import_data(char *name, int file, int line_number)
+{
+	struct IMPORT_DATA *new_import_data = malloc(sizeof(struct IMPORT_DATA));
+
+	new_import_data->name = strdup(name);
+
+	new_import_data->file = file;
+	new_import_data->line_number = line_number;
+
+	new_import_data->next = NULL;
+
+	return new_import_data;
+}
+
+
+void free_import_data(struct IMPORT_DATA *import_data)
+{
+	free(import_data->name);
+	free(import_data);
+}
+
+
 struct NODE *create_node(enum AST_TYPE type, int file, int line_number, int start_char, int end_char)
 {
 	struct NODE *new_node = (struct NODE *)malloc(sizeof(struct NODE));
@@ -24,6 +47,9 @@ struct NODE *create_node(enum AST_TYPE type, int file, int line_number, int star
 
 	new_node->first_func = NULL;
 	new_node->last_func = NULL;
+
+	new_node->first_import = NULL;
+	new_node->last_import = NULL;
 
 	new_node->first_arg = NULL;
 	new_node->last_arg = NULL;
@@ -147,6 +173,15 @@ void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 		next_func = func->next;
 		free_tree(func);
 		func = next_func;
+	}
+
+	struct IMPORT_DATA *import_data = node->first_import;
+	struct IMPORT_DATA *next_import_data = NULL;
+	while(import_data != NULL)
+	{
+		next_import_data = import_data->next;
+		free_import_data(import_data);
+		import_data = next_import_data;
 	}
 
 	free_type(node->type);

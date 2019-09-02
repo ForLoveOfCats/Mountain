@@ -1122,6 +1122,29 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			token = token->next; //Don't check for EOF
 		}
 
+		else if(strcmp(token->string, "import") == 0)
+		{
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_WORD);
+
+			struct IMPORT_DATA *import_data = create_import_data(token->string, current_file, token->line_number);
+			if(current_parse_parent_node->first_import == NULL)
+			{
+				current_parse_parent_node->first_import = import_data;
+				current_parse_parent_node->last_import = import_data;
+			}
+			else
+			{
+				current_parse_parent_node->last_import->next = import_data;
+				current_parse_parent_node->last_import = import_data;
+			}
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_SEMICOLON);
+
+			token = token->next; //Don't check for EOF
+		}
+
 		else //Not a statement
 		{
 			add_node(current_parse_parent_node, parse_expression_to_semicolon(&token));
