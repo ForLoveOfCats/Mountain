@@ -231,15 +231,26 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 }
 
 
+void prevalidate_populate_module(struct NODE *module, struct SYMBOL_TABLE *symbol_table)
+{
+	assert(module->node_type == AST_MODULE);
+	assert(module->symbol_table == NULL);
+
+	module->symbol_table = symbol_table;
+	populate_function_symbols(symbol_table, module);
+}
+
+
 void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool root, int level) //Exits on failure
 {
 	assert(node->node_type == AST_BLOCK || node->node_type == AST_MODULE);
-	assert(node->symbol_table == NULL);
 	assert(level >= 0);
 	node->symbol_table = symbol_table;
 
 	struct NODE *block = node;
-	populate_function_symbols(symbol_table, block);
+
+	if(!root)
+		populate_function_symbols(symbol_table, block);
 
 	if(node->first_import != NULL && !root)
 	{
@@ -488,7 +499,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 		validate_functions(block, root_symbol_table);
 	}
 
-	if(root)
+	if(root && strcmp(block->name, "Main") == 0)
 	{
 		struct SYMBOL *main_func = lookup_symbol(symbol_table, "main");
 

@@ -112,10 +112,14 @@ int main(int arg_count, char *arg_array[])
 	while(current_module != NULL)
 	{
 		struct SYMBOL_TABLE *root_symbol_table = create_symbol_table(NULL);
+		prevalidate_populate_module(current_module, root_symbol_table);
 
-		bool is_main = strcmp(current_module->name, "Main") == 0;
-		validate_block(current_module, root_symbol_table, is_main, 0);
-
+		current_module = current_module->next;
+	}
+	current_module = first_module;
+	while(current_module != NULL)
+	{
+		validate_block(current_module, current_module->symbol_table, true, 0);
 		current_module = current_module->next;
 	}
 
@@ -129,6 +133,7 @@ int main(int arg_count, char *arg_array[])
 			current_module = current_module->next;
 		}
 	}
+
 	prototype_functions(output_file);
 	transpile_functions(output_file);
 
