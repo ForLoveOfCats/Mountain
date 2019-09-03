@@ -1154,12 +1154,22 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			token = token->next; //Don't check for EOF
 		}
 
-		else if(strcmp(token->string, "import") == 0)
+		else if(strcmp(token->string, "import") == 0
+		        || (strcmp(token->string, "using") == 0 && token->next != NULL && strcmp(token->next->string, "import") == 0))
 		{
+			bool is_using = false;
+			if(strcmp(token->string, "using") == 0)
+			{
+				is_using = true;
+				NEXT_TOKEN(token);
+				expect(token, TOKEN_WORD);
+			}
+
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_WORD);
 
-			struct IMPORT_DATA *import_data = create_import_data(token->string, current_file, token->line_number);
+			struct IMPORT_DATA *import_data = create_import_data(token->string, is_using, current_file, token->line_number);
+
 			if(current_parse_parent_node->first_import == NULL)
 			{
 				current_parse_parent_node->first_import = import_data;

@@ -11,11 +11,12 @@
 
 
 
-struct IMPORT_DATA *create_import_data(char *name, int file, int line_number)
+struct IMPORT_DATA *create_import_data(char *name, bool is_using, int file, int line_number)
 {
 	struct IMPORT_DATA *new_import_data = malloc(sizeof(struct IMPORT_DATA));
 
 	new_import_data->name = strdup(name);
+	new_import_data->is_using = is_using;
 
 	new_import_data->file = file;
 	new_import_data->line_number = line_number;

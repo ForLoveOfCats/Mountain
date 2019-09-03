@@ -1,0 +1,11 @@
+module YetAnotherModule;
+
+
+
+let:i32 yam_global_var = 789;
+
+
+func:Bool yam_do_thing() {
+	yam_global_var = yam_global_var + 1;
+	return yam_global_var == 790;
+}

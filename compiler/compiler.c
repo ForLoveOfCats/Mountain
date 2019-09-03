@@ -111,7 +111,7 @@ int main(int arg_count, char *arg_array[])
 	struct NODE *current_module = first_module;
 	while(current_module != NULL)
 	{
-		struct SYMBOL_TABLE *root_symbol_table = create_symbol_table(NULL);
+		struct SYMBOL_TABLE *root_symbol_table = create_symbol_table(NULL, current_module);
 		prevalidate_populate_module(current_module, root_symbol_table);
 
 		current_module = current_module->next;
@@ -152,7 +152,7 @@ int main(int arg_count, char *arg_array[])
 		while(current_module != NULL)
 		{
 			if(strcmp(current_module->name, "Main") == 0)
-				fprintf(output_file, "\n\nsymbol_%i();\n}\n", lookup_symbol(current_module->symbol_table, "main")->index);
+				fprintf(output_file, "\n\nsymbol_%i();\n}\n", lookup_symbol(current_module->symbol_table, "main", false)->index);
 
 			current_module = current_module->next;
 		}

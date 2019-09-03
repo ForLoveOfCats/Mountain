@@ -76,6 +76,8 @@ struct SYMBOL
 
 struct SYMBOL_TABLE
 {
+	struct NODE *module;
+
 	struct SYMBOL_TABLE *parent;
 	struct SYMBOL_TABLE *first_child;
 	struct SYMBOL_TABLE *last_child;
@@ -104,7 +106,7 @@ void free_struct(struct STRUCT_DATA *struct_data);
 struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int file, int line);
 
 
-struct SYMBOL_TABLE *create_symbol_table();
+struct SYMBOL_TABLE *create_symbol_table(struct SYMBOL_TABLE *parent, struct NODE *module);
 
 
 void add_table(struct SYMBOL_TABLE *parent, struct SYMBOL_TABLE *child);
@@ -131,4 +133,4 @@ struct FUNC_DATA *create_func(struct TYPE_DATA *return_type);
 void free_func(struct FUNC_DATA *func_data);
 
 
-struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name);
+struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name, bool search_using_imports);

@@ -3,7 +3,8 @@
 
 module Main;
 
-import AnotherModule; //Imports are parsed, tracked, and validated but not usable
+import AnotherModule;
+using import YetAnotherModule;
 
 
 
@@ -132,4 +133,8 @@ func:Void main() {
 
 	AnotherModule.some_func();
 	let:i32 num_from_module = AnotherModule.magic_global_var;
+
+
+	let:Bool result_from_yam = yam_do_thing();
+	//TODO: Add using variable get once order is fixed
 }

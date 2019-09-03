@@ -98,9 +98,11 @@ void free_symbol(struct SYMBOL *symbol)
 }
 
 
-struct SYMBOL_TABLE *create_symbol_table(struct SYMBOL_TABLE *parent)
+struct SYMBOL_TABLE *create_symbol_table(struct SYMBOL_TABLE *parent, struct NODE *module)
 {
 	struct SYMBOL_TABLE *table = malloc(sizeof(struct SYMBOL_TABLE));
+
+	table->module = module;
 
 	table->parent = NULL;
  	table->first_child = NULL;
@@ -210,7 +212,7 @@ void free_func(struct FUNC_DATA *func_data)
 }
 
 
-struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name)
+struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name, bool search_using_imports)
 {
 	struct SYMBOL *symbol = table->first_symbol;
 	while(symbol != NULL)
@@ -221,8 +223,33 @@ struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name)
 		symbol = symbol->next;
 	}
 
+	if(search_using_imports)
+	{
+		struct IMPORT_DATA *import_data = table->module->first_import;
+		while(import_data != NULL)
+		{
+			if(import_data->is_using)
+			{
+				struct NODE *module = first_module;
+				while(module != NULL)
+				{
+					if(strcmp(module->name, import_data->name) == 0)
+					{
+						struct SYMBOL *returned = lookup_symbol(module->symbol_table, name, false);
+						if(returned != NULL)
+							return returned;
+					}
+
+					module = module->next;
+				}
+			}
+
+			import_data = import_data->next;
+		}
+	}
+
 	if(table->parent != NULL)
-		return lookup_symbol(table->parent, name);
+		return lookup_symbol(table->parent, name, search_using_imports);
 	else
 		return NULL;
 }

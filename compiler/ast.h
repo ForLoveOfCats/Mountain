@@ -110,6 +110,8 @@ struct IMPORT_DATA
 {
 	char *name;
 
+	bool is_using;
+
 	int file;
 	int line_number;
 
@@ -124,7 +126,7 @@ struct FUNC_PROTOTYPE
 };
 
 
-struct IMPORT_DATA *create_import_data(char *name, int file, int line_number);
+struct IMPORT_DATA *create_import_data(char *name, bool is_using, int file, int line_number);
 
 
 void free_import_data(struct IMPORT_DATA *import_data);
