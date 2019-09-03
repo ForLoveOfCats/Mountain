@@ -144,4 +144,5 @@ func:Void main() {
 	let:u8 third_char_variable = '\n';
 	let:u8 forth_char_variable = '\r';
 	let:u8 fifth_char_variable = '\t';
+	let:u8 sixth_char_variable = '\'';
 }

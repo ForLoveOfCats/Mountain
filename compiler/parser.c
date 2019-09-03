@@ -136,8 +136,6 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 						current_file_character++;
 						if(next_car == EOF)
 							PARSE_ERROR_LC(current_file_line, current_file_character, "Unexpected end of file");
-						if(next_car == '\'')
-							PARSE_ERROR_LC(current_file_line, current_file_character, "Expected character to escape");
 
 						//TODO: Support more escape codes. Unify parsing with string escape parsing once implimented?
 						free(token->string);
@@ -153,6 +151,10 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 
 							case 't':
 								token->string = strdup("\t");
+								break;
+
+							case '\'':
+								token->string = strdup("'");
 								break;
 
 							default:
