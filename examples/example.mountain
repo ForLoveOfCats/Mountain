@@ -137,4 +137,11 @@ func:Void main() {
 
 	let:Bool result_from_yam = yam_do_thing();
 	let:i32 num_from_yam = yam_global_var;
+
+
+	let:u8 first_char_variable = ' ';
+	let:u8 second_char_variable = 'a';
+	let:u8 third_char_variable = '\n';
+	let:u8 forth_char_variable = '\r';
+	let:u8 fifth_char_variable = '\t';
 }

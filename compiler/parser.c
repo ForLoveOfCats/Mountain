@@ -120,6 +120,79 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					goto return_car_as_token;
 				}
 
+				case '\'':
+				{
+					token->type = TOKEN_U8;
+
+					bool empty = true;
+
+					int next_car = fgetc(source_file); //should be either the char or a backslash
+					current_file_character++;
+					if(next_car == EOF)
+						PARSE_ERROR_LC(current_file_line, current_file_character, "Unexpected end of file");
+					if(next_car == '\\')
+					{
+						next_car = fgetc(source_file); //should be the escaped char
+						current_file_character++;
+						if(next_car == EOF)
+							PARSE_ERROR_LC(current_file_line, current_file_character, "Unexpected end of file");
+						if(next_car == '\'')
+							PARSE_ERROR_LC(current_file_line, current_file_character, "Expected character to escape");
+
+						//TODO: Support more escape codes. Unify parsing with string escape parsing once implimented?
+						free(token->string);
+						switch(next_car) //TODO: Add global constant for \0
+						{
+							case 'n':
+								token->string = strdup("\n");
+								break;
+
+							case 'r':
+								token->string = strdup("\r");
+								break;
+
+							case 't':
+								token->string = strdup("\t");
+								break;
+
+							default:
+								PARSE_ERROR_LC(current_file_line, current_file_character, "Unknown character to escape '%c'", next_car);
+								break;
+						}
+
+						next_car = fgetc(source_file);
+						current_file_character++;
+						if(next_car == EOF)
+							PARSE_ERROR_LC(current_file_line, current_file_character, "Unexpected end of file");
+						if(next_car != '\'')
+							PARSE_ERROR_LC(current_file_line, current_file_character, "Expected closing quote");
+
+						goto return_token;
+					}
+					else
+					{
+						if(next_car == '\'')
+							PARSE_ERROR_LC(current_file_line, current_file_character, "Expected character to escape");
+
+						free(token->string);
+						token->string = malloc(sizeof(char) * 2);
+						token->string[0] = next_car;
+						token->string[1] = '\0';
+
+						next_car = fgetc(source_file);
+						current_file_character++;
+						if(next_car == EOF)
+							PARSE_ERROR_LC(current_file_line, current_file_character, "Unexpected end of file");
+						if(next_car != '\'')
+							PARSE_ERROR_LC(current_file_line, current_file_character, "Expected closing quote");
+
+						goto return_token;
+					}
+
+					if(empty)
+						PARSE_ERROR_LC(current_file_line, current_file_character, "Expected u8 literal to contain a value");
+				}
+
 				case '=':
 				{
 					char next_car = fgetc(source_file);
@@ -470,11 +543,16 @@ struct NODE *parse_name_get_call(struct TOKEN **callsite_token, struct NODE *mod
 		expect(token, TOKEN_OPEN_PARENTHESES);
 		token = parse_function_args(new_node, token);
 	}
-	else //Get
+	else if(token->type == TOKEN_WORD) //Get
 	{
 		new_node = create_node(AST_GET, module, current_file, token->line_number, token->start_char, token->end_char);
 		free(new_node->name);
 		new_node->name = strdup(token->string);
+	}
+	else
+	{
+		PARSE_ERROR_LC(token->line_number, token->start_char, "We don't know how to parse this token '%s' in an expression",
+		               token_type_name[token->type]);
 	}
 
 	*callsite_token = token;
@@ -672,35 +750,41 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				previous_node = new_node;
 				free_type(new_node->type);
 				new_node->type = create_type("i32"); //TODO: Test for floating point
-				new_node->literal_type = LITERAL_NUMBER;
+				new_node->literal_type = LITERAL_I32;
 				free(new_node->literal_string);
 				new_node->literal_string = strdup(token->string);
 			}
-			else
+			else if(token->type == TOKEN_U8)
 			{
-				if(strcmp(token->string, "true") == 0 || strcmp(token->string, "false") == 0)
-				{
-					new_node = create_node(AST_LITERAL, root->module, current_file, token->line_number, token->start_char, token->end_char);
-					previous_node = new_node;
-					free_type(new_node->type);
-					new_node->type = create_type("Bool");
-					new_node->literal_type = LITERAL_BOOL;
-					free(new_node->literal_string);
-					new_node->literal_string = strdup(token->string);
+				new_node = create_node(AST_LITERAL, root->module, current_file, token->line_number, token->start_char, token->end_char);
+				previous_node = new_node;
+				free_type(new_node->type);
+				new_node->type = create_type("u8");
+				new_node->literal_type = LITERAL_U8;
+				free(new_node->literal_string);
+				new_node->literal_string = strdup(token->string);
+			}
+			else if(strcmp(token->string, "true") == 0 || strcmp(token->string, "false") == 0)
+			{
+				new_node = create_node(AST_LITERAL, root->module, current_file, token->line_number, token->start_char, token->end_char);
+				previous_node = new_node;
+				free_type(new_node->type);
+				new_node->type = create_type("Bool");
+				new_node->literal_type = LITERAL_BOOL;
+				free(new_node->literal_string);
+				new_node->literal_string = strdup(token->string);
 
-					if(strcmp(token->string, "true") == 0)
-						new_node->literal_bool = true;
-					else if(strcmp(token->string, "false") == 0)
-						new_node->literal_bool = false;
-					else
-						PARSE_ERROR_LC(token->line_number, token->start_char, "Somehow we don't know how to convert this Bool to an AST node");
-
-				}
-				else //Must be a name, get, or function call
-				{
-					new_node = parse_name_get_call(&token, root->module);
-					previous_node = new_node;
-				}
+				if(strcmp(token->string, "true") == 0)
+					new_node->literal_bool = true;
+				else if(strcmp(token->string, "false") == 0)
+					new_node->literal_bool = false;
+				else
+					PARSE_ERROR_LC(token->line_number, token->start_char, "Somehow we don't know how to convert this Bool to an AST node");
+			}
+			else //Must be a name, get, or function call
+			{
+				new_node = parse_name_get_call(&token, root->module);
+				previous_node = new_node;
 			}
 			assert(new_node != NULL);
 

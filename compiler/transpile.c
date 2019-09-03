@@ -18,6 +18,9 @@ void prepare_file(FILE *target)
 
 char *type_to_c(struct TYPE_DATA *type) //TODO: Make this not suck
 {
+	if(strcmp(type->name, "u8") == 0)
+		return strdup("char");
+
 	if(strcmp(type->name, "i32") == 0)
 		return strdup("int");
 
@@ -160,8 +163,28 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 
 		fprintf(target, ")");
 	}
+	else if(node->node_type == AST_LITERAL)
+	{
+		switch(node->literal_type)
+		{
+			case LITERAL_U8:
+				fprintf(target, "%i", (int)(node->literal_string[0]));
+				break;
+
+			case LITERAL_I32:
+				fprintf(target, "%s", node->literal_string);
+				break;
+
+			case LITERAL_BOOL:
+				fprintf(target, "%s", node->literal_string);
+				break;
+		}
+	}
 	else
-		fprintf(target, "%s", node->literal_string);
+	{
+		printf("INTERNAL ERROR: We don't know how to transpile this ast node\n");
+		exit(EXIT_FAILURE);
+	}
 
 	fprintf(target, ")");
 }
