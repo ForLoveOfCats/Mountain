@@ -2,6 +2,9 @@ module AnotherModule;
 
 
 
+let:i32 magic_global_var = 321;
+
+
 func:Void some_func() {
 	let:Bool result = in_another_module();
 }

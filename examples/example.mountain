@@ -131,4 +131,5 @@ func:Void main() {
 
 
 	AnotherModule.some_func();
+	let:i32 num_from_module = AnotherModule.magic_global_var;
 }
