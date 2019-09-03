@@ -138,6 +138,7 @@ int main(int arg_count, char *arg_array[])
 	transpile_functions(output_file);
 
 	fprintf(output_file, "int main()\n{\n");;
+	fprintf(output_file, "assert(sizeof(int) == sizeof(int32_t));\n\n");;
 	{
 		current_module = first_module;
 		while(current_module != NULL)

@@ -12,14 +12,14 @@
 
 void prepare_file(FILE *target)
 {
-	fprintf(target, "#include <stdint.h>\n#include <stdbool.h>\n\n\n\n");
+	fprintf(target, "#include <stdint.h>\n#include <stdbool.h>\n#include <assert.h>\n\n\n\n");
 }
 
 
 char *type_to_c(struct TYPE_DATA *type) //TODO: Make this not suck
 {
 	if(strcmp(type->name, "i32") == 0)
-		return strdup("int32_t");
+		return strdup("int");
 
 	if(strcmp(type->name, "Bool") == 0)
 		return strdup("bool");
