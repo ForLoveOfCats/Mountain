@@ -153,6 +153,10 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 								token->string = strdup("\t");
 								break;
 
+							case '\\':
+								token->string = strdup("\\");
+								break;
+
 							case '\'':
 								token->string = strdup("'");
 								break;
