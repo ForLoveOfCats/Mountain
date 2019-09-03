@@ -265,6 +265,19 @@ void prevalidate_populate_module(struct NODE *module, struct SYMBOL_TABLE *symbo
 
 	module->symbol_table = symbol_table;
 	populate_function_symbols(symbol_table, module);
+
+	struct NODE *node = module->first_child;
+	while(node != NULL)
+	{
+		if(node->node_type == AST_LET)
+		{
+			node->index = next_index; //Not increasing as add_var will do that when creating the symbol
+			struct VAR_DATA *var = create_var(node->type);
+			add_var(symbol_table, node->name, var, node->file, node->line_number);
+		}
+
+		node = node->next;
+	}
 }
 
 
@@ -348,15 +361,19 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				int child_count = count_node_children(node);
 				assert(child_count == 0 || child_count == 1);
 
+				if(!root)
 				{
 					struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, true);
 					if(symbol != NULL && symbol->type == SYMBOL_VAR)
-						VALIDATE_ERROR_LF(node->line_number, node->file, "Variable '%s' already exists from line %i", node->name, symbol->line);
+						VALIDATE_ERROR_LF(node->line_number, node->file, "Variable '%s' already exists", node->name);
 				}
 
-				node->index = next_index; //Not increasing as add_var will do that when creating the symbol
-				struct VAR_DATA *var = create_var(node->type);
-				add_var(symbol_table, node->name, var, node->file, node->line_number);
+				if(!root) //If we are in the root of the module then this has already been done by prevalidate_populate_module
+				{
+					node->index = next_index; //Not increasing as add_var will do that when creating the symbol
+					struct VAR_DATA *var = create_var(node->type);
+					add_var(symbol_table, node->name, var, node->file, node->line_number);
+				}
 
 				if(strcmp(node->type->name, "Void") == 0)
 					VALIDATE_ERROR_LF(node->line_number, node->file, "Invalid type 'Void' when declaring variable '%s'", node->name);

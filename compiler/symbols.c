@@ -223,6 +223,9 @@ struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name, bool search
 		symbol = symbol->next;
 	}
 
+	if(table->parent != NULL)
+		return lookup_symbol(table->parent, name, search_using_imports);
+
 	if(search_using_imports)
 	{
 		struct IMPORT_DATA *import_data = table->module->first_import;
@@ -248,8 +251,5 @@ struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name, bool search
 		}
 	}
 
-	if(table->parent != NULL)
-		return lookup_symbol(table->parent, name, search_using_imports);
-	else
-		return NULL;
+	return NULL;
 }
