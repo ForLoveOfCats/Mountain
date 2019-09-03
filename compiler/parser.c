@@ -172,7 +172,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					else
 					{
 						if(next_car == '\'')
-							PARSE_ERROR_LC(current_file_line, current_file_character, "Expected character to escape");
+							PARSE_ERROR_LC(current_file_line, current_file_character, "Expected character");
 
 						free(token->string);
 						token->string = malloc(sizeof(char) * 2);
