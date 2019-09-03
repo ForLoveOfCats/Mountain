@@ -2,6 +2,6 @@ module AnotherModule;
 
 
 
-func:Void some_func() {
-	let:Bool result = in_another_module();
+func:Bool in_another_module() {
+	return true == false; //Returns false
 }

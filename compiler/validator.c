@@ -91,6 +91,33 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	{
 		return copy_type(node->type);
 	}
+	else if(node->node_type == AST_NAME)
+	{
+		//TODO: Extend this to support getting struct fields
+		//Until then we assume that it is reaching into a module
+
+		struct IMPORT_DATA *import_data = node->module->first_import;
+		while(import_data != NULL)
+		{
+			if(strcmp(import_data->name, node->name) == 0)
+			{
+				struct NODE *module = first_module;
+				while(module != NULL) //eww
+				{
+					if(strcmp(module->name, node->name) == 0)
+						break;
+					module = module->next;
+				}
+				assert(module != NULL);
+
+				return typecheck_expression(node->first_child, module->symbol_table, global, level + 1);
+			}
+
+			import_data = import_data->next;
+		}
+
+		VALIDATE_ERROR_LF(node->line_number, node->file, "No module has been imported with the name '%s'", node->name);
+	}
 	else if(node->node_type == AST_GET)
 	{
 		if(global)

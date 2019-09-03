@@ -96,6 +96,12 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					goto return_car_as_token;
 				}
 
+				case '.':
+				{
+					token->type = TOKEN_PERIOD;
+					goto return_car_as_token;
+				}
+
 				case ';':
 				{
 					token->type = TOKEN_SEMICOLON;
@@ -252,6 +258,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 			case '\t':
 			case '\n':
 			case ':':
+			case '.':
 			case ';':
 			case ',':
 			case '#':
@@ -435,6 +442,46 @@ int get_op_precedence(enum OP_TYPE op)
 }
 
 
+struct NODE *parse_name_get_call(struct TOKEN **callsite_token, struct NODE *module)
+{
+	struct TOKEN *token = *callsite_token;
+
+	struct TOKEN *peeked = peek_next_token(token);
+	struct NODE *new_node = NULL;
+
+	if(peeked->type == TOKEN_PERIOD) //Name
+	{
+		new_node = create_node(AST_NAME, module, current_file, token->line_number, token->start_char, token->end_char);
+		free(new_node->name);
+		new_node->name = strdup(token->string);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_PERIOD);
+		NEXT_TOKEN(token);
+		add_node(new_node, parse_name_get_call(&token, module));
+	}
+	else if(peeked->type == TOKEN_OPEN_PARENTHESES) //Function call
+	{
+		new_node = create_node(AST_CALL, module, current_file, token->line_number, token->start_char, token->end_char);
+		free(new_node->name);
+		new_node->name = strdup(token->string);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_PARENTHESES);
+		token = parse_function_args(new_node, token);
+	}
+	else //Get
+	{
+		new_node = create_node(AST_GET, module, current_file, token->line_number, token->start_char, token->end_char);
+		free(new_node->name);
+		new_node->name = strdup(token->string);
+	}
+
+	*callsite_token = token;
+	return new_node;
+}
+
+
 void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKEN *end) //NOTE: these bounds are inclusive
 {
 	//TODO: We need to eventually handle periods in numbers once periods are their own token
@@ -467,7 +514,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 					PARSE_ERROR_LC(token->line_number, token->start_char, "Expected value but found '%s'", token->string);
 				}
 
-				struct NODE *new_node = create_node(AST_OP, current_file, token->line_number, token->start_char, token->end_char);
+				struct NODE *new_node = create_node(AST_OP, root->module, current_file, token->line_number, token->start_char, token->end_char);
 				free(new_node->literal_string);
 				new_node->literal_string = strdup(token->string);
 				previous_node = new_node;
@@ -573,7 +620,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected value before unary operation '%s'", token->string);
 			}
 
-			struct NODE *new_node = create_node(AST_UNOP, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(AST_UNOP, root->module, current_file, token->line_number, token->start_char, token->end_char);
 			switch(token->type)
 			{
 				case TOKEN_EXCLAMATION:
@@ -621,7 +668,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			struct NODE *new_node = NULL;
 			if(is_number(token->string))
 			{
-				new_node = create_node(AST_LITERAL, current_file, token->line_number, token->start_char, token->end_char);
+				new_node = create_node(AST_LITERAL, root->module, current_file, token->line_number, token->start_char, token->end_char);
 				previous_node = new_node;
 				free_type(new_node->type);
 				new_node->type = create_type("i32"); //TODO: Test for floating point
@@ -633,7 +680,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			{
 				if(strcmp(token->string, "true") == 0 || strcmp(token->string, "false") == 0)
 				{
-					new_node = create_node(AST_LITERAL, current_file, token->line_number, token->start_char, token->end_char);
+					new_node = create_node(AST_LITERAL, root->module, current_file, token->line_number, token->start_char, token->end_char);
 					previous_node = new_node;
 					free_type(new_node->type);
 					new_node->type = create_type("Bool");
@@ -649,25 +696,10 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 						PARSE_ERROR_LC(token->line_number, token->start_char, "Somehow we don't know how to convert this Bool to an AST node");
 
 				}
-				else //Must be a variable get or function call
+				else //Must be a name, get, or function call
 				{
-					if(peek_next_token(token)->type == TOKEN_OPEN_PARENTHESES) //Function call
-					{
-						new_node = create_node(AST_CALL, current_file, token->line_number, token->start_char, token->end_char);
-						free(new_node->name);
-						new_node->name = strdup(token->string);
-
-						NEXT_TOKEN(token);
-						expect(token, TOKEN_OPEN_PARENTHESES);
-						token = parse_function_args(new_node, token);
-					}
-					else //Variable get
-					{
-						new_node = create_node(AST_GET, current_file, token->line_number, token->start_char, token->end_char);
-						previous_node = new_node;
-						free(new_node->name);
-						new_node->name = strdup(token->string);
-					}
+					new_node = parse_name_get_call(&token, root->module);
+					previous_node = new_node;
 				}
 			}
 			assert(new_node != NULL);
@@ -709,9 +741,9 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 }
 
 
-struct NODE *parse_expression_to_semicolon(struct TOKEN **token)
+struct NODE *parse_expression_to_semicolon(struct TOKEN **token, struct NODE *module)
 {
-	struct NODE *expression_root = create_node(AST_EXPRESSION, current_file, (*token)->line_number, (*token)->start_char, (*token)->end_char);
+	struct NODE *expression_root = create_node(AST_EXPRESSION, module, current_file, (*token)->line_number, (*token)->start_char, (*token)->end_char);
 
 	//TODO count parenthesis to validate
 	struct TOKEN *start = *token;
@@ -814,7 +846,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 	{
 		if(strcmp(token->string, "let") == 0)
 		{
-			struct NODE *new_node = create_node(AST_LET, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(AST_LET, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_COLON);
@@ -838,7 +870,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 				expect(token, TOKEN_SEMICOLON);
 			}
 			else
-				add_node(new_node, parse_expression_to_semicolon(&token));
+				add_node(new_node, parse_expression_to_semicolon(&token, current_parse_parent_node->module));
 
 			add_node(current_parse_parent_node, new_node);
 
@@ -851,7 +883,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			enum AST_TYPE node_type = AST_IF;
 			if(strcmp(token->string, "elif") == 0)
 				node_type = AST_ELIF;
-			struct NODE *new_node = create_node(node_type, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(node_type, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_PARENTHESES);
@@ -878,7 +910,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES)
 				PARSE_ERROR_LC(end->line_number, end->start_char, "Expected Bool expresssion but found empty expression");
-			struct NODE *expression_root = create_node(AST_EXPRESSION, current_file, start->line_number, start->start_char, start->end_char);
+			struct NODE *expression_root = create_node(AST_EXPRESSION, current_parse_parent_node->module, current_file, start->line_number, start->start_char, start->end_char);
 			parse_expression_bounds(expression_root, start, end);
 			add_node(new_node, expression_root);
 
@@ -887,7 +919,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			NEXT_TOKEN(token);
 			struct NODE *old_parse_parent_node = current_parse_parent_node;
-			struct NODE *block = create_node(AST_BLOCK, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 			add_node(new_node, block);
 			current_parse_parent_node = block;
 			token = parse_block(token, true, 0);
@@ -897,14 +929,14 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		else if(strcmp(token->string, "else") == 0)
 		{
-			struct NODE *new_node = create_node(AST_ELSE, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(AST_ELSE, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_BRACE);
 
 			NEXT_TOKEN(token);
 			struct NODE *old_parse_parent_node = current_parse_parent_node;
-			struct NODE *block = create_node(AST_BLOCK, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 			add_node(new_node, block);
 			current_parse_parent_node = block;
 			token = parse_block(token, true, 0);
@@ -914,7 +946,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		else if(strcmp(token->string, "while") == 0) //You guessed it, an while loop
 		{
-			struct NODE *new_node = create_node(AST_WHILE, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(AST_WHILE, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_OPEN_PARENTHESES);
@@ -930,7 +962,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES)
 				PARSE_ERROR_LC(end->line_number, end->start_char, "Expected Bool expresssion but found empty expression");
-			struct NODE *expression_root = create_node(AST_EXPRESSION, current_file, start->line_number, start->start_char, start->end_char);
+			struct NODE *expression_root = create_node(AST_EXPRESSION, current_parse_parent_node->module, current_file, start->line_number, start->start_char, start->end_char);
 			parse_expression_bounds(expression_root, start, end);
 			add_node(new_node, expression_root);
 
@@ -939,7 +971,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			NEXT_TOKEN(token);
 			struct NODE *old_parse_parent_node = current_parse_parent_node;
-			struct NODE *block = create_node(AST_BLOCK, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 			add_node(new_node, block);
 			current_parse_parent_node = block;
 			token = parse_block(token, true, 0);
@@ -949,7 +981,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		else if(strcmp(token->string, "break") == 0)
 		{
-			struct NODE *new_node = create_node(AST_BREAK, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(AST_BREAK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_SEMICOLON);
@@ -961,7 +993,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		else if(strcmp(token->string, "continue") == 0)
 		{
-			struct NODE *new_node = create_node(AST_CONTINUE, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(AST_CONTINUE, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_SEMICOLON);
@@ -973,12 +1005,12 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		else if(strcmp(token->string, "return") == 0) //TODO: Allow returning an actual value
 		{
-			struct NODE *new_node = create_node(AST_RETURN, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(AST_RETURN, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			if(token->type != TOKEN_SEMICOLON)
 			{
-				struct NODE *expression = parse_expression_to_semicolon(&token);
+				struct NODE *expression = parse_expression_to_semicolon(&token, current_parse_parent_node->module);
 				add_node(new_node, expression);
 			}
 
@@ -989,7 +1021,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		else if(strcmp(token->string, "func") == 0) //You guessed it, a function declaration
 		{
-			struct NODE *new_node = create_node(AST_FUNC, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(AST_FUNC, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_COLON);
@@ -1065,7 +1097,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			NEXT_TOKEN(token);
 			struct NODE *old_parse_parent_node = current_parse_parent_node;
-			struct NODE *block = create_node(AST_BLOCK, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 			add_node(new_node, block);
 			current_parse_parent_node = block;
 			token = parse_block(token, true, 0);
@@ -1102,7 +1134,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_WORD); //Our name
-			struct NODE *new_node = create_node(AST_STRUCT, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *new_node = create_node(AST_STRUCT, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 			free(new_node->name);
 			new_node->name = strdup(token->string);
 
@@ -1147,7 +1179,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		else //Not a statement
 		{
-			add_node(current_parse_parent_node, parse_expression_to_semicolon(&token));
+			add_node(current_parse_parent_node, parse_expression_to_semicolon(&token, current_parse_parent_node->module));
 			expect(token, TOKEN_SEMICOLON);
 			token = token->next;
 		}
@@ -1169,7 +1201,7 @@ struct TOKEN *parse_block(struct TOKEN *token, bool inner_block, int level)
 	{
 		if(token->type == TOKEN_OPEN_BRACE)
 		{
-			struct NODE *block = create_node(AST_BLOCK, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 			add_node(current_parse_parent_node, block);
 			struct NODE *old_parse_parent_node = current_parse_parent_node;
 			current_parse_parent_node = block;
@@ -1246,7 +1278,8 @@ void parse_file(FILE *file)
 	{
 		printf("Creating module '%s'\n", token->string);
 
-		module_root = create_node(AST_MODULE, -1, -1, -1, -1);
+		module_root = create_node(AST_MODULE, NULL, -1, -1, -1, -1);
+		module_root->module = module_root;
 		free(module_root->name);
 		module_root->name = strdup(token->string);
 

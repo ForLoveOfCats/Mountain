@@ -33,12 +33,13 @@ void free_import_data(struct IMPORT_DATA *import_data)
 }
 
 
-struct NODE *create_node(enum AST_TYPE type, int file, int line_number, int start_char, int end_char)
+struct NODE *create_node(enum AST_TYPE type, struct NODE *module, int file, int line_number, int start_char, int end_char)
 {
 	struct NODE *new_node = (struct NODE *)malloc(sizeof(struct NODE));
 
 	new_node->node_type = type;
 
+	new_node->module = module;
 	new_node->parent = NULL;
 	new_node->next = NULL;
 	new_node->previous = NULL;

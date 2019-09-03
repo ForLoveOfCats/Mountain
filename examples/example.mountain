@@ -128,4 +128,7 @@ func:Void main() {
 
 
 	if(returns_bool()) { }
+
+
+	AnotherModule.some_func();
 }

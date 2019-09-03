@@ -28,6 +28,7 @@ enum AST_TYPE {
 	AST_FUNC,
 	AST_STRUCT,
 	AST_LET,
+	AST_NAME,
 	AST_GET,
 	AST_CALL,
 	AST_RETURN,
@@ -69,6 +70,7 @@ struct NODE
 {
 	enum AST_TYPE node_type;
 
+	struct NODE *module;
 	struct NODE *parent;
 	struct NODE *next;
 	struct NODE *previous;
@@ -128,7 +130,7 @@ struct IMPORT_DATA *create_import_data(char *name, int file, int line_number);
 void free_import_data(struct IMPORT_DATA *import_data);
 
 
-struct NODE *create_node(enum AST_TYPE type, int file, int line_number, int start_char, int end_char);
+struct NODE *create_node(enum AST_TYPE type, struct NODE *module, int file, int line_number, int start_char, int end_char);
 
 
 void add_node(struct NODE *parent, struct NODE *new_node);
