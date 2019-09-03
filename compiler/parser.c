@@ -1046,7 +1046,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 				NEXT_TOKEN(token);
 			}
 
-			if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES) //No arguments
+			if(start == end) //No arguments
 			{}
 			else //One or more arguments to parse
 			{
