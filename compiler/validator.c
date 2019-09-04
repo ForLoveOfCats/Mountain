@@ -271,6 +271,10 @@ void prevalidate_populate_module(struct NODE *module, struct SYMBOL_TABLE *symbo
 	{
 		if(node->node_type == AST_LET)
 		{
+			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, false);
+			if(symbol != NULL && symbol->type == SYMBOL_VAR)
+				VALIDATE_ERROR_LF(node->line_number, node->file, "Variable '%s' already exists", node->name);
+
 			node->index = next_index; //Not increasing as add_var will do that when creating the symbol
 			struct VAR_DATA *var = create_var(node->type);
 			add_var(symbol_table, node->name, var, node->file, node->line_number);
