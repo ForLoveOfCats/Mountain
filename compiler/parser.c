@@ -1093,7 +1093,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			token = token->next;
 		}
 
-		else if(strcmp(token->string, "return") == 0) //TODO: Allow returning an actual value
+		else if(strcmp(token->string, "return") == 0)
 		{
 			struct NODE *new_node = create_node(AST_RETURN, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 
