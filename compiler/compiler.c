@@ -155,6 +155,16 @@ int main(int arg_count, char *arg_array[])
 
 	prototype_functions(output_file);
 	transpile_functions(output_file);
+	if(compile_action == ACTION_TEST)
+	{
+		struct NODE *module = first_module;
+		while(module != NULL)
+		{
+			transpile_tests(output_file, module);
+			module = module->next;
+		}
+		fprintf(output_file, "\n\n\n\n");
+	}
 
 	fprintf(output_file, "int main()\n{\n");;
 	fprintf(output_file, "assert(sizeof(int) == sizeof(int32_t));\n");;
@@ -168,7 +178,8 @@ int main(int arg_count, char *arg_array[])
 		}
 	}
 
-	if(compile_action == ACTION_BUILD){
+	if(compile_action == ACTION_BUILD)
+	{
 		current_module = first_module;
 		while(current_module != NULL)
 		{
@@ -178,6 +189,8 @@ int main(int arg_count, char *arg_array[])
 			current_module = current_module->next;
 		}
 	}
+	else if(compile_action == ACTION_TEST)
+		transpile_test_calls(output_file);
 
 	fprintf(output_file, "}\n");
 	fclose(output_file);

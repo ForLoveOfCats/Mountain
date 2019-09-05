@@ -12,7 +12,11 @@
 
 void prepare_file(FILE *target)
 {
-	fprintf(target, "#include <stdint.h>\n#include <stdbool.h>\n#include <assert.h>\n\n\n\n");
+	fprintf(target, "#include <stdlib.h>\n"
+	                "#include <stdint.h>\n"
+	                "#include <stdbool.h>\n"
+	                "#include <stdio.h>\n"
+	                "#include <assert.h>\n\n\n\n");
 }
 
 
@@ -280,6 +284,48 @@ void transpile_functions(FILE *target)
 	}
 
 	fprintf(target, "\n\n\n");
+}
+
+
+void transpile_tests(FILE *target, struct NODE *module)
+{
+	struct NODE *node = module->first_child;
+	while(node != NULL)
+	{
+		if(node->node_type == AST_TEST)
+		{
+			fprintf(target, "bool test_%i()\n", node->index);
+			transpile_block(target, node->first_child, 0);
+		}
+
+		node = node->next;
+	}
+}
+
+
+void transpile_test_calls(FILE *target)
+{
+	fprintf(target, "\n\n");
+
+	struct NODE *module = first_module;
+	while(module != NULL)
+	{
+		struct NODE *node = module->first_child;
+		while(node != NULL)
+		{
+			if(node->node_type == AST_TEST)
+				fprintf(target, "printf(\"\\nRunning test '%s'\\n\");\n"
+				                "if(!test_%i())\n{\n"
+				                "printf(\"Test '%s' failed\\n\");\n"
+				                "exit(EXIT_FAILURE);\n}\n"
+				                "printf(\"Test '%s' succeeded\\n\\n\");\n",
+				        node->name, node->index, node->name, node->name);
+
+			node = node->next;
+		}
+
+		module = module->next;
+	}
 }
 
 

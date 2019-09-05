@@ -20,4 +20,10 @@ void prototype_functions(FILE *target);
 void transpile_functions(FILE *target);
 
 
+void transpile_tests(FILE *target, struct NODE *module);
+
+
+void transpile_test_calls(FILE *target);
+
+
 void transpile_block(FILE *target, struct NODE *node, int level);

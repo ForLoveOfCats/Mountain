@@ -557,6 +557,9 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				if(!root)
 					VALIDATE_ERROR_LF(node->line_number, node->file, "Tests can only exist in module root scope");
 
+				node->index = next_index;
+				next_index++;
+
 				validate_block(node->first_child, symbol_table, false, level + 1);
 
 				break;
