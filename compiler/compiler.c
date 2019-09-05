@@ -34,7 +34,7 @@ int main(int arg_count, char *arg_array[])
 	}
 
 
-	#define input_path arg_array[2]
+	#define input_path arg_array[1]
 	DIR *input_dir = opendir(input_path);
 	if(input_dir == NULL)
 	{
@@ -123,7 +123,7 @@ int main(int arg_count, char *arg_array[])
 		current_module = current_module->next;
 	}
 
-	FILE *output_file = fopen(arg_array[1], "w");
+	FILE *output_file = fopen(arg_array[2], "w");
 	prepare_file(output_file);
 	{
 		current_module = first_module;
