@@ -192,7 +192,7 @@ int main(int arg_count, char *arg_array[])
 	else if(compile_action == ACTION_TEST)
 		transpile_test_calls(output_file);
 
-	fprintf(output_file, "}\n");
+	fprintf(output_file, "\n\nexit(EXIT_SUCCESS);\n}\n");
 	fclose(output_file);
 
 	{
