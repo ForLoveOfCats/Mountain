@@ -326,6 +326,8 @@ void transpile_test_calls(FILE *target)
 
 		module = module->next;
 	}
+
+	fprintf(target, "printf(\"\\nAll tests succeeded\\n\");\n");
 }
 
 
