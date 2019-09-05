@@ -1,0 +1,7 @@
+module BoolTests;
+
+
+
+test "Invert bool" {
+	return false!;
+}

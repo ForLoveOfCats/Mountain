@@ -1,0 +1,32 @@
+module MathTests;
+
+
+
+test "Basic operation addition" {
+	return 10 == 5+5;
+}
+
+
+test "Basic operation subtraction" {
+	return 20 == 25-5;
+}
+
+
+test "Basic operation multiplication" {
+	return 50 == 10*5;
+}
+
+
+test "Basic operation division" {
+	return 20 == 100/5;
+}
+
+
+test "Precedence" {
+	let:i32 precedence = 5 + 10 * 2;
+
+	let:i32 manual = 10 *2;
+	manual = manual + 5;
+
+	return precedence == manual;
+}

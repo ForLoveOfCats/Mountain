@@ -1,0 +1,25 @@
+module PointerTests;
+
+
+
+test "Identical pointers" {
+	let:i32 variable = 123;
+
+	let:i32:Ptr first_pointer = variable&;
+	let:i32:Ptr second_pointer = variable&;
+
+	return first_pointer == second_pointer;
+}
+
+
+test "Dereference is equal to original" {
+	let:i32 variable = 321;
+	let:i32:Ptr pointer = variable&;
+	return variable == pointer$;
+}
+
+
+test "Address then deref inline" {
+	let:i32 variable = 200;
+	return variable&$ == variable;
+}

@@ -1,0 +1,156 @@
+//Many of these tests are just to check the parser and validator
+//For most the actual return value is just a constant true
+
+module SyntaxTests;
+
+
+
+
+test "Constant if" {
+	if(true) {
+		return true;
+	}
+
+	return false;
+}
+
+
+test "Constant elif" {
+	if(false) {
+		return false;
+	}
+	elif(true) {
+		return true;
+	}
+
+	return false;
+}
+
+
+test "Constant else" {
+	if(false) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+
+func:Bool returns_true() {
+	return true;
+}
+
+
+test "Function call if" {
+	if(returns_true()) {
+		return true;
+	}
+
+	return false;
+}
+
+
+test "Function call elif" {
+	if(false) {
+		return false;
+	}
+	elif(returns_true()) {
+		return true;
+	}
+
+	return false;
+}
+
+
+test "Inner function" {
+	func:Bool inner_function() {
+		return true;
+	}
+
+	return inner_function();
+}
+
+
+
+test "Void return" {
+	func:Void void_return() {
+		return;
+	}
+
+	void_return();
+
+	return true;
+}
+
+
+test "Void no return" {
+	func:Void void_no_return() { }
+
+	void_no_return();
+
+	return true;
+}
+
+
+test "Trace returns" {
+	func:i32 trace_returns_one() {
+		if(false) { }
+		elif(false) { }
+		else {
+			return 1;
+		}
+
+		return 2;
+	}
+
+	func:i32 trace_returns_two() {
+		if(false) {
+			return 1;
+		}
+		elif(false) {
+			return 2;
+		}
+		else {
+			return 3;
+		}
+	}
+
+	func:i32 trace_returns_three() {
+		if(false) { }
+		elif(false) {
+			return 0;
+		}
+
+		if(false) {
+			return 1;
+		}
+		elif(false) {
+			return 2;
+		}
+		else {
+			return 3;
+		}
+	}
+
+	return true;
+}
+
+
+test "Subscope" {
+	let:Bool return_value = true;
+
+	{
+		let:i32 inner_value = 42;
+
+		return return_value;
+	}
+}
+
+
+test "Undefined variable" {
+	let:i32 variable = undefined; //Whatever garbage data was already there
+	variable = 96;
+
+	return true;
+}
