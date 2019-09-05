@@ -12,6 +12,12 @@
 #include "transpile.h"
 
 
+
+enum COMPILE_ACTION {ACTION_BUILD, ACTION_TEST};
+
+enum COMPILE_ACTION compile_action;
+
+
 FILE *open_source_file(char *path)
 {
 	FILE *source_file = fopen(path, "r");
@@ -27,14 +33,27 @@ FILE *open_source_file(char *path)
 
 int main(int arg_count, char *arg_array[])
 {
-	if(arg_count != 3)
+	if(arg_count != 4)
 	{
-		printf("Please provide an output file to emit to and an input dir to compile\n");
+		printf("Please provide an valid action, an input dir to compile, and an output file to emit to\n");
 		return EXIT_FAILURE;
 	}
 
+	#define action_string arg_array[1]
+	#define input_path arg_array[2]
+	#define output_path arg_array[3]
 
-	#define input_path arg_array[1]
+	if(strcmp(action_string, "build") == 0)
+		compile_action = ACTION_BUILD;
+	else if(strcmp(action_string, "test") == 0)
+		compile_action = ACTION_TEST;
+	else
+	{
+		printf("CLI Error: Invalid action '%s', valid actions are 'build' and 'test'\n", action_string);
+		exit(EXIT_FAILURE);
+	}
+
+
 	DIR *input_dir = opendir(input_path);
 	if(input_dir == NULL)
 	{
@@ -123,7 +142,7 @@ int main(int arg_count, char *arg_array[])
 		current_module = current_module->next;
 	}
 
-	FILE *output_file = fopen(arg_array[2], "w");
+	FILE *output_file = fopen(output_path, "w");
 	prepare_file(output_file);
 	{
 		current_module = first_module;
@@ -138,7 +157,7 @@ int main(int arg_count, char *arg_array[])
 	transpile_functions(output_file);
 
 	fprintf(output_file, "int main()\n{\n");;
-	fprintf(output_file, "assert(sizeof(int) == sizeof(int32_t));\n\n");;
+	fprintf(output_file, "assert(sizeof(int) == sizeof(int32_t));\n");;
 	fprintf(output_file, "assert(sizeof(char) == sizeof(uint8_t));\n\n");;
 	{
 		current_module = first_module;
@@ -149,17 +168,18 @@ int main(int arg_count, char *arg_array[])
 		}
 	}
 
-	{
+	if(compile_action == ACTION_BUILD){
 		current_module = first_module;
 		while(current_module != NULL)
 		{
 			if(strcmp(current_module->name, "Main") == 0)
-				fprintf(output_file, "\n\nsymbol_%i();\n}\n", lookup_symbol(current_module->symbol_table, "main", false)->index);
+				fprintf(output_file, "\n\nsymbol_%i();\n", lookup_symbol(current_module->symbol_table, "main", false)->index);
 
 			current_module = current_module->next;
 		}
 	}
 
+	fprintf(output_file, "}\n");
 	fclose(output_file);
 
 	{
