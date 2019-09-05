@@ -23,5 +23,13 @@ Mountain has several core tenants
 This is currently little more than a fun side project with hopes of
 eventually becoming more. Read the feature wishlist
 [here](WISHLIST.md) for more information about what Mountain hopes to
-be capable of. Feel free to poke around and help if you want. Dunno,
-Cheers!
+be capable of. Feel free to poke around.
+
+Be aware that this is *extremely* WIP. There are many areas where
+things should change or be improved. Performance could be improved by
+fixing a few rather egregious design cases (go look at
+lookup_symbol). However I don't really care right now. This compiler
+is being designed to be good enough to be useful and then be thrown
+out. My main goal right now is to get the langauge useful. Then a far
+superior self-hosted compiler with better validation, performance, and
+even a language server can be developed in-language.
