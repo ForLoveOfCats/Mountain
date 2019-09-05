@@ -33,3 +33,11 @@ is being designed to be good enough to be useful and then be thrown
 out. My main goal right now is to get the langauge useful. Then a far
 superior self-hosted compiler with better validation, performance, and
 even a language server can be developed in-language.
+
+
+## This is currently only tested on Linux
+
+It will probably work on macOS but *will not* work on Windows as it
+uses `dirent.h`. This will change in the future, until then if you
+really want to run this on Windows go grab an dirent wrapper or open
+an issue to bug me into prioritizing this more.
