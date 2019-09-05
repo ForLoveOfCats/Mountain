@@ -18,6 +18,17 @@ enum COMPILE_ACTION {ACTION_BUILD, ACTION_TEST};
 enum COMPILE_ACTION compile_action;
 
 
+char null_termination = '\0';
+char *get_extension(char *path) //Performs no allocations, do not free!
+{
+	char *dot = strrchr(path, '.');
+	if(dot == NULL)
+		return &null_termination; //To not error a strcmp
+
+	return dot+1; //Move to the next character
+}
+
+
 FILE *open_source_file(char *path)
 {
 	FILE *source_file = fopen(path, "r");
@@ -72,6 +83,9 @@ int main(int arg_count, char *arg_array[])
 			case DT_REG:
 			case DT_LNK:
 			{
+				if(strcmp(get_extension(ent->d_name), "mtn") != 0)
+					continue;
+
 				char *path = malloc(sizeof(char) * (strlen(input_path) + strlen(ent->d_name) + 2));
 				sprintf(path, "%s/%s", input_path, ent->d_name);
 				char *old_path = path;
