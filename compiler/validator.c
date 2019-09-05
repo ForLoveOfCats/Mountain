@@ -560,7 +560,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				node->index = next_index;
 				next_index++;
 
-				validate_block(node->first_child, symbol_table, false, level + 1);
+				validate_block(node->first_child, create_symbol_table(symbol_table, node->module), false, level + 1);
 
 				break;
 			}
