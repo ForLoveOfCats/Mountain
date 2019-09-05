@@ -628,6 +628,12 @@ bool is_return_satisfied(struct NODE *block)
 	struct NODE *cursor = block->first_child;
 	while(cursor != NULL)
 	{
+		if(cursor->node_type == AST_BLOCK)
+		{
+			if(is_return_satisfied(cursor))
+				return true;
+		}
+
 		if(cursor->node_type == AST_RETURN)
 		{
 			satisfied = true;
