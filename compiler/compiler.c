@@ -184,7 +184,13 @@ int main(int arg_count, char *arg_array[])
 		while(current_module != NULL)
 		{
 			if(strcmp(current_module->name, "Main") == 0)
-				fprintf(output_file, "\n\nsymbol_%i();\n", lookup_symbol(current_module->symbol_table, "main", false)->index);
+			{
+				struct SYMBOL *main_symbol = lookup_symbol(current_module->symbol_table, "main", false);
+				if(main_symbol != NULL)
+					fprintf(output_file, "\n\nsymbol_%i();\n", main_symbol->index);
+
+				break;
+			}
 
 			current_module = current_module->next;
 		}

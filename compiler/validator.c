@@ -585,15 +585,14 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 	if(root && strcmp(block->name, "Main") == 0)
 	{
 		struct SYMBOL *main_func = lookup_symbol(symbol_table, "main", false);
+		if(main_func != NULL)
+		{
+			if(strcmp(main_func->func_data->return_type->name, "Void") != 0)
+				VALIDATE_ERROR_LF(main_func->line, main_func->file, "Function 'main' in module 'Main' must have return type of 'Void'");
 
-		if(main_func == NULL)
-			VALIDATE_ERROR("No 'main' function found in the 'Main' module");
-
-		if(strcmp(main_func->func_data->return_type->name, "Void") != 0)
-			VALIDATE_ERROR_LF(main_func->line, main_func->file, "Function 'main' in module 'Main' must have return type of 'Void'");
-
-		if(main_func->func_data->first_arg != NULL)
-			VALIDATE_ERROR_LF(main_func->line, main_func->file, "Function 'main' in module 'Main' should expect no arguments");
+			if(main_func->func_data->first_arg != NULL)
+				VALIDATE_ERROR_LF(main_func->line, main_func->file, "Function 'main' in module 'Main' should expect no arguments");
+		}
 	}
 }
 
