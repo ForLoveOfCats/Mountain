@@ -309,7 +309,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 				case '/':
 				{
 					char next_car = fgetc(source_file);
-					if(next_car == '/')
+					if(next_car == '/') //This is a comment, consume to end of line
 					{
 						while(car != '\n')
 						{
@@ -319,6 +319,8 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 						current_file_character = 0;
 						break;
 					}
+					else
+						ungetc(next_car, source_file);
 
 					token->type = TOKEN_DIV;
 					goto return_car_as_token;
