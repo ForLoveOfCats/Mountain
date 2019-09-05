@@ -561,6 +561,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				next_index++;
 
 				validate_block(node->first_child, create_symbol_table(symbol_table, node->module), false, level + 1);
+				trace_return(node);
 
 				break;
 			}
@@ -653,9 +654,10 @@ bool is_return_satisfied(struct NODE *block)
 }
 
 
-void trace_function_return(struct NODE *func)
+void trace_return(struct NODE *func)
 {
-	assert(func->node_type == AST_FUNC);
+	assert(func->node_type == AST_FUNC || func->node_type == AST_TEST);
+
 	struct NODE *block = func->first_child;
 	assert(block->node_type == AST_BLOCK);
 
@@ -686,7 +688,7 @@ void validate_functions(struct NODE *block, struct SYMBOL_TABLE *root_symbol_tab
 
 		validate_block(node->first_child, symbol_table, false, 0);
 		if(strcmp(node->type->name, "Void") != 0)
-			trace_function_return(node);
+			trace_return(node);
 
 		node = node->next;
 	}

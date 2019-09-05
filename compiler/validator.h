@@ -39,4 +39,7 @@ void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *b
 void prevalidate_populate_module(struct NODE *module, struct SYMBOL_TABLE *symbol_table);
 
 
+void trace_return(struct NODE *func);
+
+
 void validate_functions(struct NODE *block, struct SYMBOL_TABLE *root_symbol_table);
