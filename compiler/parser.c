@@ -253,6 +253,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 						token->type = TOKEN_EQUALS;
 						goto return_car_as_token;
 					}
+					current_file_character++;
 
 					token->type = TOKEN_TEST_EQUAL;
 					free(token->string);
@@ -269,6 +270,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 						token->type = TOKEN_TEST_GREATER;
 						goto return_car_as_token;
 					}
+					current_file_character++;
 
 					token->type = TOKEN_TEST_GREATER_EQUAL;
 					goto return_token;
@@ -283,6 +285,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 						token->type = TOKEN_TEST_LESS;
 						goto return_car_as_token;
 					}
+					current_file_character++;
 
 					token->type = TOKEN_TEST_LESS_EQUAL;
 					goto return_token;
@@ -335,6 +338,7 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 						token->type = TOKEN_EXCLAMATION;
 						goto return_car_as_token;
 					}
+					current_file_character++;
 
 					token->type = TOKEN_TEST_NOT_EQUAL;
 					goto return_token;
