@@ -59,6 +59,10 @@ func:i32 return_checking() {
 	else { return 2; }
 }
 
+test "returned two" {
+	return return_checking() == 2;
+}
+
 
 func:Bool returns_bool() {
 	return true;

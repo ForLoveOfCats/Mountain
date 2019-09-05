@@ -336,6 +336,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 			{
 				case AST_LET:
 				case AST_FUNC:
+				case AST_TEST:
 				case AST_STRUCT:
 					break;
 
@@ -493,7 +494,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				struct NODE *parent = node->parent;
 				while(true)
 				{
-					if(parent->node_type == AST_FUNC)
+					if(parent->node_type == AST_FUNC || parent->node_type == AST_TEST)
 						break;
 
 					parent = parent->parent;
@@ -502,19 +503,37 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				}
 				if(parent == NULL)
 					VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot return, not in a function");
+				assert(parent->node_type == AST_FUNC || parent->node_type == AST_TEST);
 
-				assert(parent->node_type == AST_FUNC);
-				if(strcmp(parent->type->name, "Void") != 0 && count_node_children(node) == 0)
+				if(parent->node_type == AST_FUNC)
 				{
-					VALIDATE_ERROR_LF(node->line_number, node->file, "Must return a value of type '%s'", parent->type->name);
+					if(strcmp(parent->type->name, "Void") != 0 && count_node_children(node) == 0)
+					{
+						VALIDATE_ERROR_LF(node->line_number, node->file, "Must return a value of type '%s'", parent->type->name);
+					}
+					else if(count_node_children(node) == 1)
+					{
+						struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, root, true, level + 1);
+						if(!are_types_equal(type, parent->type))
+							VALIDATE_ERROR_LF(node->line_number, node->file, "Type mismatch returning a value of type '%s' from a function of type '%s'",
+							                  fatal_pretty_type_name(type), fatal_pretty_type_name(parent->type));
+						free_type(type);
+					}
 				}
-				else if(count_node_children(node) == 1)
+				else if(parent->node_type == AST_TEST)
 				{
-					struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, root, true, level + 1);
-					if(!are_types_equal(type, parent->type))
-						VALIDATE_ERROR_LF(node->line_number, node->file, "Type mismatch returning a value of type '%s' from a function of type '%s'",
-						                 fatal_pretty_type_name(type), fatal_pretty_type_name(parent->type));
-					free_type(type);
+					if(count_node_children(node) == 0)
+					{
+						VALIDATE_ERROR_LF(node->line_number, node->file, "Must return a value of type 'Bool' from test \"%s\"", parent->name);
+					}
+					else if(count_node_children(node) == 1)
+					{
+						struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, root, true, level + 1);
+						if(strcmp(type->name, "Bool") != 0)
+							VALIDATE_ERROR_LF(node->line_number, node->file, "Test \"%s\" return expected type 'Bool' instead of '%s'",
+							                  parent->name, fatal_pretty_type_name(type));
+						free_type(type);
+					}
 				}
 
 				break;
@@ -527,6 +546,18 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				symbol->struct_data->index = next_index;
 				next_index++;
 				add_symbol(symbol_table, symbol);
+
+				break;
+			}
+
+			case AST_TEST:
+			{
+				assert(count_node_children(node) == 1);
+
+				if(!root)
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Tests can only exist in module root scope");
+
+				validate_block(node->first_child, symbol_table, false, level + 1);
 
 				break;
 			}

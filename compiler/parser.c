@@ -199,6 +199,51 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 						PARSE_ERROR_LC(current_file_line, current_file_character, "Expected u8 literal to contain a value");
 				}
 
+				case '"':
+				{
+					free(token->string);
+					token->string = strdup("");
+
+					bool closed = false;
+					int current_car = fgetc(source_file);
+					current_file_character++;
+					while(true)
+					{
+						if(current_car == '\n')
+						{
+							current_file_line++;
+							current_file_character = 0;
+						}
+
+						if(current_car == '"')
+						{
+							closed = true;
+							break;
+						}
+						else if(current_car == EOF)
+							break;
+
+						int old_string_length = strlen(token->string);
+						char *new_string = malloc(sizeof(char) * (old_string_length+2)); //Two larger than originally
+						strcpy(new_string, token->string);
+						free(token->string);
+						token->string = new_string;
+						token->string[old_string_length] = current_car; //Place in first new spot
+						token->string[old_string_length + 1] = '\0'; //Null terminate in second new spot
+
+						current_car = fgetc(source_file);
+						current_file_character++;
+					}
+
+					if(!closed)
+						PARSE_ERROR_LC(current_file_line, current_file_character, "Unexpected end of file looking for string end");
+
+					printf("tokenized string with contents '%s'\n", token->string);
+
+					token->type = TOKEN_STRING;
+					goto return_token;
+				}
+
 				case '=':
 				{
 					char next_car = fgetc(source_file);
@@ -1275,6 +1320,29 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			expect(token, TOKEN_SEMICOLON);
 
 			token = token->next; //Don't check for EOF
+		}
+
+		else if(strcmp(token->string, "test") == 0)
+		{
+			struct NODE *new_node = create_node(AST_TEST, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_STRING); //The test name
+			free(new_node->name);
+			new_node->name = strdup(token->string);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_OPEN_BRACE);
+			NEXT_TOKEN(token);
+
+			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+			add_node(new_node, block);
+			struct NODE *old_current_parse_parent_node = current_parse_parent_node;
+			current_parse_parent_node = block;
+			token = parse_block(token, true, 0);
+			current_parse_parent_node = old_current_parse_parent_node;
+
+			add_node(current_parse_parent_node, new_node);
 		}
 
 		else //Not a statement
