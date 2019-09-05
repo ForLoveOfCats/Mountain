@@ -316,10 +316,10 @@ void transpile_test_calls(FILE *target)
 			if(node->node_type == AST_TEST)
 				fprintf(target, "printf(\"\\nRunning test '%s'\\n\");\n"
 				                "if(!test_%i())\n{\n"
-				                "printf(\"Test '%s' failed\\n\");\n"
+				                "printf(\"Test failed\\n\");\n"
 				                "exit(EXIT_FAILURE);\n}\n"
-				                "printf(\"Test '%s' succeeded\\n\\n\");\n",
-				        node->name, node->index, node->name, node->name);
+				                "printf(\"Test succeeded\\n\\n\");\n",
+				        node->name, node->index);
 
 			node = node->next;
 		}
