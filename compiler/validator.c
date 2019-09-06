@@ -81,6 +81,38 @@ bool are_types_equal(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two)
 }
 
 
+void verify_type_valid(struct TYPE_DATA *type, bool allow_void, int line, int file)
+{
+	if(strcmp(type->name, "Void") == 0)
+	{
+		if(allow_void)
+			return;
+
+		VALIDATE_ERROR_LF(line, file, "Invalid type 'Void'");
+	}
+
+	else if(strcmp(type->name, "i32") == 0)
+		return;
+
+	else if(strcmp(type->name, "Bool") == 0)
+		return;
+
+	else if(strcmp(type->name, "u8") == 0)
+		return;
+
+	else if(strcmp(type->name, "Ptr") == 0)
+	{
+		if(type->child == NULL)
+			VALIDATE_ERROR_LF(line, file, "Pointer must have child type");
+
+		verify_type_valid(type->child, true, line, file);
+		return;
+	}
+
+	VALIDATE_ERROR_LF(line, file, "Unknown type '%s'", type->name);
+}
+
+
 struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool global, bool search_using_imports, int level) //Exits on failure
 {
 	if(node->node_type == AST_EXPRESSION)
@@ -282,6 +314,8 @@ void prevalidate_populate_module(struct NODE *module, struct SYMBOL_TABLE *symbo
 	{
 		if(node->node_type == AST_LET)
 		{
+			verify_type_valid(node->type, false, node->line_number, node->file);
+
 			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
 			if(symbol != NULL && symbol->type == SYMBOL_VAR)
 				VALIDATE_ERROR_LF(node->line_number, node->file, "Variable '%s' already exists", node->name);
@@ -372,31 +406,22 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				break;
 			}
 
-			case AST_LET: //TODO: Make sure that type is valid and known
+			case AST_LET:
 			{
 				int child_count = count_node_children(node);
 				assert(child_count == 0 || child_count == 1);
 
-				if(!root)
+				if(!root) //If we are in the root of the module then this has already been handled by prevalidate_populate_module
 				{
+					verify_type_valid(node->type, false, node->line_number, node->file);
+
 					struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, true);
 					if(symbol != NULL && symbol->type == SYMBOL_VAR)
 						VALIDATE_ERROR_LF(node->line_number, node->file, "Variable '%s' already exists", node->name);
-				}
 
-				if(!root) //If we are in the root of the module then this has already been done by prevalidate_populate_module
-				{
 					node->index = next_index; //Not increasing as add_var will do that when creating the symbol
 					struct VAR_DATA *var = create_var(node->type);
 					add_var(symbol_table, node->name, var, node->file, node->line_number);
-				}
-
-				if(strcmp(node->type->name, "Void") == 0)
-					VALIDATE_ERROR_LF(node->line_number, node->file, "Invalid type 'Void' when declaring variable '%s'", node->name);
-				if(strcmp(node->type->name, "Ptr") == 0)
-				{
-					if(node->type->child == NULL)
-						VALIDATE_ERROR_LF(node->line_number, node->file, "Pointer must have child type");
 				}
 
 				if(child_count == 1)
@@ -691,11 +716,15 @@ void validate_functions(struct NODE *block, struct SYMBOL_TABLE *root_symbol_tab
 		assert(node->first_child->node_type == AST_BLOCK);
 		assert(count_node_children(node) == 1);
 
+		verify_type_valid(node->type, true, node->line_number, node->file);
+
 		struct SYMBOL_TABLE *symbol_table = create_symbol_table(root_symbol_table, node->module);
 
 		struct ARG_DATA *arg = node->first_arg;
-		while (arg != NULL) // TODO: Validate types as well
+		while(arg != NULL)
 		{
+			verify_type_valid(arg->type, false, node->line_number, node->file);
+
 			arg->index = next_index; //next_index is incremented in add_var
 			add_var(symbol_table, arg->name, create_var(arg->type), arg->file, arg->line_number);
 
