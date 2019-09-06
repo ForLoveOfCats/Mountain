@@ -312,6 +312,8 @@ void transpile_test_calls(FILE *target)
 {
 	fprintf(target, "\n\n");
 
+	int test_count = 0;
+
 	struct NODE *module = first_module;
 	while(module != NULL)
 	{
@@ -319,12 +321,16 @@ void transpile_test_calls(FILE *target)
 		while(node != NULL)
 		{
 			if(node->node_type == AST_TEST)
+			{
+				test_count++;
+
 				fprintf(target, "printf(\"\\nRunning test '%s'\\n\");\n"
 				                "if(!test_%i())\n{\n"
 				                "printf(\"Test failed\\n\");\n"
 				                "exit(EXIT_FAILURE);\n}\n"
 				                "printf(\"Test succeeded\\n\\n\");\n",
 				        node->name, node->index);
+			}
 
 			node = node->next;
 		}
@@ -332,7 +338,7 @@ void transpile_test_calls(FILE *target)
 		module = module->next;
 	}
 
-	fprintf(target, "printf(\"\\nAll tests succeeded\\n\");\n");
+	fprintf(target, "printf(\"\\nAll %i tests succeeded\\n\");\n", test_count);
 }
 
 
