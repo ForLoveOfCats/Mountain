@@ -238,8 +238,6 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					if(!closed)
 						PARSE_ERROR_LC(current_file_line, current_file_character, "Unexpected end of file looking for string end");
 
-					printf("tokenized string with contents '%s'\n", token->string);
-
 					token->type = TOKEN_STRING;
 					goto return_token;
 				}
@@ -1440,7 +1438,6 @@ void parse_file(FILE *file)
 	{
 		if(strcmp(module_root->name, token->string) == 0)
 		{
-			printf("Joining pre-existing module '%s'\n", token->string);
 			found = true;
 			break;
 		}
@@ -1450,8 +1447,6 @@ void parse_file(FILE *file)
 
 	if(!found)
 	{
-		printf("Creating module '%s'\n", token->string);
-
 		module_root = create_node(AST_MODULE, NULL, -1, -1, -1, -1);
 		module_root->module = module_root;
 		free(module_root->name);
