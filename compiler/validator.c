@@ -75,8 +75,15 @@ bool are_types_equal(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two)
 		if(type_one->child == NULL || type_two->child == NULL)
 		  return false;
 
-		//Both children are not null so recurse
-		return are_types_equal(type_one->child, type_two->child);
+		//Both children are not null
+
+		if(strcmp(type_one->name, "Ptr") == 0 && strcmp(type_two->name, "Ptr") == 0)
+		{
+			if(strcmp(type_one->child->name, "Void") == 0 || strcmp(type_two->child->name, "Void") == 0)
+				return true; //A Void:Ptr equals type with T:Ptr of any type T
+		}
+
+		return are_types_equal(type_one->child, type_two->child); //Make sure that the children types are equal
 	}
 }
 

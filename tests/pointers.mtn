@@ -23,3 +23,14 @@ test "Address then deref inline" {
 	let:i32 variable = 200;
 	return variable&$ == variable;
 }
+
+
+test "Void pointers" {
+	let:i32 int_var = 87;
+	let:Bool bool_var = false;
+
+	let:Void:Ptr pointer = int_var&;
+	pointer = bool_var&;
+
+	return pointer == bool_var&;
+}
