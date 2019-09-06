@@ -212,7 +212,7 @@ void free_func(struct FUNC_DATA *func_data)
 }
 
 
-struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name, bool search_using_imports)
+struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name, int file, bool search_using_imports)
 {
 	struct SYMBOL *symbol = table->first_symbol;
 	while(symbol != NULL)
@@ -224,7 +224,7 @@ struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name, bool search
 	}
 
 	if(table->parent != NULL)
-		return lookup_symbol(table->parent, name, search_using_imports);
+		return lookup_symbol(table->parent, name, file, search_using_imports);
 
 	if(search_using_imports)
 	{
@@ -236,9 +236,9 @@ struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name, bool search
 				struct NODE *module = first_module;
 				while(module != NULL)
 				{
-					if(strcmp(module->name, import_data->name) == 0)
+					if(strcmp(module->name, import_data->name) == 0 && import_data->file == file)
 					{
-						struct SYMBOL *returned = lookup_symbol(module->symbol_table, name, false);
+						struct SYMBOL *returned = lookup_symbol(module->symbol_table, name, file, false);
 						if(returned != NULL)
 							return returned;
 					}

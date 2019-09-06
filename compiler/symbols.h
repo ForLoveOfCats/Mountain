@@ -133,4 +133,4 @@ struct FUNC_DATA *create_func(struct TYPE_DATA *return_type);
 void free_func(struct FUNC_DATA *func_data);
 
 
-struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name, bool search_using_imports);
+struct SYMBOL *lookup_symbol(struct SYMBOL_TABLE *table, char *name, int file, bool search_using_imports);

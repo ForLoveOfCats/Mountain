@@ -110,7 +110,8 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 				}
 				assert(module != NULL);
 
-				return typecheck_expression(node->first_child, module->symbol_table, global, false, level + 1);
+				if(import_data->file == node->file)
+					return typecheck_expression(node->first_child, module->symbol_table, global, false, level + 1);
 			}
 
 			import_data = import_data->next;
@@ -123,7 +124,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		if(global)
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot get variable contents in root scope");
 
-		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, search_using_imports);
+		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, search_using_imports);
 		if(symbol == NULL || symbol->type != SYMBOL_VAR)
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot get variable '%s' as it does not exist", node->name);
 
@@ -135,7 +136,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		if(global)
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot call function in root scope");
 
-		struct SYMBOL *function = lookup_symbol(symbol_table, node->name, search_using_imports);
+		struct SYMBOL *function = lookup_symbol(symbol_table, node->name, node->file, search_using_imports);
 		if(function == NULL || function->type != SYMBOL_FUNC)
 			VALIDATE_ERROR_LF(node->line_number, node->file, "No function named '%s'", node->name);
 
@@ -281,7 +282,7 @@ void prevalidate_populate_module(struct NODE *module, struct SYMBOL_TABLE *symbo
 	{
 		if(node->node_type == AST_LET)
 		{
-			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, false);
+			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
 			if(symbol != NULL && symbol->type == SYMBOL_VAR)
 				VALIDATE_ERROR_LF(node->line_number, node->file, "Variable '%s' already exists", node->name);
 
@@ -378,7 +379,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 
 				if(!root)
 				{
-					struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, true);
+					struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, true);
 					if(symbol != NULL && symbol->type == SYMBOL_VAR)
 						VALIDATE_ERROR_LF(node->line_number, node->file, "Variable '%s' already exists", node->name);
 				}
@@ -594,7 +595,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 
 	if(root && strcmp(block->name, "Main") == 0)
 	{
-		struct SYMBOL *main_func = lookup_symbol(symbol_table, "main", false);
+		struct SYMBOL *main_func = lookup_symbol(symbol_table, "main", block->file, false);
 		if(main_func != NULL)
 		{
 			if(strcmp(main_func->func_data->return_type->name, "Void") != 0)

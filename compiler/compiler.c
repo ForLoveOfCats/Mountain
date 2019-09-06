@@ -199,7 +199,7 @@ int main(int arg_count, char *arg_array[])
 		{
 			if(strcmp(current_module->name, "Main") == 0)
 			{
-				struct SYMBOL *main_symbol = lookup_symbol(current_module->symbol_table, "main", false);
+				struct SYMBOL *main_symbol = lookup_symbol(current_module->symbol_table, "main", -1, false);
 				if(main_symbol != NULL)
 					fprintf(output_file, "\n\nsymbol_%i();\n", main_symbol->index);
 
