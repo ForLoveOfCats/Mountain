@@ -22,6 +22,25 @@ test "Basic operation division" {
 }
 
 
+test "Negative literal" {
+	return 0-15 == -15;
+}
+
+
+test "Negate function return value" {
+	func:i32 return_number() {
+		return 55;
+	}
+
+	return 0-55 == -return_number();
+}
+
+
+test "Leading negate" {
+	return -32 == 0-32;
+}
+
+
 test "Precedence" {
 	let:i32 precedence = 5 + 10 * 2;
 

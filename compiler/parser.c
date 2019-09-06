@@ -635,10 +635,22 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 	{
 		if(token_is_op(token)) //is an op
 		{
-			if(token->type == TOKEN_SUB && value_count == 0) //leading minus for negative number
+			if(token->type == TOKEN_SUB && last_type != VALUE) //leading minus for negative number
 			{
-				PARSE_ERROR_LC(token->line_number, token->start_char, "Negative numbers are not currently supported");
-				//TODO: Add negative number support
+				struct NODE *new_node = create_node(AST_NEGATE, root->module, current_file, token->line_number, token->start_char, token->end_char);
+				new_node->op_type = OP_SUB;
+				previous_node = new_node;
+
+				if(current_op_node == NULL)
+					current_op_node = new_node;
+				else
+				{
+					add_node(current_op_node, new_node);
+					current_op_node = new_node;
+				}
+
+				if(root_op_node == NULL)
+					root_op_node = new_node;
 			}
 			else
 			{
@@ -843,7 +855,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			}
 			assert(new_node != NULL);
 
-			if(left_value_node == NULL)
+			if(left_value_node == NULL && root_op_node == NULL)
 				left_value_node = new_node;
 			else
 			{
@@ -865,14 +877,13 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 		PARSE_ERROR_LC(token->line_number, token->start_char, "Expected final value following operator '%s'", token->string);
 	}
 
-	if(value_count == 1)
+	if(root_op_node == NULL)
 	{
 		assert(left_value_node != NULL);
 		add_node(root, left_value_node);
 	}
 	else
 	{
-		assert(root_op_node != NULL);
 		add_node(root, root_op_node);
 	}
 

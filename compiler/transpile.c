@@ -69,7 +69,12 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 
 	fprintf(target, "(");
 
-	if(node->node_type == AST_OP)
+	if(node->node_type == AST_NEGATE)
+	{
+		fprintf(target,"-");
+		transpile_expression(target, node->first_child);
+	}
+	else if(node->node_type == AST_OP)
 	{
 		transpile_expression(target, node->first_child);
 		switch(node->op_type)

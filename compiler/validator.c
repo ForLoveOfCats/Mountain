@@ -250,6 +250,16 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			exit(EXIT_FAILURE);
 		}
 	}
+	else if(node->node_type == AST_NEGATE)
+	{
+		assert(count_node_children(node) == 1);
+
+		struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);
+		if(!type_is_number(type->name))
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot negate non-numerical value");
+
+		return type;
+	}
 	else
 	{
 		printf("INTERNAL ERROR: Unsupported expression subnode type %i\n", node->node_type);
