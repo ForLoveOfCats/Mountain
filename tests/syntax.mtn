@@ -163,3 +163,19 @@ test "Expression statements" {
 
 	return true;
 }
+
+
+test "Out of order global variable" {
+	return global_var;
+}
+
+let:Bool global_var = true;
+
+
+test "Out of order global function" {
+	return global_func();
+}
+
+func:Bool global_func() {
+	return true;
+}
