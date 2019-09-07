@@ -360,6 +360,7 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				break;
 
 			case AST_EXPRESSION:
+				fprintf(target, "(void) ");
 				transpile_expression(target, node);
 				fprintf(target, ";\n");
 				break;

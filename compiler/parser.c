@@ -992,384 +992,377 @@ struct TYPE_DATA *parse_type(struct TOKEN **callsite_token)
 
 struct TOKEN *parse_next_statement(struct TOKEN *token)
 {
-	if(token->type == TOKEN_WORD)
+	if(strcmp(token->string, "let") == 0)
 	{
-		if(strcmp(token->string, "let") == 0)
+		struct NODE *new_node = create_node(AST_LET, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_COLON);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_WORD);
+		free_type(new_node->type);
+		new_node->type = parse_type(&token);
+
+		free(new_node->name);
+		expect(token, TOKEN_WORD);
+		new_node->name = strdup(token->string);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_EQUALS);
+
+		NEXT_TOKEN(token);
+		if(strcmp(token->string, "undefined") == 0)
 		{
-			struct NODE *new_node = create_node(AST_LET, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_COLON);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_WORD);
-			free_type(new_node->type);
-			new_node->type = parse_type(&token);
-
-			free(new_node->name);
-			expect(token, TOKEN_WORD);
-			new_node->name = strdup(token->string);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_EQUALS);
-
-			NEXT_TOKEN(token);
-			if(strcmp(token->string, "undefined") == 0)
-			{
-				NEXT_TOKEN(token);
-				expect(token, TOKEN_SEMICOLON);
-			}
-			else
-				add_node(new_node, parse_expression_to_semicolon(&token, current_parse_parent_node->module));
-
-			add_node(current_parse_parent_node, new_node);
-
-			token = token->next;
-		}
-
-		else if(strcmp(token->string, "if") == 0
-				|| strcmp(token->string, "elif") == 0)
-		{
-			enum AST_TYPE node_type = AST_IF;
-			if(strcmp(token->string, "elif") == 0)
-				node_type = AST_ELIF;
-			struct NODE *new_node = create_node(node_type, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_OPEN_PARENTHESES);
-
-			NEXT_TOKEN(token);
-			struct TOKEN *start = token;
-			struct TOKEN *end = token;
-			int open = 0;
-			while(true)
-			{
-				end = token;
-				NEXT_TOKEN(token);
-
-				if(token->type == TOKEN_OPEN_PARENTHESES)
-					open++;
-				else if(token->type == TOKEN_CLOSE_PARENTHESES)
-				{
-					if(open > 0)
-						open--;
-					else
-						break;
-				}
-			}
-
-			if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES)
-				PARSE_ERROR_LC(end->line_number, end->start_char, "Expected Bool expresssion but found empty expression");
-			struct NODE *expression_root = create_node(AST_EXPRESSION, current_parse_parent_node->module, current_file, start->line_number, start->start_char, start->end_char);
-			parse_expression_bounds(expression_root, start, end);
-			add_node(new_node, expression_root);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_OPEN_BRACE);
-
-			NEXT_TOKEN(token);
-			struct NODE *old_parse_parent_node = current_parse_parent_node;
-			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-			add_node(new_node, block);
-			current_parse_parent_node = block;
-			token = parse_block(token, true, 0);
-			current_parse_parent_node = old_parse_parent_node;
-			add_node(current_parse_parent_node, new_node);
-		}
-
-		else if(strcmp(token->string, "else") == 0)
-		{
-			struct NODE *new_node = create_node(AST_ELSE, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_OPEN_BRACE);
-
-			NEXT_TOKEN(token);
-			struct NODE *old_parse_parent_node = current_parse_parent_node;
-			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-			add_node(new_node, block);
-			current_parse_parent_node = block;
-			token = parse_block(token, true, 0);
-			current_parse_parent_node = old_parse_parent_node;
-			add_node(current_parse_parent_node, new_node);
-		}
-
-		else if(strcmp(token->string, "while") == 0) //You guessed it, an while loop
-		{
-			struct NODE *new_node = create_node(AST_WHILE, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_OPEN_PARENTHESES);
-
-			NEXT_TOKEN(token);
-			struct TOKEN *start = token;
-			struct TOKEN *end = token;
-			while(token->type != TOKEN_CLOSE_PARENTHESES)
-			{
-				end = token;
-				NEXT_TOKEN(token);
-			}
-
-			if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES)
-				PARSE_ERROR_LC(end->line_number, end->start_char, "Expected Bool expresssion but found empty expression");
-			struct NODE *expression_root = create_node(AST_EXPRESSION, current_parse_parent_node->module, current_file, start->line_number, start->start_char, start->end_char);
-			parse_expression_bounds(expression_root, start, end);
-			add_node(new_node, expression_root);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_OPEN_BRACE);
-
-			NEXT_TOKEN(token);
-			struct NODE *old_parse_parent_node = current_parse_parent_node;
-			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-			add_node(new_node, block);
-			current_parse_parent_node = block;
-			token = parse_block(token, true, 0);
-			current_parse_parent_node = old_parse_parent_node;
-			add_node(current_parse_parent_node, new_node);
-		}
-
-		else if(strcmp(token->string, "break") == 0)
-		{
-			struct NODE *new_node = create_node(AST_BREAK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-
 			NEXT_TOKEN(token);
 			expect(token, TOKEN_SEMICOLON);
-
-			add_node(current_parse_parent_node, new_node);
-
-			token = token->next;
 		}
+		else
+			add_node(new_node, parse_expression_to_semicolon(&token, current_parse_parent_node->module));
 
-		else if(strcmp(token->string, "continue") == 0)
+		add_node(current_parse_parent_node, new_node);
+
+		token = token->next;
+	}
+
+	else if(strcmp(token->string, "if") == 0
+	        || strcmp(token->string, "elif") == 0)
+	{
+		enum AST_TYPE node_type = AST_IF;
+		if(strcmp(token->string, "elif") == 0)
+			node_type = AST_ELIF;
+		struct NODE *new_node = create_node(node_type, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_PARENTHESES);
+
+		NEXT_TOKEN(token);
+		struct TOKEN *start = token;
+		struct TOKEN *end = token;
+		int open = 0;
+		while(true)
 		{
-			struct NODE *new_node = create_node(AST_CONTINUE, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-
+			end = token;
 			NEXT_TOKEN(token);
-			expect(token, TOKEN_SEMICOLON);
 
-			add_node(current_parse_parent_node, new_node);
-
-			token = token->next;
-		}
-
-		else if(strcmp(token->string, "return") == 0)
-		{
-			struct NODE *new_node = create_node(AST_RETURN, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-
-			NEXT_TOKEN(token);
-			if(token->type != TOKEN_SEMICOLON)
+			if(token->type == TOKEN_OPEN_PARENTHESES)
+				open++;
+			else if(token->type == TOKEN_CLOSE_PARENTHESES)
 			{
-				struct NODE *expression = parse_expression_to_semicolon(&token, current_parse_parent_node->module);
-				add_node(new_node, expression);
-			}
-
-			add_node(current_parse_parent_node, new_node);
-
-			token = token->next;
-		}
-
-		else if(strcmp(token->string, "func") == 0) //You guessed it, a function declaration
-		{
-			struct NODE *new_node = create_node(AST_FUNC, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_COLON);
-
-			NEXT_TOKEN(token);
-			free_type(new_node->type);
-			new_node->type = parse_type(&token);
-
-			expect(token, TOKEN_WORD); //name of the function
-			free(new_node->name);
-			new_node->name = strdup(token->string);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_OPEN_PARENTHESES);
-
-			NEXT_TOKEN(token);
-			struct TOKEN *start = token;
-			struct TOKEN *end = token;
-			while(token->type != TOKEN_CLOSE_PARENTHESES)
-			{
-				end = token;
-				NEXT_TOKEN(token);
-			}
-
-			if(start == end) //No arguments
-			{}
-			else //One or more arguments to parse
-			{
-				struct TOKEN *current_arg_token = start;
-				while(true)
-				{
-					expect(current_arg_token, TOKEN_WORD);
-					if(strcmp(current_arg_token->string, "let") != 0)
-						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected function argument declaration to be variable declaration");
-					if(current_arg_token == end)
-						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type");
-
-					NEXT_TOKEN(current_arg_token);
-					expect(current_arg_token, TOKEN_COLON);
-					if(current_arg_token == end)
-						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type");
-
-					NEXT_TOKEN(current_arg_token);
-					struct TYPE_DATA *type = parse_type(&current_arg_token);
-
-					if(current_arg_token->type != TOKEN_WORD)
-						PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument name");
-					char *name = current_arg_token->string;
-
-					struct ARG_DATA *arg = create_arg_data(name, type, current_file, token->line_number);
-					if(new_node->first_arg == NULL)
-					{
-						new_node->first_arg = arg;
-						new_node->last_arg = arg;
-					}
-					else
-					{
-						new_node->last_arg->next = arg;
-						new_node->last_arg = arg;
-					}
-
-					if(current_arg_token == end)
-						break;
-
-					NEXT_TOKEN(current_arg_token);
-					expect(current_arg_token, TOKEN_COMMA);
-					NEXT_TOKEN(current_arg_token);
-				}
-			}
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_OPEN_BRACE);
-
-			NEXT_TOKEN(token);
-			struct NODE *old_parse_parent_node = current_parse_parent_node;
-			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-			add_node(new_node, block);
-			current_parse_parent_node = block;
-			token = parse_block(token, true, 0);
-			current_parse_parent_node = old_parse_parent_node;
-
-			if(current_parse_parent_node->first_func == NULL)
-			{
-				current_parse_parent_node->first_func = new_node;
-				current_parse_parent_node->last_func = new_node;
-			}
-			else
-			{
-				current_parse_parent_node->last_func->next = new_node;
-				current_parse_parent_node->last_func = new_node;
-			}
-
-			struct FUNC_PROTOTYPE *prototype = create_func_prototype(new_node);
-			if(first_func_prototype == NULL)
-			{
-				first_func_prototype = prototype;
-				last_func_prototype = prototype;
-			}
-			else
-			{
-				last_func_prototype->next = prototype;
-				last_func_prototype = prototype;
-			}
-		}
-
-		else if(strcmp(token->string, "struct") == 0) //You guessed it, a struct declaration
-		{
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_COLON);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_WORD); //Our name
-			struct NODE *new_node = create_node(AST_STRUCT, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-			free(new_node->name);
-			new_node->name = strdup(token->string);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_OPEN_BRACE);
-			while(true)
-			{
-				//TODO: Parse field declarations
-
-				if(token->type == TOKEN_CLOSE_BRACE)
+				if(open > 0)
+					open--;
+				else
 					break;
-				NEXT_TOKEN(token);
 			}
-
-			add_node(current_parse_parent_node, new_node);
-
-			token = token->next; //Don't check for EOF
 		}
 
-		else if(strcmp(token->string, "import") == 0
-		        || (strcmp(token->string, "using") == 0 && token->next != NULL && strcmp(token->next->string, "import") == 0))
+		if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES)
+			PARSE_ERROR_LC(end->line_number, end->start_char, "Expected Bool expresssion but found empty expression");
+		struct NODE *expression_root = create_node(AST_EXPRESSION, current_parse_parent_node->module, current_file, start->line_number, start->start_char, start->end_char);
+		parse_expression_bounds(expression_root, start, end);
+		add_node(new_node, expression_root);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_BRACE);
+
+		NEXT_TOKEN(token);
+		struct NODE *old_parse_parent_node = current_parse_parent_node;
+		struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+		add_node(new_node, block);
+		current_parse_parent_node = block;
+		token = parse_block(token, true, 0);
+		current_parse_parent_node = old_parse_parent_node;
+		add_node(current_parse_parent_node, new_node);
+	}
+
+	else if(strcmp(token->string, "else") == 0)
+	{
+		struct NODE *new_node = create_node(AST_ELSE, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_BRACE);
+
+		NEXT_TOKEN(token);
+		struct NODE *old_parse_parent_node = current_parse_parent_node;
+		struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+		add_node(new_node, block);
+		current_parse_parent_node = block;
+		token = parse_block(token, true, 0);
+		current_parse_parent_node = old_parse_parent_node;
+		add_node(current_parse_parent_node, new_node);
+	}
+
+	else if(strcmp(token->string, "while") == 0) //You guessed it, an while loop
+	{
+		struct NODE *new_node = create_node(AST_WHILE, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_PARENTHESES);
+
+		NEXT_TOKEN(token);
+		struct TOKEN *start = token;
+		struct TOKEN *end = token;
+		while(token->type != TOKEN_CLOSE_PARENTHESES)
 		{
-			bool is_using = false;
-			if(strcmp(token->string, "using") == 0)
-			{
-				is_using = true;
-				NEXT_TOKEN(token);
-				expect(token, TOKEN_WORD);
-			}
-
+			end = token;
 			NEXT_TOKEN(token);
-			expect(token, TOKEN_WORD);
-
-			struct IMPORT_DATA *import_data = create_import_data(token->string, is_using, current_file, token->line_number);
-
-			if(current_parse_parent_node->first_import == NULL)
-			{
-				current_parse_parent_node->first_import = import_data;
-				current_parse_parent_node->last_import = import_data;
-			}
-			else
-			{
-				current_parse_parent_node->last_import->next = import_data;
-				current_parse_parent_node->last_import = import_data;
-			}
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_SEMICOLON);
-
-			token = token->next; //Don't check for EOF
 		}
 
-		else if(strcmp(token->string, "test") == 0)
+		if(start == end && start->next->type != TOKEN_CLOSE_PARENTHESES)
+			PARSE_ERROR_LC(end->line_number, end->start_char, "Expected Bool expresssion but found empty expression");
+		struct NODE *expression_root = create_node(AST_EXPRESSION, current_parse_parent_node->module, current_file, start->line_number, start->start_char, start->end_char);
+		parse_expression_bounds(expression_root, start, end);
+		add_node(new_node, expression_root);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_BRACE);
+
+		NEXT_TOKEN(token);
+		struct NODE *old_parse_parent_node = current_parse_parent_node;
+		struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+		add_node(new_node, block);
+		current_parse_parent_node = block;
+		token = parse_block(token, true, 0);
+		current_parse_parent_node = old_parse_parent_node;
+		add_node(current_parse_parent_node, new_node);
+	}
+
+	else if(strcmp(token->string, "break") == 0)
+	{
+		struct NODE *new_node = create_node(AST_BREAK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_SEMICOLON);
+
+		add_node(current_parse_parent_node, new_node);
+
+		token = token->next;
+	}
+
+	else if(strcmp(token->string, "continue") == 0)
+	{
+		struct NODE *new_node = create_node(AST_CONTINUE, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_SEMICOLON);
+
+		add_node(current_parse_parent_node, new_node);
+
+		token = token->next;
+	}
+
+	else if(strcmp(token->string, "return") == 0)
+	{
+		struct NODE *new_node = create_node(AST_RETURN, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+		NEXT_TOKEN(token);
+		if(token->type != TOKEN_SEMICOLON)
 		{
-			struct NODE *new_node = create_node(AST_TEST, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_STRING); //The test name
-			free(new_node->name);
-			new_node->name = strdup(token->string);
-
-			NEXT_TOKEN(token);
-			expect(token, TOKEN_OPEN_BRACE);
-			NEXT_TOKEN(token);
-
-			struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
-			add_node(new_node, block);
-			struct NODE *old_current_parse_parent_node = current_parse_parent_node;
-			current_parse_parent_node = block;
-			token = parse_block(token, true, 0);
-			current_parse_parent_node = old_current_parse_parent_node;
-
-			add_node(current_parse_parent_node, new_node);
+			struct NODE *expression = parse_expression_to_semicolon(&token, current_parse_parent_node->module);
+			add_node(new_node, expression);
 		}
 
-		else //Not a statement
+		add_node(current_parse_parent_node, new_node);
+
+		token = token->next;
+	}
+
+	else if(strcmp(token->string, "func") == 0) //You guessed it, a function declaration
+	{
+		struct NODE *new_node = create_node(AST_FUNC, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_COLON);
+
+		NEXT_TOKEN(token);
+		free_type(new_node->type);
+		new_node->type = parse_type(&token);
+
+		expect(token, TOKEN_WORD); //name of the function
+		free(new_node->name);
+		new_node->name = strdup(token->string);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_PARENTHESES);
+
+		NEXT_TOKEN(token);
+		struct TOKEN *start = token;
+		struct TOKEN *end = token;
+		while(token->type != TOKEN_CLOSE_PARENTHESES)
 		{
-			add_node(current_parse_parent_node, parse_expression_to_semicolon(&token, current_parse_parent_node->module));
-			expect(token, TOKEN_SEMICOLON);
-			token = token->next;
+			end = token;
+			NEXT_TOKEN(token);
+		}
+
+		if(start == end) //No arguments
+		{}
+		else //One or more arguments to parse
+		{
+			struct TOKEN *current_arg_token = start;
+			while(true)
+			{
+				expect(current_arg_token, TOKEN_WORD);
+				if(strcmp(current_arg_token->string, "let") != 0)
+					PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected function argument declaration to be variable declaration");
+				if(current_arg_token == end)
+					PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type");
+
+				NEXT_TOKEN(current_arg_token);
+				expect(current_arg_token, TOKEN_COLON);
+				if(current_arg_token == end)
+					PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type");
+
+				NEXT_TOKEN(current_arg_token);
+				struct TYPE_DATA *type = parse_type(&current_arg_token);
+
+				if(current_arg_token->type != TOKEN_WORD)
+					PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument name");
+				char *name = current_arg_token->string;
+
+				struct ARG_DATA *arg = create_arg_data(name, type, current_file, token->line_number);
+				if(new_node->first_arg == NULL)
+				{
+					new_node->first_arg = arg;
+					new_node->last_arg = arg;
+				}
+				else
+				{
+					new_node->last_arg->next = arg;
+					new_node->last_arg = arg;
+				}
+
+				if(current_arg_token == end)
+					break;
+
+				NEXT_TOKEN(current_arg_token);
+				expect(current_arg_token, TOKEN_COMMA);
+				NEXT_TOKEN(current_arg_token);
+			}
+		}
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_BRACE);
+
+		NEXT_TOKEN(token);
+		struct NODE *old_parse_parent_node = current_parse_parent_node;
+		struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+		add_node(new_node, block);
+		current_parse_parent_node = block;
+		token = parse_block(token, true, 0);
+		current_parse_parent_node = old_parse_parent_node;
+
+		if(current_parse_parent_node->first_func == NULL)
+		{
+			current_parse_parent_node->first_func = new_node;
+			current_parse_parent_node->last_func = new_node;
+		}
+		else
+		{
+			current_parse_parent_node->last_func->next = new_node;
+			current_parse_parent_node->last_func = new_node;
+		}
+
+		struct FUNC_PROTOTYPE *prototype = create_func_prototype(new_node);
+		if(first_func_prototype == NULL)
+		{
+			first_func_prototype = prototype;
+			last_func_prototype = prototype;
+		}
+		else
+		{
+			last_func_prototype->next = prototype;
+			last_func_prototype = prototype;
 		}
 	}
-	else
+
+	else if(strcmp(token->string, "struct") == 0) //You guessed it, a struct declaration
 	{
-		PARSE_ERROR_LC(token->line_number, token->start_char, "Unexpected token '%s' at beginning of new statement", token->string);
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_COLON);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_WORD); //Our name
+		struct NODE *new_node = create_node(AST_STRUCT, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+		free(new_node->name);
+		new_node->name = strdup(token->string);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_BRACE);
+		while(true)
+		{
+			//TODO: Parse field declarations
+
+			if(token->type == TOKEN_CLOSE_BRACE)
+				break;
+			NEXT_TOKEN(token);
+		}
+
+		add_node(current_parse_parent_node, new_node);
+
+		token = token->next; //Don't check for EOF
+	}
+
+	else if(strcmp(token->string, "import") == 0
+	        || (strcmp(token->string, "using") == 0 && token->next != NULL && strcmp(token->next->string, "import") == 0))
+	{
+		bool is_using = false;
+		if(strcmp(token->string, "using") == 0)
+		{
+			is_using = true;
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_WORD);
+		}
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_WORD);
+
+		struct IMPORT_DATA *import_data = create_import_data(token->string, is_using, current_file, token->line_number);
+
+		if(current_parse_parent_node->first_import == NULL)
+		{
+			current_parse_parent_node->first_import = import_data;
+			current_parse_parent_node->last_import = import_data;
+		}
+		else
+		{
+			current_parse_parent_node->last_import->next = import_data;
+			current_parse_parent_node->last_import = import_data;
+		}
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_SEMICOLON);
+
+		token = token->next; //Don't check for EOF
+	}
+
+	else if(strcmp(token->string, "test") == 0)
+	{
+		struct NODE *new_node = create_node(AST_TEST, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_STRING); //The test name
+		free(new_node->name);
+		new_node->name = strdup(token->string);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_BRACE);
+		NEXT_TOKEN(token);
+
+		struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+		add_node(new_node, block);
+		struct NODE *old_current_parse_parent_node = current_parse_parent_node;
+		current_parse_parent_node = block;
+		token = parse_block(token, true, 0);
+		current_parse_parent_node = old_current_parse_parent_node;
+
+		add_node(current_parse_parent_node, new_node);
+	}
+
+	else //Not a statement
+	{
+		add_node(current_parse_parent_node, parse_expression_to_semicolon(&token, current_parse_parent_node->module));
+		expect(token, TOKEN_SEMICOLON);
+		token = token->next;
 	}
 
 	return token;

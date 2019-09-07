@@ -153,3 +153,13 @@ test "Undefined variable" {
 
 	return true;
 }
+
+
+test "Expression statements" {
+	-5;
+	true;
+	13*-8;
+	'A';
+
+	return true;
+}
