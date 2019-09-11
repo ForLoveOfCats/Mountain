@@ -467,6 +467,22 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 
 				break;
 
+			case AST_ENUM:
+				fprintf(target, "typedef enum {");
+
+				struct NODE *entry = node->first_child;
+				while(entry != NULL)
+				{
+					assert(entry->node_type == AST_NAME);
+
+					fprintf(target, "symbol_%i,", entry->index);
+
+					entry = entry->next;
+				}
+
+				fprintf(target, "} symbol_%i;\n", node->index);
+				break;
+
 			case AST_FUNC:
 				break; //This is transpiled elsewhere
 
@@ -474,7 +490,7 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				break; //This is transpiled elsewhere
 
 			default:
-				printf("INTERNAL ERROR: We don't know how to transpile this statement\n");
+				printf("INTERNAL ERROR: We don't know how to transpile this statement %i\n", node->node_type);
 				exit(EXIT_FAILURE);
 		}
 
