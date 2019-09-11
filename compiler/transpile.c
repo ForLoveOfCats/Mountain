@@ -20,7 +20,7 @@ void prepare_file(FILE *target)
 }
 
 
-char *type_to_c(struct TYPE_DATA *type) //TODO: Make this not suck
+char *type_to_c(struct TYPE_DATA *type)
 {
 	if(strcmp(type->name, "u8") == 0)
 		return strdup("char");
@@ -48,8 +48,9 @@ char *type_to_c(struct TYPE_DATA *type) //TODO: Make this not suck
 		return output;
 	}
 
-	printf("Invalid type to transpile '%s'\n", type->name);
-	exit(EXIT_FAILURE);
+	char *output = malloc(sizeof(char)*100); //I hate this
+	sprintf(output, "symbol_%i", type->index);
+	return output;
 }
 
 
@@ -196,6 +197,37 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 	}
 
 	fprintf(target, ")");
+}
+
+
+void transpile_global_enums(FILE *target, struct NODE *root)
+{
+	assert(root->node_type == AST_MODULE);
+
+	struct NODE *node = root->first_child;
+	while(node != NULL)
+	{
+		if(node->node_type == AST_ENUM)
+		{
+			fprintf(target, "typedef enum {");
+
+			struct NODE *entry = node->first_child;
+			while(entry != NULL)
+			{
+				assert(entry->node_type == AST_NAME);
+
+				fprintf(target, "symbol_%i,", entry->index);
+
+				entry = entry->next;
+			}
+
+			fprintf(target, "} symbol_%i;\n", node->index);
+		}
+
+		node = node->next;
+	}
+
+	fprintf(target, "\n\n\n");
 }
 
 

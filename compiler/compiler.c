@@ -162,6 +162,13 @@ int main(int arg_count, char *arg_array[])
 		current_module = first_module;
 		while(current_module != NULL)
 		{
+			transpile_global_enums(output_file, current_module);
+			current_module = current_module->next;
+		}
+
+		current_module = first_module;
+		while(current_module != NULL)
+		{
 			prototype_globals(output_file, current_module);
 			current_module = current_module->next;
 		}

@@ -88,32 +88,49 @@ bool are_types_equal(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two)
 }
 
 
-void verify_type_valid(struct TYPE_DATA *type, bool allow_void, int line, int file)
+void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table, bool allow_void, int line, int file)
 {
+	#define disallow_child_type_and_return \
+	{ \
+		if(type->child != NULL) \
+			VALIDATE_ERROR_LF(line, file, "Type '%s' cannot have any child types", type->name); \
+		return;\
+	} \
+
 	if(strcmp(type->name, "Void") == 0)
 	{
 		if(allow_void)
-			return;
+			disallow_child_type_and_return;
 
 		VALIDATE_ERROR_LF(line, file, "Invalid type 'Void'");
 	}
 
 	else if(strcmp(type->name, "i32") == 0)
-		return;
+		disallow_child_type_and_return
 
 	else if(strcmp(type->name, "Bool") == 0)
-		return;
+		disallow_child_type_and_return
 
 	else if(strcmp(type->name, "u8") == 0)
-		return;
+		disallow_child_type_and_return
 
 	else if(strcmp(type->name, "Ptr") == 0)
 	{
 		if(type->child == NULL)
 			VALIDATE_ERROR_LF(line, file, "Pointer must have child type");
 
-		verify_type_valid(type->child, true, line, file);
+		verify_type_valid(type->child, symbol_table, true, line, file);
 		return;
+	}
+
+	struct SYMBOL *symbol = lookup_symbol(symbol_table, type->name, file, true);
+	if(symbol != NULL)
+	{
+		if(symbol->type == SYMBOL_ENUM)
+		{
+			type->index = symbol->enum_data->node->index;
+			disallow_child_type_and_return;
+		}
 	}
 
 	VALIDATE_ERROR_LF(line, file, "Unknown type '%s'", type->name);
@@ -133,7 +150,35 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	else if(node->node_type == AST_NAME)
 	{
 		//TODO: Extend this to support getting struct fields
-		//Until then we assume that it is reaching into a module
+		//Currently supports reaching into enum or module
+
+		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, true);
+		if(symbol != NULL && symbol->type == SYMBOL_ENUM)
+		{
+			assert(node->first_child != NULL && node->first_child->node_type == AST_GET);
+
+			bool found = false;
+			struct NODE *entry = symbol->enum_data->node->first_child;
+			while(entry != NULL)
+			{
+				assert(entry->node_type == AST_NAME);
+
+				if(strcmp(node->first_child->name, entry->name) == 0)
+				{
+					found = true;
+					node->first_child->index = entry->index;
+					break;
+				}
+
+				entry = entry->next;
+			}
+
+			if(!found)
+				VALIDATE_ERROR_LF(node->line_number, node->file, "The enum '%s' contains no entry '%s'",
+				                  node->name, node->first_child->name)
+
+			return copy_type(symbol->enum_data->node->type);
+		}
 
 		struct IMPORT_DATA *import_data = node->module->first_import;
 		while(import_data != NULL)
@@ -156,7 +201,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			import_data = import_data->next;
 		}
 
-		VALIDATE_ERROR_LF(node->line_number, node->file, "No module has been imported with the name '%s'", node->name);
+		VALIDATE_ERROR_LF(node->line_number, node->file, "No enum or imported module with the name '%s'", node->name);
 	}
 	else if(node->node_type == AST_GET)
 	{
@@ -321,15 +366,42 @@ void prevalidate_populate_module(struct NODE *module, struct SYMBOL_TABLE *symbo
 	{
 		if(node->node_type == AST_LET)
 		{
-			verify_type_valid(node->type, false, node->line_number, node->file);
+			node->symbol_table = symbol_table;
+
+			verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
 
 			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
-			if(symbol != NULL && symbol->type == SYMBOL_VAR)
-				VALIDATE_ERROR_LF(node->line_number, node->file, "Variable '%s' already exists", node->name);
+			if(symbol != NULL)
+				VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
 
 			node->index = next_index; //Not increasing as add_var will do that when creating the symbol
 			struct VAR_DATA *var = create_var(node->type);
 			add_var(symbol_table, node->name, var, node->file, node->line_number);
+		}
+
+		else if(node->node_type == AST_ENUM)
+		{
+			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
+			if(symbol != NULL)
+				VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
+
+			symbol = create_symbol(node->name, SYMBOL_ENUM, node->file, node->line_number);
+			symbol->enum_data = create_enum(node);
+			add_symbol(symbol_table, symbol);
+
+			struct NODE *entry = node->first_child;
+			while(entry != NULL)
+			{
+				entry->index = next_index;
+				next_index++;
+				entry = entry->next;
+			}
+
+			node->index = next_index;
+			next_index++;
+
+			free_type(node->type);
+			node->type = create_type(node->name);
 		}
 
 		node = node->next;
@@ -389,6 +461,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				case AST_LET:
 				case AST_FUNC:
 				case AST_TEST:
+				case AST_ENUM:
 				case AST_STRUCT:
 					break;
 
@@ -420,10 +493,12 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 
 				if(!root) //If we are in the root of the module then this has already been handled by prevalidate_populate_module
 				{
-					verify_type_valid(node->type, false, node->line_number, node->file);
+					node->symbol_table = symbol_table;
+
+					verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
 
 					struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, true);
-					if(symbol != NULL && symbol->type == SYMBOL_VAR)
+					if(symbol != NULL)
 						VALIDATE_ERROR_LF(node->line_number, node->file, "Variable '%s' already exists", node->name);
 
 					node->index = next_index; //Not increasing as add_var will do that when creating the symbol
@@ -440,6 +515,36 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 										 node->name, fatal_pretty_type_name(node->type), fatal_pretty_type_name(expression_type));
 					}
 					free_type(expression_type);
+				}
+
+				break;
+			}
+
+			case AST_ENUM:
+			{
+				if(!root) //If we are in the root of the module then this has already been handled by prevalidate_populate_module
+				{
+					struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
+					if(symbol != NULL)
+						VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
+
+					symbol = create_symbol(node->name, SYMBOL_ENUM, node->file, node->line_number);
+					symbol->enum_data = create_enum(node);
+					add_symbol(symbol_table, symbol);
+
+					struct NODE *entry = node->first_child;
+					while(entry != NULL)
+					{
+						entry->index = next_index;
+						next_index++;
+						entry = entry->next;
+					}
+
+					node->index = next_index;
+					next_index++;
+
+					free_type(node->type);
+					node->type = create_type(node->name);
 				}
 
 				break;
@@ -723,14 +828,15 @@ void validate_functions(struct NODE *block, struct SYMBOL_TABLE *root_symbol_tab
 		assert(node->first_child->node_type == AST_BLOCK);
 		assert(count_node_children(node) == 1);
 
-		verify_type_valid(node->type, true, node->line_number, node->file);
-
 		struct SYMBOL_TABLE *symbol_table = create_symbol_table(root_symbol_table, node->module);
+		node->symbol_table = symbol_table;
+
+		verify_type_valid(node->type, symbol_table, true, node->line_number, node->file);
 
 		struct ARG_DATA *arg = node->first_arg;
 		while(arg != NULL)
 		{
-			verify_type_valid(arg->type, false, node->line_number, node->file);
+			verify_type_valid(arg->type, symbol_table, false, node->line_number, node->file);
 
 			arg->index = next_index; //next_index is incremented in add_var
 			add_var(symbol_table, arg->name, create_var(arg->type), arg->file, arg->line_number);

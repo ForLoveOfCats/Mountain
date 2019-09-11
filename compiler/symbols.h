@@ -7,6 +7,7 @@
 
 #define FOREACH_SYMBOL_TYPE(TYPE) \
 	TYPE(SYMBOL_VAR) \
+	TYPE(SYMBOL_ENUM) \
 	TYPE(SYMBOL_STRUCT) \
 	TYPE(SYMBOL_FUNC) \
 
@@ -18,8 +19,15 @@ int next_index;
 
 struct TYPE_DATA //TODO: Add type paremeters
 {
+	int index;
 	char *name;
 	struct TYPE_DATA *child;
+};
+
+
+struct ENUM_DATA //Used for any type definition
+{
+	struct NODE *node;
 };
 
 
@@ -67,6 +75,7 @@ struct SYMBOL
 	int index; //Used for name mangling in tranpiled C source
 
 	struct VAR_DATA *var_data;
+	struct ENUM_DATA *enum_data;
 	struct STRUCT_DATA *struct_data;
 	struct FUNC_DATA *func_data;
 
@@ -95,6 +104,12 @@ struct TYPE_DATA *copy_type(struct TYPE_DATA *type);
 
 
 void free_type(struct TYPE_DATA *type);
+
+
+struct ENUM_DATA *create_enum(struct NODE *node);
+
+
+void free_enum(struct ENUM_DATA *enum_data);
 
 
 struct STRUCT_DATA *create_struct();

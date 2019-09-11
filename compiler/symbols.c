@@ -15,6 +15,7 @@ struct TYPE_DATA *create_type(char *name)
 {
 	struct TYPE_DATA *type = malloc(sizeof(struct TYPE_DATA));
 
+	type->index = -1;
 	type->name = strdup(name);
 	type->child = NULL;
 
@@ -40,6 +41,22 @@ void free_type(struct TYPE_DATA *type)
 		free_type(type->child);
 
 	free(type);
+}
+
+
+struct ENUM_DATA *create_enum(struct NODE *node)
+{
+	struct ENUM_DATA *enum_data = malloc(sizeof(struct ENUM_DATA));
+
+	enum_data->node = node;
+
+	return enum_data;
+}
+
+
+void free_enum(struct ENUM_DATA *enum_data)
+{
+	free(enum_data);
 }
 
 
@@ -72,6 +89,7 @@ struct SYMBOL *create_symbol(char *name, enum SYMBOL_TYPE type, int file, int li
 	next_index++;
 
 	symbol->var_data = NULL;
+	symbol->enum_data = NULL;
 	symbol->struct_data = NULL;
 	symbol->func_data = NULL;
 
@@ -87,6 +105,9 @@ void free_symbol(struct SYMBOL *symbol)
 
 	if(symbol->var_data != NULL)
 		free_var(symbol->var_data);
+
+	if(symbol->enum_data != NULL)
+		free_enum(symbol->enum_data);
 
 	if(symbol->struct_data != NULL)
 		free_struct(symbol->struct_data);

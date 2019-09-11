@@ -377,6 +377,18 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 					token->type = TOKEN_CLOSE_BRACE;
 					goto return_car_as_token;
 				}
+
+				case '[':
+				{
+					token->type = TOKEN_OPEN_BRACKET;
+					goto return_car_as_token;
+				}
+
+				case ']':
+				{
+					token->type = TOKEN_CLOSE_BRACKET;
+					goto return_car_as_token;
+				}
 			}
 		}
 
@@ -404,6 +416,8 @@ struct TOKEN *next_token_from_file(FILE *source_file)
 			case ')':
 			case '{':
 			case '}':
+			case '[':
+			case ']':
 			{
 				if(!in_token)
 					continue;
@@ -1273,6 +1287,44 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			last_func_prototype->next = prototype;
 			last_func_prototype = prototype;
 		}
+	}
+
+	else if(strcmp(token->string, "enum") == 0)
+	{
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_WORD); //The enum name
+		struct NODE *new_node = create_node(AST_ENUM, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+		free(new_node->name);
+		new_node->name = strdup(token->string);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_OPEN_BRACKET);
+
+		while(true)
+		{
+			NEXT_TOKEN(token);
+			if(token->type == TOKEN_COMMA)
+				NEXT_TOKEN(token);
+
+			if(token->type != TOKEN_WORD && token->type != TOKEN_CLOSE_BRACKET)
+				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected either '%s' or '%s' but found '%s'",
+				               token_type_name[TOKEN_WORD], token_type_name[TOKEN_CLOSE_BRACKET], token_type_name[token->type]);
+
+			if(token->type == TOKEN_CLOSE_BRACKET)
+				break;
+
+			expect(token, TOKEN_WORD);
+			struct NODE *entry = create_node(AST_NAME, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+			free(entry->name);
+			entry->name = strdup(token->string);
+			add_node(new_node, entry);
+		}
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_SEMICOLON);
+
+		add_node(current_parse_parent_node, new_node);
+		token = token->next; //Don't check for EOF
 	}
 
 	else if(strcmp(token->string, "struct") == 0) //You guessed it, a struct declaration
