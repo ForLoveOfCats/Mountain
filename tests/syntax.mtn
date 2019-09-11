@@ -179,3 +179,27 @@ test "Out of order global function" {
 func:Bool global_func() {
 	return true;
 }
+
+
+enum:GlobalEnum [FirstEntry, SecondEntry, ThirdEntry, ForthEntry, FifthEntry];
+
+test "Global enum" {
+	let:GlobalEnum instance = GlobalEnum.FirstEntry;
+
+	return instance == GlobalEnum.FirstEntry;
+}
+
+
+test "Local enum" {
+	enum:LocalEnum [A, B, C];
+
+	return LocalEnum.A != LocalEnum.B;
+}
+
+
+test "Out of order global enum" {
+	let:OutOfOrderGlobal instance = OutOfOrderGlobal.OptionB;
+	return instance == OutOfOrderGlobal.OptionB;
+}
+
+enum:OutOfOrderGlobal [OptionA, OptionB];
