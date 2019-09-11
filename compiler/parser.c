@@ -1292,6 +1292,9 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 	else if(strcmp(token->string, "enum") == 0)
 	{
 		NEXT_TOKEN(token);
+		expect(token, TOKEN_COLON);
+
+		NEXT_TOKEN(token);
 		expect(token, TOKEN_WORD); //The enum name
 		struct NODE *new_node = create_node(AST_ENUM, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 		free(new_node->name);
