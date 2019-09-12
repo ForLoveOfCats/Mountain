@@ -5,13 +5,14 @@
 * Custom structs
 * Methods on objects
 * Struct embedding
+* Optional late binding
 * Interfaces (for function arguments, code generation for static dispatch)
 * Function and struct generics
 * Overriding methods from embeded structs
 * Adding methods to imported structs
-* Method overloading
+* Function overloading
 * Operator overloading
-* Infix functions
+* Infix functions?
 * Some sort of foreach with iterators (interface?)
 * Native enum iteration
 * Native enum to string conversion
@@ -22,17 +23,15 @@
 * Built in build system
 * Standard library methods for working with UTF-8
 * Variable redeclaration with different type (see Rust's variable shadowing)
-* First class types
 * Type aliases
 * Inline type casting without enclosing value in parenthesis
-* First class functions
-* Inline function declaration
+* First class functions w/inline function declaration
 * Scope tags with named break
-* Block as expression which evaluates to a value
-* Don't have to worry about what order one delcares methods in (automatic
+* Block as expression which evaluate to a value
+* Don't have to worry about what order one delcares global symbols in (automatic
 function prototype in resulting C source)
 * Optionals
-* A `using` keyword to bring the contents of a value or type into scope
+* A `using` keyword to bring the contents of a value or module into scope
 * Syntax to run a block in the scope of a value inline (inline `using`)
 * Ability to instance any type on stack or heap (without anything like
 `malloc(sizeof(T))` followed by setting the fields. That is terrible)
@@ -41,6 +40,7 @@ function prototype in resulting C source)
 * Some form of metaprogramming/compiler time code generation
 * Modify collections while foreaching through them (possibly feasable?)
 * A language server for IDE features
-* Compile time code execution (bytecode interpreter or AST walker)
-* *Maybe eventually have* runtime code parsing and exectuion (bytecode
-interpreter or AST walker)
+* Compile time code execution
+* *Maybe eventually have* runtime code parsing and exectuion
+* *Maybe eventually have* C++ library support (This is a doozy of a
+  feature. C and C++ differ so much, let alone the differences between C++ and Mountain. TBD)
