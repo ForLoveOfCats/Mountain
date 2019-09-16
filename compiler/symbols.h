@@ -21,6 +21,7 @@ struct TYPE_DATA //TODO: Add type paremeters
 {
 	int index;
 	char *name;
+	char *reach_module;
 	struct TYPE_DATA *child;
 };
 

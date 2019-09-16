@@ -985,7 +985,22 @@ struct TYPE_DATA *parse_type(struct TOKEN **callsite_token)
 
 	expect(token, TOKEN_WORD);
 
-	struct TYPE_DATA *instance = create_type(token->string);
+	struct TYPE_DATA *instance;
+	if(token->next != NULL && token->next->type == TOKEN_PERIOD)
+	{
+		instance = create_type("");
+		instance->reach_module = strdup(token->string);
+
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_PERIOD); //Sanity check
+
+		NEXT_TOKEN(token);
+		free(instance->name);
+		instance->name = strdup(token->string);
+	}
+	else
+		instance = create_type(token->string);
+
 	token = token->next;
 
 	if(token->type == TOKEN_COLON)

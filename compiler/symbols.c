@@ -17,6 +17,7 @@ struct TYPE_DATA *create_type(char *name)
 
 	type->index = -1;
 	type->name = strdup(name);
+	type->reach_module = NULL;
 	type->child = NULL;
 
 	return type;
@@ -26,6 +27,9 @@ struct TYPE_DATA *create_type(char *name)
 struct TYPE_DATA *copy_type(struct TYPE_DATA *type)
 {
 	struct TYPE_DATA *new_type = create_type(type->name);
+	if(type->reach_module != NULL)
+		new_type->reach_module = strdup(type->reach_module);
+
 	if(type->child != NULL)
 		new_type->child = copy_type(type->child);
 
@@ -36,6 +40,7 @@ struct TYPE_DATA *copy_type(struct TYPE_DATA *type)
 void free_type(struct TYPE_DATA *type)
 {
 	free(type->name);
+	free(type->reach_module);
 
 	if(type->child != NULL)
 		free_type(type->child);
