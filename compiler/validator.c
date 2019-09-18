@@ -185,13 +185,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		{
 			if(strcmp(import_data->name, node->name) == 0)
 			{
-				struct NODE *module = first_module;
-				while(module != NULL) //eww
-				{
-					if(strcmp(module->name, node->name) == 0)
-						break;
-					module = module->next;
-				}
+				struct NODE *module = lookup_module(node->name);
 				assert(module != NULL);
 
 				if(import_data->file == node->file)
@@ -431,17 +425,8 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 		struct IMPORT_DATA *import_data = node->first_import;
 		while(import_data != NULL)
 		{
-			bool found = false;
-			struct NODE *module = first_module;
-			while(module != NULL)
-			{
-				if(strcmp(module->name, import_data->name) == 0)
-					found = true;
-
-				module = module->next;
-			}
-
-			if(!found)
+			struct NODE *module = lookup_module(import_data->name);
+			if(module == NULL)
 				VALIDATE_ERROR_LF(import_data->line_number, import_data->file,
 				                  "No module named '%s'", import_data->name);
 

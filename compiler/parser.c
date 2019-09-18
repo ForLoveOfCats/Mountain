@@ -1506,20 +1506,8 @@ void parse_file(FILE *file)
 	NEXT_TOKEN(token);
 	expect(token, TOKEN_WORD);
 
-	bool found = false;
-	struct NODE *module_root = first_module;
-	while(module_root != NULL)
-	{
-		if(strcmp(module_root->name, token->string) == 0)
-		{
-			found = true;
-			break;
-		}
-
-		module_root = module_root->next;
-	}
-
-	if(!found)
+	struct NODE *module_root = lookup_module(token->string);
+	if(module_root == NULL)
 	{
 		module_root = create_node(AST_MODULE, NULL, -1, -1, -1, -1);
 		module_root->module = module_root;

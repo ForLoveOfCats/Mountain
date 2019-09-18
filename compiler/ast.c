@@ -11,6 +11,21 @@
 
 
 
+struct NODE *lookup_module(char *name)
+{
+	struct NODE *module = first_module;
+	while(module != NULL)
+	{
+		if(strcmp(module->name, name) == 0)
+			return module;
+
+		module = module->next;
+	}
+
+	return NULL;
+}
+
+
 struct IMPORT_DATA *create_import_data(char *name, bool is_using, int file, int line_number)
 {
 	struct IMPORT_DATA *new_import_data = malloc(sizeof(struct IMPORT_DATA));

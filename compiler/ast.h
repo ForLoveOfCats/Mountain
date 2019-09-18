@@ -130,6 +130,9 @@ struct FUNC_PROTOTYPE
 };
 
 
+struct NODE *lookup_module(char *name);
+
+
 struct IMPORT_DATA *create_import_data(char *name, bool is_using, int file, int line_number);
 
 
