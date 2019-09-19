@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <execinfo.h>
 
 #include "compiler.h"
 #include "ast.h"
@@ -63,7 +64,9 @@ bool type_is_number(char *type)
 
 bool are_types_equal(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two)
 {
-	if(strcmp(type_one->name, type_two->name) != 0)
+	assert(type_one->type != 0 && type_two->type != 0);
+
+	if(type_one->type != type_two->type)
 		return false;
 
 	if(type_one->child == NULL && type_two->child == NULL)
@@ -77,9 +80,9 @@ bool are_types_equal(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two)
 
 		//Both children are not null
 
-		if(strcmp(type_one->name, "Ptr") == 0 && strcmp(type_two->name, "Ptr") == 0)
+		if(type_one->type == TypePtr && type_two->type == TypePtr)
 		{
-			if(strcmp(type_one->child->name, "Void") == 0 || strcmp(type_two->child->name, "Void") == 0)
+			if(type_one->child->type == TypeVoid || type_two->child->type == TypeVoid)
 				return true; //A Void:Ptr equals type with T:Ptr of any type T
 		}
 
@@ -90,6 +93,9 @@ bool are_types_equal(struct TYPE_DATA *type_one, struct TYPE_DATA *type_two)
 
 void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table, bool allow_void, int line, int file)
 {
+	if(type->type != 0) //We've already run
+		return; //We know it's valid
+
 	#define disallow_child_type_and_return \
 	{ \
 		if(type->child != NULL) \
@@ -99,6 +105,8 @@ void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table
 
 	if(strcmp(type->name, "Void") == 0)
 	{
+		type->type = TypeVoid;
+
 		if(allow_void)
 			disallow_child_type_and_return;
 
@@ -106,16 +114,27 @@ void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table
 	}
 
 	else if(strcmp(type->name, "i32") == 0)
-		disallow_child_type_and_return
+	{
+		type->type = Typei32;
+		disallow_child_type_and_return;
+	}
 
 	else if(strcmp(type->name, "Bool") == 0)
-		disallow_child_type_and_return
+	{
+		type->type = TypeBool;
+		disallow_child_type_and_return;
+	}
 
 	else if(strcmp(type->name, "u8") == 0)
-		disallow_child_type_and_return
+	{
+		type->type = Typeu8;
+		disallow_child_type_and_return;
+	}
 
 	else if(strcmp(type->name, "Ptr") == 0)
 	{
+		type->type = TypePtr;
+
 		if(type->child == NULL)
 			VALIDATE_ERROR_LF(line, file, "Pointer must have child type");
 
@@ -129,6 +148,7 @@ void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table
 		if(symbol->type == SYMBOL_ENUM)
 		{
 			type->index = symbol->enum_data->node->index;
+			type->type = type->index;
 			disallow_child_type_and_return;
 		}
 	}
@@ -145,6 +165,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	}
 	else if(node->node_type == AST_LITERAL)
 	{
+		verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
 		return copy_type(node->type);
 	}
 	else if(node->node_type == AST_NAME)
@@ -177,6 +198,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 				VALIDATE_ERROR_LF(node->line_number, node->file, "The enum '%s' contains no entry '%s'",
 				                  node->name, node->first_child->name)
 
+			verify_type_valid(symbol->enum_data->node->type, symbol_table, false, node->line_number, node->file);
 			return copy_type(symbol->enum_data->node->type);
 		}
 
@@ -258,6 +280,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 					VALIDATE_ERROR_LF(node->line_number, node->file, "Can only take the address of an lvalue");
 
 				struct TYPE_DATA *type = create_type("Ptr");
+				type->type = TypePtr;
 				type->child = child_type;
 				return type;
 			}
@@ -283,7 +306,10 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	else if(node->node_type == AST_OP)
 	{
 		struct TYPE_DATA *left_type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);
+		verify_type_valid(left_type, symbol_table, false, node->first_child->line_number, node->first_child->file);
+
 		struct TYPE_DATA *right_type = typecheck_expression(node->last_child, symbol_table, global, search_using_imports, level + 1);
+		verify_type_valid(right_type, symbol_table, false, node->last_child->line_number, node->last_child->file);
 
 		if(!are_types_equal(left_type, right_type))
 			VALIDATE_ERROR_LF(node->line_number, node->file,
@@ -494,7 +520,7 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				if(child_count == 1)
 				{
 					struct TYPE_DATA *expression_type = typecheck_expression(node->first_child, symbol_table, root, true, 0);
-					if(!are_types_equal(expression_type, node->type))
+					if(!are_types_equal(node->type, expression_type))
 					{
 						VALIDATE_ERROR_LF(node->line_number, node->file, "Type mismatch declaring variable '%s' of type '%s' with expression of type '%s'",
 										 node->name, fatal_pretty_type_name(node->type), fatal_pretty_type_name(expression_type));

@@ -140,7 +140,7 @@ int main(int arg_count, char *arg_array[])
 	}
 	current_file = -1;
 
-	next_index = 0;
+	next_index = 1;
 	struct NODE *current_module = first_module;
 	while(current_module != NULL)
 	{

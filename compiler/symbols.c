@@ -16,6 +16,7 @@ struct TYPE_DATA *create_type(char *name)
 	struct TYPE_DATA *type = malloc(sizeof(struct TYPE_DATA));
 
 	type->index = -1;
+	type->type = 0; //Zero is the invalid state for this field
 	type->name = strdup(name);
 	type->reach_module = NULL;
 	type->child = NULL;
@@ -27,6 +28,9 @@ struct TYPE_DATA *create_type(char *name)
 struct TYPE_DATA *copy_type(struct TYPE_DATA *type)
 {
 	struct TYPE_DATA *new_type = create_type(type->name);
+
+	new_type->type = type->type;
+
 	if(type->reach_module != NULL)
 		new_type->reach_module = strdup(type->reach_module);
 

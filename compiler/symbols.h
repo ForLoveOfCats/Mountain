@@ -5,6 +5,14 @@
 
 
 
+#define TypeVoid -1
+#define TypeBool -2
+#define Typei32 -3
+#define Typeu8 -4
+#define TypePtr -5
+
+
+
 #define FOREACH_SYMBOL_TYPE(TYPE) \
 	TYPE(SYMBOL_VAR) \
 	TYPE(SYMBOL_ENUM) \
@@ -20,6 +28,7 @@ int next_index;
 struct TYPE_DATA //TODO: Add type paremeters
 {
 	int index;
+	int type;
 	char *name;
 	char *reach_module;
 	struct TYPE_DATA *child;

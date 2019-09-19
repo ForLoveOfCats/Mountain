@@ -22,19 +22,19 @@ void prepare_file(FILE *target)
 
 char *type_to_c(struct TYPE_DATA *type)
 {
-	if(strcmp(type->name, "u8") == 0)
+	if(type->type == Typeu8)
 		return strdup("char");
 
-	if(strcmp(type->name, "i32") == 0)
+	if(type->type == Typei32)
 		return strdup("int");
 
-	if(strcmp(type->name, "Bool") == 0)
+	if(type->type == TypeBool)
 		return strdup("bool");
 
-	if(strcmp(type->name, "Void") == 0)
+	if(type->type == TypeVoid)
 		return strdup("void");
 
-	if(strcmp(type->name, "Ptr") == 0)
+	if(type->type == TypePtr)
 	{
 		char *child_transpiled = type_to_c(type->child);
 		int child_transpiled_len = strlen(child_transpiled);
