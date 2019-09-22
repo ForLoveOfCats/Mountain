@@ -202,6 +202,9 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			return copy_type(symbol->enum_data->node->type);
 		}
 
+		if(strcmp(node->name, node->module->name) == 0)
+			return typecheck_expression(node->first_child, node->module->symbol_table, global, false, level + 1);
+
 		struct IMPORT_DATA *import_data = node->module->first_import;
 		while(import_data != NULL)
 		{

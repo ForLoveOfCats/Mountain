@@ -203,3 +203,10 @@ test "Out of order global enum" {
 }
 
 enum:OutOfOrderGlobal [OptionA, OptionB];
+
+
+test "Specify same module" {
+	let:GlobalEnum instance = SyntaxTests.GlobalEnum.ThirdEntry;
+
+	return instance == GlobalEnum.ThirdEntry;
+}
