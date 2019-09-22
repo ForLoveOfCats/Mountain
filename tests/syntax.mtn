@@ -8,6 +8,19 @@ using import ToUsingImport;
 
 
 
+test "Character literals" { //Mostly just checks the parsing ATM
+	let:u8 first_char_variable = ' ';
+	let:u8 second_char_variable = 'a';
+	let:u8 third_char_variable = '\n';
+	let:u8 forth_char_variable = '\r';
+	let:u8 fifth_char_variable = '\t';
+	let:u8 sixth_char_variable = '\'';
+	let:u8 seventh_char_variable = '\\';
+
+	return seventh_char_variable == '\\';
+}
+
+
 test "Constant if" {
 	if(true) {
 		return true;
