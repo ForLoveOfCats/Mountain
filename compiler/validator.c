@@ -142,18 +142,50 @@ void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table
 		return;
 	}
 
-	struct SYMBOL *symbol = lookup_symbol(symbol_table, type->name, file, true);
-	if(symbol != NULL)
-	{
-		if(symbol->type == SYMBOL_ENUM)
-		{
-			type->index = symbol->enum_data->node->index;
-			type->type = type->index;
-			disallow_child_type_and_return;
-		}
-	}
+	struct SYMBOL *symbol = NULL;
 
-	VALIDATE_ERROR_LF(line, file, "Unknown type '%s'", type->name);
+	if(type->reach_module != NULL)
+	{
+		if(strcmp(type->reach_module, symbol_table->module->name) == 0)
+			symbol = lookup_symbol(symbol_table->module->symbol_table, type->name, file, true);
+
+		else
+		{
+			bool found = false;
+			struct IMPORT_DATA *import_data = symbol_table->module->first_import;
+			while(import_data != NULL)
+			{
+				if(strcmp(import_data->name, type->reach_module) == 0)
+				{
+					struct NODE *module = lookup_module(type->reach_module);
+					assert(module != NULL);
+					found = true;
+
+					symbol = lookup_symbol(module->symbol_table, type->name, file, true);
+
+					break;
+				}
+
+				import_data = import_data->next;
+			}
+
+			if(!found)
+				VALIDATE_ERROR_LF(line, file, "No module has been imported with the name '%s'", type->reach_module);
+		}
+
+	}
+	else
+		symbol = lookup_symbol(symbol_table, type->name, file, true);
+
+	if(symbol == NULL)
+		VALIDATE_ERROR_LF(line, file, "Unknown type '%s'", fatal_pretty_type_name(type));
+
+	if(symbol->type == SYMBOL_ENUM)
+	{
+		type->index = symbol->enum_data->node->index;
+		type->type = type->index;
+		disallow_child_type_and_return;
+	}
 }
 
 

@@ -3,6 +3,9 @@
 
 module SyntaxTests;
 
+import ToImport;
+using import ToUsingImport;
+
 
 
 test "Constant if" {
@@ -206,7 +209,21 @@ enum:OutOfOrderGlobal [OptionA, OptionB];
 
 
 test "Specify same module" {
-	let:GlobalEnum instance = SyntaxTests.GlobalEnum.ThirdEntry;
+	let:GlobalEnum first_instance = GlobalEnum.ThirdEntry;
+	let:SyntaxTests.GlobalEnum second_instance = SyntaxTests.GlobalEnum.ThirdEntry;
 
-	return instance == GlobalEnum.ThirdEntry;
+	return first_instance == second_instance;
+}
+
+
+test "Imported enum" {
+	let:ToImport.AnotherEnum instance = ToImport.AnotherEnum.Green;
+
+	return true;
+}
+
+
+test "Using import enum" {
+	let:SomeEnum instance = SomeEnum.Ten; //Imported via from ToUsingImport with "using import"
+	return instance == SomeEnum.Ten;
 }

@@ -1,0 +1,6 @@
+module ToImport;
+
+
+
+enum:AnotherEnum [Red, Green, Blue];
+
