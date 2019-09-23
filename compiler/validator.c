@@ -369,7 +369,9 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		{
 			free_type(left_type);
 			free_type(right_type);
-			return create_type("Bool");
+			struct TYPE_DATA *type = create_type("Bool");
+			type->type = TypeBool;
+			return type;
 		}
 
 		else if(node->op_type == OP_ADD

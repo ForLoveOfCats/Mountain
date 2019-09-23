@@ -80,7 +80,7 @@ test "Function call elif" {
 
 test "Inner function" {
 	func:Bool inner_function() {
-		return true;
+		return true == true;
 	}
 
 	return inner_function();
