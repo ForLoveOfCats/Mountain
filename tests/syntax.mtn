@@ -79,11 +79,11 @@ test "Function call elif" {
 
 
 test "Inner function" {
-	func:Bool inner_function() {
+	func:Bool inner_function(let:Bool arg) {
 		return true == true;
 	}
 
-	return inner_function();
+	return inner_function(true);
 }
 
 

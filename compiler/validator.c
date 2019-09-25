@@ -798,6 +798,15 @@ void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *b
 	struct NODE *node = block->first_func;
 	while(node != NULL)
 	{
+		verify_type_valid(node->type, symbol_table, true, node->line_number, node->file);
+
+		struct ARG_DATA *arg = node->first_arg;
+		while(arg != NULL)
+		{
+			verify_type_valid(arg->type, symbol_table, false, node->line_number, node->file);
+			arg = arg->next;
+		}
+
 		struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_FUNC, node->file, node->line_number);
 
 		struct FUNC_DATA *func_data = create_func(node->type);
