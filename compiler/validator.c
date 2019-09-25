@@ -53,12 +53,20 @@ char *fatal_pretty_type_name(struct TYPE_DATA *type)
 }
 
 
-bool type_is_number(char *type)
+bool type_is_number(struct TYPE_DATA *type)
 {
-	if(strcmp(type, "i32") == 0)
-		return true;
+	assert(type->type != 0);
 
-	return false;
+	switch(type->type)
+	{
+		case Typeu8:
+		case Typei32:
+		case TypePtr:
+			return true;
+
+		default:
+			return false;
+	}
 }
 
 
@@ -379,7 +387,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 				|| node->op_type == OP_MUL
 				|| node->op_type == OP_DIV)
 		{
-			if(!type_is_number(left_type->name) || !type_is_number(right_type->name))
+			if(!type_is_number(left_type) || !type_is_number(right_type))
 				VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot perform arithmetic on one or more non-numerical values");
 
 			free_type(right_type);
@@ -397,7 +405,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		assert(count_node_children(node) == 1);
 
 		struct TYPE_DATA *type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);
-		if(!type_is_number(type->name))
+		if(!type_is_number(type))
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot negate non-numerical value");
 
 		return type;
