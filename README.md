@@ -31,11 +31,10 @@ things should change or be improved. Performance could be improved by
 fixing a few rather egregious design cases (symbol lookup is a worst
 case O(n) while loop checking each symbol with strcmp, the nodes
 should be tagged unions, I should be using string interning,
-ect). However I don't really care right now. This compiler is being
-designed to be good enough to be useful and then be thrown out. My
-main goal right now is to get the langauge useful. Then a far superior
-self-hosted compiler with better validation, performance, and even a
-language server can be developed in-language.
+ect). Originally this compiler was being built to be thrown away once
+a self-hosted compiler could be built. However now the goal is to port
+this codebase into Mountain so these design oversights are slowly
+being corrected.
 
 ### Currently supported features
 * Variable declaration (requires a value or explicitly left undefined)

@@ -5,25 +5,24 @@
 * Custom structs
 * Methods on objects
 * Struct embedding
-* Optional late binding
-* Interfaces (for function arguments, code generation for static dispatch)
+* Interfaces
+* Code generation for static dispath wherever possible
+* Optional late binding when needed
 * Function and struct generics
 * Overriding methods from embeded structs
 * Adding methods to imported structs
 * Function overloading
 * Operator overloading
-* Infix functions?
 * Some sort of foreach with iterators (interface?)
 * Native enum iteration
 * Native enum to string conversion
 * Standardized pretty and debug to string interfaces
 * Inline string building (see C#'s string interpolation)
 * Defer statement
-* A module system
+* A module system (file path agnostic)
 * Built in build system
 * Standard library methods for working with UTF-8
-* Variable redeclaration with different type (see Rust's variable shadowing)
-* Type aliases
+* Type aliases (with distinct types)
 * Inline type casting without enclosing value in parenthesis
 * First class functions w/inline function declaration
 * Scope tags with named break
