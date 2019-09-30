@@ -226,8 +226,6 @@ void transpile_enums(FILE *target, struct NODE *block)
 
 		node = node->next;
 	}
-
-	fprintf(target, "\n\n\n");
 }
 
 
