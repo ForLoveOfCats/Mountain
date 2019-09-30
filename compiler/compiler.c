@@ -145,7 +145,7 @@ int main(int arg_count, char *arg_array[])
 	while(current_module != NULL)
 	{
 		struct SYMBOL_TABLE *root_symbol_table = create_symbol_table(NULL, current_module);
-		prevalidate_populate_module(current_module, root_symbol_table);
+		prevalidate_block(current_module, root_symbol_table);
 
 		current_module = current_module->next;
 	}
@@ -162,7 +162,7 @@ int main(int arg_count, char *arg_array[])
 		current_module = first_module;
 		while(current_module != NULL)
 		{
-			transpile_global_enums(output_file, current_module);
+			transpile_enums(output_file, current_module);
 			current_module = current_module->next;
 		}
 

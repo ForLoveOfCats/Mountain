@@ -418,18 +418,17 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 }
 
 
-void prevalidate_populate_module(struct NODE *module, struct SYMBOL_TABLE *symbol_table)
+void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 {
-	assert(module->node_type == AST_MODULE);
-	assert(module->symbol_table == NULL);
+	assert(block->symbol_table == NULL);
 
-	module->symbol_table = symbol_table;
-	populate_function_symbols(symbol_table, module);
+	block->symbol_table = symbol_table;
+	populate_function_symbols(symbol_table, block);
 
-	struct NODE *node = module->first_child;
+	struct NODE *node = block->first_child;
 	while(node != NULL)
 	{
-		if(node->node_type == AST_LET)
+		if(node->node_type == AST_LET && block->node_type == AST_MODULE) //TODO: Remove this little bit of duplicated code
 		{
 			node->symbol_table = symbol_table;
 
@@ -478,12 +477,12 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 {
 	assert(node->node_type == AST_BLOCK || node->node_type == AST_MODULE);
 	assert(level >= 0);
-	node->symbol_table = symbol_table;
 
 	struct NODE *block = node;
 
 	if(!root)
-		populate_function_symbols(symbol_table, block);
+		prevalidate_block(node, symbol_table);
+	assert(block->symbol_table != NULL);
 
 	if(node->first_import != NULL && !root)
 	{
@@ -578,31 +577,6 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 
 			case AST_ENUM:
 			{
-				if(!root) //If we are in the root of the module then this has already been handled by prevalidate_populate_module
-				{
-					struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
-					if(symbol != NULL)
-						VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
-
-					symbol = create_symbol(node->name, SYMBOL_ENUM, node->file, node->line_number);
-					symbol->enum_data = create_enum(node);
-					add_symbol(symbol_table, symbol);
-
-					struct NODE *entry = node->first_child;
-					while(entry != NULL)
-					{
-						entry->index = next_index;
-						next_index++;
-						entry = entry->next;
-					}
-
-					node->index = next_index;
-					next_index++;
-
-					free_type(node->type);
-					node->type = create_type(node->name);
-				}
-
 				break;
 			}
 

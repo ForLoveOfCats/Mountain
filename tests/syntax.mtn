@@ -197,6 +197,25 @@ func:Bool global_func() {
 }
 
 
+test "Local function"{
+	func:Bool local_func() {
+		return true;
+	}
+
+	return local_func();
+}
+
+
+test "Out of order local function"{
+	return local_func();
+
+	func:Bool local_func() {
+		return true;
+	}
+
+}
+
+
 enum:GlobalEnum [FirstEntry, SecondEntry, ThirdEntry, ForthEntry, FifthEntry];
 
 test "Global enum" {
@@ -226,6 +245,13 @@ test "Specify same module" {
 	let:SyntaxTests.GlobalEnum second_instance = SyntaxTests.GlobalEnum.ThirdEntry;
 
 	return first_instance == second_instance;
+}
+
+
+test "Out of order local enum" {
+	return LocalEnum.A != LocalEnum.B;
+
+	enum:LocalEnum [A, B, C];
 }
 
 

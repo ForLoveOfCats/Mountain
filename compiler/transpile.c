@@ -200,11 +200,11 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 }
 
 
-void transpile_global_enums(FILE *target, struct NODE *root)
+void transpile_enums(FILE *target, struct NODE *block)
 {
-	assert(root->node_type == AST_MODULE);
+	assert(block->node_type == AST_BLOCK || block->node_type == AST_MODULE);
 
-	struct NODE *node = root->first_child;
+	struct NODE *node = block->first_child;
 	while(node != NULL)
 	{
 		if(node->node_type == AST_ENUM)
@@ -378,9 +378,11 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 {
 	assert(level >= 0);
 	assert(node->node_type == AST_BLOCK);
-	node = node->first_child;
 
 	fprintf(target, "{\n");
+	transpile_enums(target, node);
+
+	node = node->first_child;
 
 	//"foreach" node
 	while(node != NULL)
@@ -468,26 +470,11 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 				break;
 
 			case AST_ENUM:
-				fprintf(target, "typedef enum {");
-
-				struct NODE *entry = node->first_child;
-				while(entry != NULL)
-				{
-					assert(entry->node_type == AST_NAME);
-
-					fprintf(target, "symbol_%i,", entry->index);
-
-					entry = entry->next;
-				}
-
-				fprintf(target, "} symbol_%i;\n", node->index);
-				break;
-
 			case AST_FUNC:
-				break; //This is transpiled elsewhere
+				break; //These are transpiled elsewhere
 
 			case AST_STRUCT:
-				break; //This is transpiled elsewhere
+				break; //This is not currently transpiled
 
 			default:
 				printf("INTERNAL ERROR: We don't know how to transpile this statement %i\n", node->node_type);
