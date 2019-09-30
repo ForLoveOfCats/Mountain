@@ -222,16 +222,14 @@ int main(int arg_count, char *arg_array[])
 	fprintf(output_file, "\n\nexit(EXIT_SUCCESS);\n}\n");
 	fclose(output_file);
 
+	current_module = first_module;
+	while(current_module != NULL)
 	{
-		current_module = first_module;
-		while(current_module != NULL)
-		{
-			free_table_tree(current_module->symbol_table);
+		free_table_tree(current_module->symbol_table);
 
-			struct NODE *next_module = current_module->next;
-			free_tree(current_module);
-			current_module = next_module;
-		}
+		struct NODE *next_module = current_module->next;
+		free_tree(current_module);
+		current_module = next_module;
 	}
 
 	free_func_prototype_list(first_func_prototype);
