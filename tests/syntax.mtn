@@ -216,6 +216,7 @@ test "Out of order local function"{
 }
 
 
+let:GlobalEnum global_var_out_of_order_enum = GlobalEnum.ThirdEntry;
 enum:GlobalEnum [FirstEntry, SecondEntry, ThirdEntry, ForthEntry, FifthEntry];
 
 test "Global enum" {
