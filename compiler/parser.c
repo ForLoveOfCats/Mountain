@@ -1196,7 +1196,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		token = token->next;
 	}
 
-	else if(strcmp(token->string, "func") == 0) //You guessed it, a function declaration
+	else if(strcmp(token->string, "func") == 0)
 	{
 		struct NODE *new_node = create_node(AST_FUNC, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 
@@ -1280,16 +1280,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		token = parse_block(token, true, 0);
 		current_parse_parent_node = old_parse_parent_node;
 
-		if(current_parse_parent_node->first_func == NULL)
-		{
-			current_parse_parent_node->first_func = new_node;
-			current_parse_parent_node->last_func = new_node;
-		}
-		else
-		{
-			current_parse_parent_node->last_func->next = new_node;
-			current_parse_parent_node->last_func = new_node;
-		}
+		add_node(current_parse_parent_node, new_node);
 
 		struct FUNC_PROTOTYPE *prototype = create_func_prototype(new_node);
 		if(first_func_prototype == NULL)

@@ -81,9 +81,6 @@ struct NODE
 	struct NODE *first_child;
 	struct NODE *last_child;
 
-	struct NODE *first_func;
-	struct NODE *last_func;
-
 	struct IMPORT_DATA *first_import;
 	struct IMPORT_DATA *last_import;
 

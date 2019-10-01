@@ -62,9 +62,6 @@ struct NODE *create_node(enum AST_TYPE type, struct NODE *module, int file, int 
 	new_node->first_child = NULL;
 	new_node->last_child = NULL;
 
-	new_node->first_func = NULL;
-	new_node->last_func = NULL;
-
 	new_node->first_import = NULL;
 	new_node->last_import = NULL;
 
@@ -181,15 +178,6 @@ void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 		free_type(arg->type);
 		free(arg);
 		arg = next_arg;
-	}
-
-	struct NODE *func = node->first_func;
-	struct NODE *next_func = NULL;
-	while(func != NULL)
-	{
-		next_func = func->next;
-		free_tree(func);
-		func = next_func;
 	}
 
 	struct IMPORT_DATA *import_data = node->first_import;
