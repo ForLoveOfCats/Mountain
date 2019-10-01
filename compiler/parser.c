@@ -1349,7 +1349,9 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		NEXT_TOKEN(token);
 		struct NODE *old_parse_parent_node = current_parse_parent_node;
-		current_parse_parent_node = new_node;
+		struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+		add_node(new_node, block);
+		current_parse_parent_node = block;
 		token = parse_block(token, true, 0);
 		current_parse_parent_node = old_parse_parent_node;
 

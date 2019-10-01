@@ -455,13 +455,16 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 
 		if(node->node_type == AST_STRUCT)
 		{
+			assert(node->first_child->node_type == AST_BLOCK);
+			assert(count_node_children(node) == 1);
+
 			struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
 			symbol->struct_data = create_struct();
 			symbol->struct_data->index = next_index;
 			next_index++;
 			add_symbol(symbol_table, symbol);
 
-			struct NODE *child = node->first_child;
+			struct NODE *child = node->first_child->first_child;
 			while(child != NULL)
 			{
 				if(child->node_type != AST_LET)
