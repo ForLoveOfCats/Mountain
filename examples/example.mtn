@@ -8,8 +8,8 @@ using import YetAnotherModule;
 
 
 
-struct:MyType { //Structs are currently only parsed
-	let:Bool field = true; //Fields are not parsed at all yet
+struct:MyType { //Structs are currently only parsed and validated
+	let:Bool field = undefined;
 }
 
 

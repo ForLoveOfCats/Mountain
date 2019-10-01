@@ -453,6 +453,27 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 			node->type = create_type(node->name);
 		}
 
+		if(node->node_type == AST_STRUCT)
+		{
+			struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
+				symbol->struct_data = create_struct();
+				symbol->struct_data->index = next_index;
+				next_index++;
+				add_symbol(symbol_table, symbol);
+
+				struct NODE *child = node->first_child;
+				while(child != NULL)
+				{
+					if(child->node_type != AST_LET)
+						VALIDATE_ERROR_LF(child->line_number, child->file, "Struct '%s' can only contain variable declarations", node->name);
+
+					if(child->first_child != NULL)
+						VALIDATE_ERROR_LF(child->line_number, child->file, "Field '%s' must have undefined contents", child->name);
+
+					child = child->next;
+				}
+		}
+
 		node = node->next;
 	}
 
@@ -584,10 +605,9 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 				break;
 			}
 
+			case AST_STRUCT:
 			case AST_ENUM:
-			{
 				break;
-			}
 
 			case AST_IF:
 			case AST_ELIF:
@@ -722,17 +742,6 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 						free_type(type);
 					}
 				}
-
-				break;
-			}
-
-			case AST_STRUCT:
-			{
-				struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
-				symbol->struct_data = create_struct();
-				symbol->struct_data->index = next_index;
-				next_index++;
-				add_symbol(symbol_table, symbol);
 
 				break;
 			}

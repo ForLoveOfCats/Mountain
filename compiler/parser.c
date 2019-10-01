@@ -1358,18 +1358,14 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		NEXT_TOKEN(token);
 		expect(token, TOKEN_OPEN_BRACE);
-		while(true)
-		{
-			//TODO: Parse field declarations
 
-			if(token->type == TOKEN_CLOSE_BRACE)
-				break;
-			NEXT_TOKEN(token);
-		}
+		NEXT_TOKEN(token);
+		struct NODE *old_parse_parent_node = current_parse_parent_node;
+		current_parse_parent_node = new_node;
+		token = parse_block(token, true, 0);
+		current_parse_parent_node = old_parse_parent_node;
 
 		add_node(current_parse_parent_node, new_node);
-
-		token = token->next; //Don't check for EOF
 	}
 
 	else if(strcmp(token->string, "import") == 0
