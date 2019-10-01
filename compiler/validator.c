@@ -456,22 +456,22 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 		if(node->node_type == AST_STRUCT)
 		{
 			struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
-				symbol->struct_data = create_struct();
-				symbol->struct_data->index = next_index;
-				next_index++;
-				add_symbol(symbol_table, symbol);
+			symbol->struct_data = create_struct();
+			symbol->struct_data->index = next_index;
+			next_index++;
+			add_symbol(symbol_table, symbol);
 
-				struct NODE *child = node->first_child;
-				while(child != NULL)
-				{
-					if(child->node_type != AST_LET)
-						VALIDATE_ERROR_LF(child->line_number, child->file, "Struct '%s' can only contain variable declarations", node->name);
+			struct NODE *child = node->first_child;
+			while(child != NULL)
+			{
+				if(child->node_type != AST_LET)
+					VALIDATE_ERROR_LF(child->line_number, child->file, "Struct '%s' can only contain variable declarations", node->name);
 
-					if(child->first_child != NULL)
-						VALIDATE_ERROR_LF(child->line_number, child->file, "Field '%s' must have undefined contents", child->name);
+				if(child->first_child != NULL)
+					VALIDATE_ERROR_LF(child->line_number, child->file, "Field '%s' must have undefined contents", child->name);
 
-					child = child->next;
-				}
+				child = child->next;
+			}
 		}
 
 		node = node->next;
