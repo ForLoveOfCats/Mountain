@@ -2,5 +2,5 @@ module ToUsingImport;
 
 
 
-enum:SomeEnum [One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten];
+enum:SomeEnum [One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten]
 

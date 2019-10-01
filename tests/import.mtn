@@ -2,5 +2,5 @@ module ToImport;
 
 
 
-enum:AnotherEnum [Red, Green, Blue];
+enum:AnotherEnum [Red, Green, Blue]
 

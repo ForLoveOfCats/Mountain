@@ -217,7 +217,7 @@ test "Out of order local function"{
 
 
 let:GlobalEnum global_var_out_of_order_enum = GlobalEnum.ThirdEntry;
-enum:GlobalEnum [FirstEntry, SecondEntry, ThirdEntry, ForthEntry, FifthEntry];
+enum:GlobalEnum [FirstEntry, SecondEntry, ThirdEntry, ForthEntry, FifthEntry]
 
 test "Global enum" {
 	let:GlobalEnum instance = GlobalEnum.FirstEntry;
@@ -227,7 +227,7 @@ test "Global enum" {
 
 
 test "Local enum" {
-	enum:LocalEnum [A, B, C];
+	enum:LocalEnum [A, B, C]
 
 	return LocalEnum.A != LocalEnum.B;
 }
@@ -238,7 +238,7 @@ test "Out of order global enum" {
 	return instance == OutOfOrderGlobal.OptionB;
 }
 
-enum:OutOfOrderGlobal [OptionA, OptionB];
+enum:OutOfOrderGlobal [OptionA, OptionB]
 
 
 test "Specify same module" {
@@ -252,7 +252,7 @@ test "Specify same module" {
 test "Out of order local enum" {
 	return LocalEnum.A != LocalEnum.B;
 
-	enum:LocalEnum [A, B, C];
+	enum:LocalEnum [A, B, C]
 }
 
 

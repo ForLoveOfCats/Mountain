@@ -1338,9 +1338,6 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			add_node(new_node, entry);
 		}
 
-		NEXT_TOKEN(token);
-		expect(token, TOKEN_SEMICOLON);
-
 		add_node(current_parse_parent_node, new_node);
 		token = token->next; //Don't check for EOF
 	}
