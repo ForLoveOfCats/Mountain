@@ -8,7 +8,7 @@ using import YetAnotherModule;
 
 
 
-struct:MyType { //Structs are currently only parsed and validated
+struct:MyType { //Structs are currently parsed, validated, and transpiled but unusable
 	let:Bool field = undefined;
 }
 
