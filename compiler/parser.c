@@ -979,7 +979,7 @@ struct TOKEN *parse_function_args(struct NODE *func, struct TOKEN *token)
 }
 
 
-struct TYPE_DATA *parse_type(struct TOKEN **callsite_token)
+struct TYPE_DATA *parse_type(struct TOKEN **callsite_token, struct TYPE_DATA *child)
 {
 	struct TOKEN *token = *callsite_token;
 
@@ -1001,16 +1001,17 @@ struct TYPE_DATA *parse_type(struct TOKEN **callsite_token)
 	else
 		instance = create_type(token->string);
 
+	instance->child = child;
+
 	token = token->next;
 
 	if(token->type == TOKEN_COLON)
 	{
 		NEXT_TOKEN(token);
 
-		struct TYPE_DATA *parent = parse_type(&token);
-		parent->child = instance;
-
+		struct TYPE_DATA *parent = parse_type(&token, instance);
 		*callsite_token = token;
+
 		return parent;
 	}
 
@@ -1031,7 +1032,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		NEXT_TOKEN(token);
 		expect(token, TOKEN_WORD);
 		free_type(new_node->type);
-		new_node->type = parse_type(&token);
+		new_node->type = parse_type(&token, NULL);
 
 		free(new_node->name);
 		expect(token, TOKEN_WORD);
@@ -1205,7 +1206,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		NEXT_TOKEN(token);
 		free_type(new_node->type);
-		new_node->type = parse_type(&token);
+		new_node->type = parse_type(&token, NULL);
 
 		expect(token, TOKEN_WORD); //name of the function
 		free(new_node->name);
@@ -1242,7 +1243,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 					PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument type");
 
 				NEXT_TOKEN(current_arg_token);
-				struct TYPE_DATA *type = parse_type(&current_arg_token);
+				struct TYPE_DATA *type = parse_type(&current_arg_token, NULL);
 
 				if(current_arg_token->type != TOKEN_WORD)
 					PARSE_ERROR_LC(current_arg_token->line_number, current_arg_token->start_char, "Expected argument name");

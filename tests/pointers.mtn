@@ -34,3 +34,12 @@ test "Void pointers" {
 
 	return pointer == bool_var&;
 }
+
+
+test "Pointer to a pointer" {
+	let:i32 number = 41;
+	let:i32:Ptr first_pointer = number&;
+	let:i32:Ptr:Ptr second_pointer = first_pointer&;
+
+	return second_pointer$$ + 1 == 42;
+}
