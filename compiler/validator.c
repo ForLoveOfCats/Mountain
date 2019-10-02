@@ -458,12 +458,23 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 			assert(node->first_child->node_type == AST_BLOCK);
 			assert(count_node_children(node) == 1);
 
+			node->index = next_index;
+			next_index++;
+
 			struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
 			symbol->struct_data = create_struct();
-			symbol->struct_data->index = next_index;
-			next_index++;
+			symbol->struct_data->index = node->index;
 			add_symbol(symbol_table, symbol);
+		}
 
+		node = node->next;
+	}
+
+	node = block->first_child;
+	while(node != NULL)
+	{
+		if(node->node_type == AST_STRUCT)
+		{
 			struct NODE *child = node->first_child->first_child;
 			while(child != NULL)
 			{
@@ -472,6 +483,11 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 
 				if(child->first_child != NULL)
 					VALIDATE_ERROR_LF(child->line_number, child->file, "Field '%s' must have undefined contents", child->name);
+
+				child->index = next_index;
+				next_index++;
+
+				verify_type_valid(child->type, symbol_table, false, child->line_number, child->file);
 
 				child = child->next;
 			}

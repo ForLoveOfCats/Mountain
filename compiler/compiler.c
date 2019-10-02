@@ -162,7 +162,7 @@ int main(int arg_count, char *arg_array[])
 		current_module = first_module;
 		while(current_module != NULL)
 		{
-			transpile_enums(output_file, current_module);
+			transpile_types(output_file, current_module);
 			current_module = current_module->next;
 		}
 

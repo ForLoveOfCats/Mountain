@@ -200,7 +200,7 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 }
 
 
-void transpile_enums(FILE *target, struct NODE *block)
+void transpile_types(FILE *target, struct NODE *block)
 {
 	assert(block->node_type == AST_BLOCK || block->node_type == AST_MODULE);
 
@@ -217,6 +217,27 @@ void transpile_enums(FILE *target, struct NODE *block)
 				assert(entry->node_type == AST_NAME);
 
 				fprintf(target, "symbol_%i,", entry->index);
+
+				entry = entry->next;
+			}
+
+			fprintf(target, "} symbol_%i;\n", node->index);
+		}
+
+		else if(node->node_type == AST_STRUCT)
+		{
+			assert(node->first_child->node_type == AST_BLOCK);
+
+			fprintf(target, "typedef struct {\n");
+
+			struct NODE *entry = node->first_child->first_child;
+			while(entry != NULL)
+			{
+				assert(entry->node_type == AST_LET);
+
+				char *type_str = type_to_c(entry->type);
+				fprintf(target, "%s symbol_%i;\n", type_str, entry->index);
+				free(type_str);
 
 				entry = entry->next;
 			}
@@ -378,7 +399,7 @@ void transpile_block(FILE *target, struct NODE *node, int level) //This is in no
 	assert(node->node_type == AST_BLOCK);
 
 	fprintf(target, "{\n");
-	transpile_enums(target, node);
+	transpile_types(target, node);
 
 	node = node->first_child;
 

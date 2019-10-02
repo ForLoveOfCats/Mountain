@@ -8,7 +8,7 @@
 void prepare_file(FILE *target);
 
 
-void transpile_enums(FILE *target, struct NODE *root);
+void transpile_types(FILE *target, struct NODE *root);
 
 
 void prototype_globals(FILE *target, struct NODE *root);
