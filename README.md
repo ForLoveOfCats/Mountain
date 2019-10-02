@@ -11,13 +11,19 @@ summer 2020. At the moment Mountain rather far away from that goal.
 ### Vision
 
 Mountain has several core tenants:
-* Expressiveness without sacrificing runtime performance.
-* Explicitness is important for readability.
-    * Explicit != Verbose
-* Seamless C interop is important for usefulness.
+* Usefulness is key, all other tenants can be sacrificed in the name
+  of usefulness.
+    * Seamless C interop is important for usefulness.
+    * High performance is important for usefulness.
+* Explicitness is important for readability and reason-ability.
+    * Explicit does not always have to mean verbose
+* Maximizing expressiveness is valuable where possible
+    * Balancing this with performance is a razors edge, trust the
+      developer to use the right language tools where appropriate
 * It is not the language's job to enforce a specific coding "style".
 
-Mountain draws much inspiration from Zig, Rust, and Jai.
+Mountain draws much inspiration from Zig, Rust, Jai, and of course its
+parent language C.
 
 
 # This language is nowhere near usable for literally anything
@@ -36,6 +42,7 @@ a self-hosted compiler could be built. However now the goal is to port
 this codebase into Mountain so these design oversights are slowly
 being corrected.
 
+
 ### Currently supported features
 * Variable declaration (requires a value or explicitly left undefined)
 * Variable value set
@@ -48,10 +55,12 @@ being corrected.
   Void functions to early exit)
 * Basic function return tracing
 * Function calls (with and without return value)
-* Enums
+* Enums definition and usage
+* Stuct definition
 * Order of global symbols does not matter
 * Expression parsing with precedence
-* Full set of comparison operators (==, !=, >= <=)
+* Boolean inversion with `!`
+* Full set of comparison operators (==, !=, >, <, >= <=)
 * Basic pointers (take address of, compare, copy, dereference, but not
   overwritting value pointed at)
 * Basic module system (each file declares what module it exists in,
@@ -77,6 +86,16 @@ It will probably work on macOS but *will not* work on Windows as it
 uses `dirent.h`. This will change in the future, until then if you
 really want to run this on Windows go grab an dirent wrapper or open
 an issue to bug me into prioritizing this more.
+
+
+## Building
+
+Requires SCons and a recent revision of GCC/Clang. The included
+convenience shell scripts require a POSIX compatible shell, SCons, and
+a recent revision of Clang.
+
+To perform the most basic build simply execute `scons` in the repo
+root.
 
 The shell script `Debug.sh` builds the compiler, compiles the code
 under `./examples`, and then runs it. The other script `Test.sh`
