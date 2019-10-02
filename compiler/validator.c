@@ -473,7 +473,22 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 	node = block->first_child;
 	while(node != NULL)
 	{
-		if(node->node_type == AST_STRUCT)
+		if(node->node_type == AST_LET && block->node_type == AST_MODULE) //TODO: Remove this little bit of duplicated code
+		{
+			node->symbol_table = symbol_table;
+
+			verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
+
+			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
+			if(symbol != NULL)
+				VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
+
+			node->index = next_index; //Not increasing as add_var will do that when creating the symbol
+			struct VAR_DATA *var = create_var(node->type);
+			add_var(symbol_table, node->name, var, node->file, node->line_number);
+		}
+
+		else if(node->node_type == AST_STRUCT)
 		{
 			struct NODE *child = node->first_child->first_child;
 			while(child != NULL)
@@ -494,30 +509,6 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 		}
 
 		node = node->next;
-	}
-
-	if(block->node_type == AST_MODULE)
-	{
-		node = block->first_child;
-		while(node != NULL)
-		{
-			if(node->node_type == AST_LET) //TODO: Remove this little bit of duplicated code
-			{
-				node->symbol_table = symbol_table;
-
-				verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
-
-				struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
-				if(symbol != NULL)
-					VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
-
-				node->index = next_index; //Not increasing as add_var will do that when creating the symbol
-				struct VAR_DATA *var = create_var(node->type);
-				add_var(symbol_table, node->name, var, node->file, node->line_number);
-			}
-
-			node = node->next;
-		}
 	}
 }
 
