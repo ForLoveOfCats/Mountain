@@ -194,6 +194,16 @@ void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table
 		type->type = type->index;
 		disallow_child_type_and_return;
 	}
+
+	else if(symbol->type == SYMBOL_STRUCT)
+	{
+		type->index = symbol->struct_data->index;
+		type->type = type->index;
+		disallow_child_type_and_return;
+	}
+
+	printf("INTERNAL ERROR: We don't know how to verify type '%s'\n", fatal_pretty_type_name(type));
+	exit(EXIT_FAILURE);
 }
 
 
