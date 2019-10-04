@@ -43,7 +43,7 @@ struct ENUM_DATA //Used for any type definition
 
 struct STRUCT_DATA //Used for any type definition
 {
-	int index;
+	struct NODE *node;
 };
 
 

@@ -58,6 +58,12 @@ void free_token_list(struct TOKEN *token);
 struct TOKEN *tokenize_file(FILE *source_file);
 
 
+struct TYPE_DATA *parse_type(struct TOKEN **callsite_token, struct TYPE_DATA *child);
+
+
+struct NODE *parse_expression_to_semicolon(struct TOKEN **token, struct NODE *module);
+
+
 struct TOKEN *parse_next_statement(struct TOKEN *token);
 
 

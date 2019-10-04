@@ -190,6 +190,25 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 				break;
 		}
 	}
+	else if(node->node_type == AST_NEW)
+	{
+		fprintf(target, "((symbol_%i){", node->index);
+
+		struct NODE *child = node->first_child;
+		while(child != NULL)
+		{
+			assert(child->node_type == AST_FIELDVALUE);
+
+			transpile_expression(target, child->first_child);
+
+			if(child->next != NULL)
+				fprintf(target, ",");
+
+			child = child->next;
+		}
+
+		fprintf(target, "})");
+	}
 	else
 	{
 		printf("INTERNAL ERROR: We don't know how to transpile this ast node\n");

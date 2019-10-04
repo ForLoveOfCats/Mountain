@@ -825,7 +825,47 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			}
 
 			struct NODE *new_node = NULL;
-			if(is_number(token->string))
+			if(strcmp(token->string, "new") == 0)
+			{
+				new_node = create_node(AST_NEW, root->module, current_file, token->line_number, token->start_char, token->end_char);
+				previous_node = new_node;
+
+				NEXT_TOKEN(token);
+				expect(token, TOKEN_COLON);
+
+				NEXT_TOKEN(token);
+				free_type(new_node->type);
+				new_node->type = parse_type(&token, NULL);
+				expect(token, TOKEN_COLON);
+
+				NEXT_TOKEN(token);
+				expect(token, TOKEN_COLON);
+
+				NEXT_TOKEN(token);
+				expect(token, TOKEN_OPEN_BRACE);
+
+				NEXT_TOKEN(token);
+				while(token->type != TOKEN_CLOSE_BRACE)
+				{
+					expect(token, TOKEN_PERIOD);
+
+					NEXT_TOKEN(token);
+					expect(token, TOKEN_WORD); //Field name
+					struct NODE *field_node = create_node(AST_FIELDVALUE, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+					free(field_node->name);
+					field_node->name = strdup(token->string);
+
+					NEXT_TOKEN(token);
+					expect(token, TOKEN_EQUALS);
+
+					NEXT_TOKEN(token);
+					add_node(field_node, parse_expression_to_semicolon(&token, root->module));
+					add_node(new_node, field_node);
+
+					NEXT_TOKEN(token);
+				}
+			}
+			else if(is_number(token->string))
 			{
 				new_node = create_node(AST_LITERAL, root->module, current_file, token->line_number, token->start_char, token->end_char);
 				previous_node = new_node;
@@ -909,18 +949,30 @@ struct NODE *parse_expression_to_semicolon(struct TOKEN **token, struct NODE *mo
 {
 	struct NODE *expression_root = create_node(AST_EXPRESSION, module, current_file, (*token)->line_number, (*token)->start_char, (*token)->end_char);
 
-	//TODO count parenthesis to validate
+	//TODO: do this for parenthesis too
+	int open_braces = 0;
+
 	struct TOKEN *start = *token;
 	struct TOKEN *end = *token;
-	while((*token)->type != TOKEN_SEMICOLON)
+	while(true)
 	{
+		if((*token)->type == TOKEN_SEMICOLON && open_braces <= 0)
+			break;
+
 		end = *token;
 
 		*token = (*token)->next;
+
 		if(*token == NULL) //We know we reached the end of the file before hitting a semicolon
 		{
 			PARSE_ERROR("Expected semicolon but found end of file");
 		}
+
+		else if((*token)->type == TOKEN_OPEN_BRACE)
+			open_braces++;
+
+		else if((*token)->type == TOKEN_CLOSE_BRACE)
+			open_braces--;
 	}
 
 	if(start == end && start->type == TOKEN_SEMICOLON)
@@ -1005,7 +1057,7 @@ struct TYPE_DATA *parse_type(struct TOKEN **callsite_token, struct TYPE_DATA *ch
 
 	token = token->next;
 
-	if(token->type == TOKEN_COLON)
+	if(token->type == TOKEN_COLON && !(token->next != NULL && token->next->type == TOKEN_COLON))
 	{
 		NEXT_TOKEN(token);
 

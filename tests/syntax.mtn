@@ -267,3 +267,18 @@ test "Using import enum" {
 	let:SomeEnum instance = SomeEnum.Ten; //Imported via from ToUsingImport with "using import"
 	return instance == SomeEnum.Ten;
 }
+
+
+struct:TestStruct {
+	let:Bool first_field = undefined;
+	let:i32 second_field = undefined;
+}
+
+test "Struct instancing" {
+	let:TestStruct instance = new:TestStruct::{
+		.first_field = true;
+		.second_field = 42;
+	};
+
+	return true;
+}

@@ -197,7 +197,7 @@ void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table
 
 	else if(symbol->type == SYMBOL_STRUCT)
 	{
-		type->index = symbol->struct_data->index;
+		type->index = symbol->struct_data->node->index;
 		type->type = type->index;
 		disallow_child_type_and_return;
 	}
@@ -420,6 +420,49 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 
 		return type;
 	}
+
+	else if(node->node_type == AST_NEW)
+	{
+		assert(node->type != NULL);
+
+		if(node->type->child != NULL)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot instance type '%s' as struct '%s' does not support a child type",
+			                  fatal_pretty_type_name(node->type), node->type->name);
+
+		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->type->name, node->file, true);
+		if(symbol == NULL || symbol->type != SYMBOL_STRUCT)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot instance struct '%s' as it does not exist", node->type->name);
+
+		node->index = symbol->struct_data->node->index;
+
+		int child_count = count_node_children(node);
+		int field_count = count_node_children(symbol->struct_data->node->first_child);
+		if(child_count != field_count)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Expected %i fields but found %i fields", field_count, child_count);
+
+		struct NODE *child = node->first_child;
+		assert(child->node_type == AST_FIELDVALUE);
+		struct NODE *field = symbol->struct_data->node->first_child->first_child;
+		assert(field->node_type == AST_LET);
+
+		while(child != NULL)
+		{
+			if(strcmp(field->name, child->name) != 0)
+				VALIDATE_ERROR_LF(child->line_number, child->file, "Expected field '%s' but found '%s'", field->name, child->name);
+
+			struct TYPE_DATA *type = typecheck_expression(child->first_child, symbol_table, false, true, 0);
+			if(!are_types_equal(field->type, type))
+				VALIDATE_ERROR_LF(child->line_number, child->file, "Type mismatch setting field '%s' of type '%s' with expression of type '%s'",
+				                  field->name, fatal_pretty_type_name(field->type), fatal_pretty_type_name(type));
+			free_type(type);
+
+			child = child->next;
+			field = field->next;
+		}
+
+		return copy_type(symbol->struct_data->node->type);
+	}
+
 	else
 	{
 		printf("INTERNAL ERROR: Unsupported expression subnode type %i\n", node->node_type);
@@ -471,9 +514,11 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 			node->index = next_index;
 			next_index++;
 
+			free_type(node->type);
+			node->type = create_type(node->name);
+
 			struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
-			symbol->struct_data = create_struct();
-			symbol->struct_data->index = node->index;
+			symbol->struct_data = create_struct(node);
 			add_symbol(symbol_table, symbol);
 		}
 
@@ -500,6 +545,8 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 
 		else if(node->node_type == AST_STRUCT)
 		{
+			verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
+
 			struct NODE *child = node->first_child->first_child;
 			while(child != NULL)
 			{

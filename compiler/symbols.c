@@ -69,11 +69,11 @@ void free_enum(struct ENUM_DATA *enum_data)
 }
 
 
-struct STRUCT_DATA *create_struct()
+struct STRUCT_DATA *create_struct(struct NODE *node)
 {
 	struct STRUCT_DATA *struct_data = malloc(sizeof(struct STRUCT_DATA));
 
-	struct_data->index = -1;
+	struct_data->node = node;
 
 	return struct_data;
 }
