@@ -11,7 +11,7 @@
 * Function and struct generics
 * Overriding methods from embeded structs
 * Adding methods to imported structs
-* Function overloading
+* Explicit function overloading
 * Operator overloading
 * Some sort of foreach with iterators (interface?)
 * Native enum iteration

@@ -57,6 +57,7 @@ being corrected.
 * Function calls (with and without return value)
 * Enums definition and usage
 * Stuct definition
+* Stack allocated struct initialization
 * Order of global symbols does not matter
 * Expression parsing with precedence
 * Boolean inversion with `!`
@@ -90,12 +91,12 @@ an issue to bug me into prioritizing this more.
 
 ## Building
 
-Requires SCons and a recent revision of GCC/Clang. The included
-convenience shell scripts require a POSIX compatible shell, SCons, and
-a recent revision of Clang.
+Requires SCons and a recent revision of Clang. It will also build with
+GCC but depending on the platform the `SConstruct` will need to be
+modified.
 
-To perform the most basic build simply execute `scons` in the repo
-root.
+To perform the most basic build simply execute the command `scons`
+while in the repo root.
 
 The shell script `Debug.sh` builds the compiler, compiles the code
 under `./examples`, and then runs it. The other script `Test.sh`
