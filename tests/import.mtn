@@ -4,3 +4,5 @@ module ToImport;
 
 enum:AnotherEnum [Red, Green, Blue]
 
+
+let:Bool global_from_imported = false;

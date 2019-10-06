@@ -269,6 +269,18 @@ test "Using import enum" {
 }
 
 
+test "Setting imported global" {
+	ToImport.global_from_imported = true;
+	return ToImport.global_from_imported;
+}
+
+
+test "Setting using imported global" {
+	using_global_from_imported = true;
+	return using_global_from_imported;
+}
+
+
 struct:TestStruct {
 	let:Bool first_field = undefined;
 	let:i32 second_field = undefined;
@@ -276,9 +288,11 @@ struct:TestStruct {
 
 test "Struct instancing" {
 	let:TestStruct instance = new:TestStruct::{
-		.first_field = true;
+		.first_field = false;
 		.second_field = 42;
 	};
+
+	instance.first_field = true;
 
 	return instance.first_field;
 }

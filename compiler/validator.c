@@ -53,6 +53,28 @@ char *fatal_pretty_type_name(struct TYPE_DATA *type)
 }
 
 
+bool is_lvalue(struct NODE *node)
+{
+	if(node->node_type == AST_GET || node->node_type == AST_FIELDGET)
+		return true;
+
+	if(node->node_type == AST_NAME)
+	{
+		while(true)
+		{
+			node = node->first_child;
+
+			if(node == NULL)
+				return false;
+			else if(node->node_type == AST_GET || node->node_type == AST_FIELDGET)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+
 bool type_is_number(struct TYPE_DATA *type)
 {
 	assert(type->type != 0);
@@ -361,7 +383,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 
 			case UNOP_ADDRESS_OF:
 			{
-				if(node->first_child->node_type != AST_GET)
+				if(!is_lvalue(node->first_child))
 					VALIDATE_ERROR_LF(node->line_number, node->file, "Can only take the address of an lvalue");
 
 				struct TYPE_DATA *type = create_type("Ptr");
@@ -403,7 +425,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 
 		if(node->op_type == OP_EQUALS)
 		{
-			if(node->first_child->node_type != AST_GET)
+			if(!is_lvalue(node->first_child))
 				VALIDATE_ERROR_LF(node->line_number, node->file, "Can only set to an lvalue");
 
 			free_type(left_type);

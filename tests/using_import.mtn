@@ -4,3 +4,5 @@ module ToUsingImport;
 
 enum:SomeEnum [One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten]
 
+
+let:Bool using_global_from_imported = false;
