@@ -207,6 +207,32 @@ void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table
 }
 
 
+struct TYPE_DATA *typecheck_field_get(struct NODE *get, struct SYMBOL *struct_symbol)
+{
+	assert(get->node_type == AST_GET);
+	assert(struct_symbol->type == SYMBOL_STRUCT);
+
+	get->node_type = AST_FIELDGET;
+
+	struct NODE *field = struct_symbol->struct_data->node->first_child->first_child;
+	while(field != NULL)
+	{
+		assert(field->node_type == AST_LET);
+
+		if(strcmp(get->name, field->name) == 0)
+		{
+			get->index = field->index;
+			return copy_type(field->type);
+		}
+
+		field = field->next;
+	}
+
+	VALIDATE_ERROR_LF(get->line_number, get->file, "Struct '%s' contains no field called '%s'",
+	                  struct_symbol->struct_data->node->name, get->name);
+}
+
+
 struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool global, bool search_using_imports, int level) //Exits on failure
 {
 	if(node->node_type == AST_EXPRESSION)
@@ -220,9 +246,6 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	}
 	else if(node->node_type == AST_NAME)
 	{
-		//TODO: Extend this to support getting struct fields
-		//Currently supports reaching into enum or module
-
 		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, true);
 		if(symbol != NULL && symbol->type == SYMBOL_ENUM)
 		{
@@ -251,6 +274,15 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			verify_type_valid(symbol->enum_data->node->type, symbol_table, false, node->line_number, node->file);
 			return copy_type(symbol->enum_data->node->type);
 		}
+		else if(symbol != NULL && symbol->type == SYMBOL_VAR)
+		{
+			struct SYMBOL *struct_symbol = lookup_symbol(symbol_table, symbol->var_data->type->name, node->file, true);
+			if(struct_symbol != NULL)
+			{
+				node->index = symbol->index;
+				return typecheck_field_get(node->first_child, struct_symbol);
+			}
+		}
 
 		if(strcmp(node->name, node->module->name) == 0)
 			return typecheck_expression(node->first_child, node->module->symbol_table, global, false, level + 1);
@@ -270,7 +302,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			import_data = import_data->next;
 		}
 
-		VALIDATE_ERROR_LF(node->line_number, node->file, "No enum or imported module with the name '%s'", node->name);
+		VALIDATE_ERROR_LF(node->line_number, node->file, "No situationally valid symbol '%s'", node->name);
 	}
 	else if(node->node_type == AST_GET)
 	{

@@ -280,5 +280,5 @@ test "Struct instancing" {
 		.second_field = 42;
 	};
 
-	return true;
+	return instance.first_field;
 }

@@ -543,6 +543,7 @@ bool token_is_unop(struct TOKEN *token)
 {
 	switch(token->type)
 	{
+		case TOKEN_PERIOD:
 		case TOKEN_EXCLAMATION:
 		case TOKEN_ADDRESS_OF:
 		case TOKEN_DEREFERENCE:
@@ -614,6 +615,7 @@ struct NODE *parse_name_get_call(struct TOKEN **callsite_token, struct NODE *mod
 	}
 	else if(token->type == TOKEN_WORD) //Get
 	{
+		//If the validator decides that this is getting a struct field then it will change it to AST_FIELDGET
 		new_node = create_node(AST_GET, module, current_file, token->line_number, token->start_char, token->end_char);
 		free(new_node->name);
 		new_node->name = strdup(token->string);
