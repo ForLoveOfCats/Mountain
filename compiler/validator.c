@@ -55,7 +55,9 @@ char *fatal_pretty_type_name(struct TYPE_DATA *type)
 
 bool is_lvalue(struct NODE *node)
 {
-	if(node->node_type == AST_GET || node->node_type == AST_FIELDGET)
+	if(node->node_type == AST_GET
+	   || (node->node_type == AST_UNOP && node->unop_type == UNOP_DEREFERENCE)
+	   || node->node_type == AST_FIELDGET)
 		return true;
 
 	if(node->node_type == AST_NAME)
@@ -66,7 +68,10 @@ bool is_lvalue(struct NODE *node)
 
 			if(node == NULL)
 				return false;
-			else if(node->node_type == AST_GET || node->node_type == AST_FIELDGET)
+
+			if(node->node_type == AST_GET
+			   || (node->node_type == AST_UNOP && node->unop_type == UNOP_DEREFERENCE)
+			   || node->node_type == AST_FIELDGET)
 				return true;
 		}
 	}

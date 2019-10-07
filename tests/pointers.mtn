@@ -43,3 +43,13 @@ test "Pointer to a pointer" {
 
 	return second_pointer$$ + 1 == 42;
 }
+
+
+test "Set through pointer" {
+	let:i32 number = 1;
+	let:i32:Ptr pointer = number&;
+
+	pointer $= 0;
+
+	return pointer$ != 1;
+}
