@@ -296,3 +296,28 @@ test "Struct instancing" {
 
 	return instance.first_field;
 }
+
+
+test "Struct deref field access" {
+	let:TestStruct instance = new:TestStruct::{
+		.first_field = true;
+		.second_field = 42;
+	};
+
+	let:TestStruct:Ptr pointer = instance&;
+
+	return pointer$.first_field;
+}
+
+
+test "Struct deref field write" {
+	let:TestStruct instance = new:TestStruct::{
+		.first_field = false;
+		.second_field = 42;
+	};
+
+	let:TestStruct:Ptr pointer = instance&;
+	pointer$.first_field = true;
+
+	return pointer$.first_field;
+}

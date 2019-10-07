@@ -231,7 +231,7 @@ void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table
 
 struct TYPE_DATA *typecheck_field_get(struct NODE *get, struct SYMBOL *struct_symbol)
 {
-	assert(get->node_type == AST_GET);
+	assert(get->node_type == AST_GET || get->node_type == AST_FIELDGET);
 	assert(struct_symbol->type == SYMBOL_STRUCT);
 
 	get->node_type = AST_FIELDGET;
@@ -367,6 +367,22 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 
 		node->index = function->index;
 		return copy_type(function->func_data->return_type);
+	}
+	else if(node->node_type == AST_FIELDGET)
+	{
+		struct TYPE_DATA *child_type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);
+
+		struct SYMBOL *symbol = lookup_symbol(symbol_table, child_type->name, node->file, true);
+		if(symbol == NULL) //TODO: This will trigger when using a type from a module which has not been `using import`-ed
+		{
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Type '%s' is not known in this context", node->type->name);
+		}
+		else if(symbol->type != SYMBOL_STRUCT)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Type '%s' has no fields", node->type->name);
+
+		free_type(child_type);
+
+		return typecheck_field_get(node, symbol);
 	}
 	else if(node->node_type == AST_UNOP)
 	{

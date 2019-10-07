@@ -776,7 +776,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 		}
 		else if(token_is_unop(token)) //Is an unop
 		{
-			if((left_value_node == NULL && root_op_node == NULL) || !(last_type == VALUE) )
+			if(token->type != TOKEN_PERIOD && ((left_value_node == NULL && root_op_node == NULL) || !(last_type == VALUE)) )
 			{
 				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected value before unary operation '%s'", token->string);
 			}
@@ -784,6 +784,17 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			struct NODE *new_node = create_node(AST_UNOP, root->module, current_file, token->line_number, token->start_char, token->end_char);
 			switch(token->type)
 			{
+				case TOKEN_PERIOD:
+					free_tree(new_node);
+
+					NEXT_TOKEN(token);
+					expect(token, TOKEN_WORD);
+					new_node = create_node(AST_FIELDGET, root->module, current_file, token->line_number, token->start_char, token->end_char);
+					free(new_node->name);
+					new_node->name = strdup(token->string);
+
+					break;
+
 				case TOKEN_EXCLAMATION:
 					new_node->unop_type = UNOP_INVERT;
 					break;
