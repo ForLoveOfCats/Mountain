@@ -58,12 +58,13 @@ being corrected.
 * Enums definition and usage
 * Stuct definition
 * Stack allocated struct initialization
+* Read and write to struct fields
 * Order of global symbols does not matter
 * Expression parsing with precedence
 * Boolean inversion with `!`
 * Full set of comparison operators (==, !=, >, <, >= <=)
-* Basic pointers (take address of, compare, copy, dereference, but not
-  overwritting value pointed at)
+* Basic pointers (take address of, compare, dereference, and overwrite
+  value pointed at)
 * Basic module system (each file declares what module it exists in,
   all files in a module share a single namespace (but not imports) and
   modules can be imported (accessing contents requires prefixing with
