@@ -357,3 +357,31 @@ test "Struct deref field write" {
 
 	return pointer$.second;
 }
+
+
+test "Out of order struct definition" {
+	let:OutOfOrderStruct instance = new:OutOfOrderStruct::{
+		.some_field = 50;
+	};
+
+	return instance.some_field > 49;
+}
+
+struct:OutOfOrderStruct {
+	let:i32 some_field = undefined;
+}
+
+
+test "Local struct definition" {
+	//Also checks out of order local struct definition
+
+	let:LocalStruct instance = new:LocalStruct::{
+		.char_field = 'T';
+	};
+
+	return instance.char_field != 'A';
+
+	struct:LocalStruct {
+		let:u8 char_field = undefined;
+	}
+}
