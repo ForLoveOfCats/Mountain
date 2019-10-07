@@ -303,7 +303,17 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		}
 		else if(symbol != NULL && symbol->type == SYMBOL_VAR)
 		{
-			struct SYMBOL *struct_symbol = lookup_symbol(symbol_table, symbol->var_data->type->name, node->file, true);
+			struct SYMBOL *struct_symbol = NULL;
+			if(symbol->var_data->type->reach_module != NULL)
+			{
+				struct NODE *reach_module = lookup_module(symbol->var_data->type->reach_module);
+				if(reach_module == NULL)
+					VALIDATE_ERROR_LF(node->line_number, node->file, "No module has been imported with the name '%s'", symbol->var_data->type->reach_module);
+				struct_symbol = lookup_symbol(reach_module->symbol_table, symbol->var_data->type->name, node->file, false);
+			}
+			else
+				struct_symbol = lookup_symbol(symbol_table, symbol->var_data->type->name, node->file, true);
+
 			if(struct_symbol != NULL)
 			{
 				node->index = symbol->index;
@@ -377,8 +387,18 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	{
 		struct TYPE_DATA *child_type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);
 
-		struct SYMBOL *symbol = lookup_symbol(symbol_table, child_type->name, node->file, true);
-		if(symbol == NULL) //TODO: This will trigger when using a type from a module which has not been `using import`-ed
+		struct SYMBOL *symbol = NULL;
+		if(child_type->reach_module != NULL)
+		{
+			struct NODE *reach_module = lookup_module(child_type->reach_module);
+			if(reach_module == NULL)
+				VALIDATE_ERROR_LF(node->line_number, node->file, "No module has been imported with the name '%s'", child_type->reach_module);
+			symbol = lookup_symbol(reach_module->symbol_table, child_type->name, node->file, false);
+		}
+		else
+			symbol = lookup_symbol(symbol_table, child_type->name, node->file, true);
+
+		if(symbol == NULL)
 		{
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Type '%s' is not known in this context", node->type->name);
 		}
@@ -504,7 +524,17 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot instance type '%s' as struct '%s' does not support a child type",
 			                  fatal_pretty_type_name(node->type), node->type->name);
 
-		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->type->name, node->file, true);
+		struct SYMBOL *symbol = NULL;
+		if(node->type->reach_module != NULL)
+		{
+			struct NODE *reach_module = lookup_module(node->type->reach_module);
+			if(reach_module == NULL)
+				VALIDATE_ERROR_LF(node->line_number, node->file, "No module has been imported with the name '%s'", node->type->reach_module);
+			symbol = lookup_symbol(reach_module->symbol_table, node->type->name, node->file, false);
+		}
+		else
+			symbol = lookup_symbol(symbol_table, node->type->name, node->file, true);
+
 		if(symbol == NULL || symbol->type != SYMBOL_STRUCT)
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot instance struct '%s' as it does not exist", node->type->name);
 

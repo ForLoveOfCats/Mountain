@@ -286,6 +286,7 @@ struct:TestStruct {
 	let:i32 second_field = undefined;
 }
 
+
 test "Struct instancing" {
 	let:TestStruct instance = new:TestStruct::{
 		.first_field = false;
@@ -320,4 +321,39 @@ test "Struct deref field write" {
 	pointer$.first_field = true;
 
 	return pointer$.first_field;
+}
+
+
+test "Imported struct" {
+	let:ToImport.ImportedStruct instance = new:ToImport.ImportedStruct::{
+		.first = 9;
+		.second = true;
+	};
+
+	return instance.second;
+}
+
+
+test "Imported struct deref field access" {
+	let:ToImport.ImportedStruct instance = new:ToImport.ImportedStruct::{
+		.first = 9;
+		.second = true;
+	};
+
+	let:ToImport.ImportedStruct:Ptr pointer = instance&;
+
+	return pointer$.second;
+}
+
+
+test "Struct deref field write" {
+	let:ToImport.ImportedStruct instance = new:ToImport.ImportedStruct::{
+		.first = 9;
+		.second = false;
+	};
+
+	let:ToImport.ImportedStruct:Ptr pointer = instance&;
+	pointer$.second = true;
+
+	return pointer$.second;
 }

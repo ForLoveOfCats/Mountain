@@ -5,4 +5,10 @@ module ToImport;
 enum:AnotherEnum [Red, Green, Blue]
 
 
+struct:ImportedStruct {
+	let:i32 first = undefined;
+	let:Bool second = undefined;
+}
+
+
 let:Bool global_from_imported = false;
