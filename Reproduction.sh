@@ -8,7 +8,7 @@ if [ $? -eq 0 ]; then #if the compiler was built correctly
 
 	if [ $? -eq 0 ]; then #if the compiler succeeded
 		printf "\n\n===== Resulting C Source =====\n"
-		cat ./output/output.c
+		cat ./output/output.c #Lets look at the emitted C
 
 		printf "\n\n===== Transpiled Source Building =====\n"
 		clang -g -fsanitize=address -fsanitize=undefined -Wreturn-type -Wpedantic -o ./output/output ./output/output.c #compile the transpiled results
