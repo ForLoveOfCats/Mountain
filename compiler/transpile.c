@@ -263,8 +263,6 @@ void transpile_types(FILE *target, struct NODE *block)
 		node = node->next;
 	}
 
-	fprintf(target, "\n\n");
-
 	node = block->first_child;
 	while(node != NULL)
 	{
