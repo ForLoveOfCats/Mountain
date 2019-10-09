@@ -238,7 +238,7 @@ void transpile_types(FILE *target, struct NODE *block)
 	{
 		if(node->node_type == AST_ENUM)
 		{
-			fprintf(target, "typedef enum {");
+			fprintf(target, "typedef enum symbol_%i {", node->index);
 
 			struct NODE *entry = node->first_child;
 			while(entry != NULL)
@@ -257,7 +257,22 @@ void transpile_types(FILE *target, struct NODE *block)
 		{
 			assert(node->first_child->node_type == AST_BLOCK);
 
-			fprintf(target, "typedef struct {\n");
+			fprintf(target, "typedef struct symbol_%i symbol_%i;\n", node->index, node->index);
+		}
+
+		node = node->next;
+	}
+
+	fprintf(target, "\n\n");
+
+	node = block->first_child;
+	while(node != NULL)
+	{
+		if(node->node_type == AST_STRUCT)
+		{
+			assert(node->first_child->node_type == AST_BLOCK);
+
+			fprintf(target, "typedef struct symbol_%i {\n", node->index);
 
 			struct NODE *entry = node->first_child->first_child;
 			while(entry != NULL)
