@@ -225,9 +225,6 @@ struct NODE_BOX *create_node_box(struct NODE *node)
 
 void free_node_box_list(struct NODE_BOX *box)
 {
-	//The actual AST node for the func will be freed while freeing the tree
-	//so all we need to do is free the prototype's themselves
-
 	struct NODE_BOX *next_box = NULL;
 	while(box != NULL)
 	{
