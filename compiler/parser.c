@@ -1348,16 +1348,16 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		add_node(current_parse_parent_node, new_node);
 
-		struct FUNC_PROTOTYPE *prototype = create_func_prototype(new_node);
-		if(first_func_prototype == NULL)
+		struct NODE_BOX *prototype = create_node_box(new_node);
+		if(first_boxed_func == NULL)
 		{
-			first_func_prototype = prototype;
-			last_func_prototype = prototype;
+			first_boxed_func = prototype;
+			last_boxed_func = prototype;
 		}
 		else
 		{
-			last_func_prototype->next = prototype;
-			last_func_prototype = prototype;
+			last_boxed_func->next = prototype;
+			last_boxed_func = prototype;
 		}
 	}
 

@@ -11,9 +11,8 @@ struct NODE *last_module;
 
 struct NODE *current_parse_parent_node;
 
-
-struct FUNC_PROTOTYPE *first_func_prototype;
-struct FUNC_PROTOTYPE *last_func_prototype;
+struct NODE_BOX *first_boxed_func;
+struct NODE_BOX *last_boxed_func;
 
 
 enum AST_TYPE {
@@ -124,10 +123,10 @@ struct IMPORT_DATA
 };
 
 
-struct FUNC_PROTOTYPE
+struct NODE_BOX
 {
-	struct NODE *func; //The actual AST_FUNC node
-	struct FUNC_PROTOTYPE *next;
+	struct NODE *node; //The actual AST_FUNC node
+	struct NODE_BOX *next;
 };
 
 
@@ -161,6 +160,7 @@ void free_tree(struct NODE *child);
 struct ARG_DATA *create_arg_data(char *name, struct TYPE_DATA *type, int file, int line_number);
 
 
-struct FUNC_PROTOTYPE *create_func_prototype(struct NODE *func);
+struct NODE_BOX *create_node_box(struct NODE *func);
 
-void free_func_prototype_list(struct FUNC_PROTOTYPE *func);
+
+void free_node_box_list(struct NODE_BOX *func);

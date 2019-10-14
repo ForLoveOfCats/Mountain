@@ -356,10 +356,10 @@ void transpile_function_signature(FILE *target, struct NODE *node)
 
 void prototype_functions(FILE *target)
 {
-	struct FUNC_PROTOTYPE *prototype = first_func_prototype;
+	struct NODE_BOX *prototype = first_boxed_func;
 	while(prototype != NULL)
 	{
-		transpile_function_signature(target, prototype->func);
+		transpile_function_signature(target, prototype->node);
 		fprintf(target, ";\n");
 
 		prototype = prototype->next;
@@ -371,11 +371,11 @@ void prototype_functions(FILE *target)
 
 void transpile_functions(FILE *target)
 {
-	struct FUNC_PROTOTYPE *prototype = first_func_prototype;
+	struct NODE_BOX *prototype = first_boxed_func;
 	while(prototype != NULL)
 	{
-		transpile_function_signature(target, prototype->func);
-		transpile_block(target, prototype->func->first_child, 0);
+		transpile_function_signature(target, prototype->node);
+		transpile_block(target, prototype->node->first_child, 0);
 		fprintf(target, "\n");
 
 		prototype = prototype->next;

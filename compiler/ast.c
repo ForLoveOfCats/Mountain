@@ -213,28 +213,26 @@ struct ARG_DATA *create_arg_data(char *name, struct TYPE_DATA *type, int file, i
 }
 
 
-struct FUNC_PROTOTYPE *create_func_prototype(struct NODE *func)
+struct NODE_BOX *create_node_box(struct NODE *node)
 {
-	assert(func->node_type == AST_FUNC);
+	struct NODE_BOX *box = malloc(sizeof(struct NODE_BOX));
+	box->node = node;
+	box->next = NULL;
 
-	struct FUNC_PROTOTYPE *instance = malloc(sizeof(struct FUNC_PROTOTYPE));
-	instance->func = func;
-	instance->next = NULL;
-
-	return instance;
+	return box;
 }
 
 
-void free_func_prototype_list(struct FUNC_PROTOTYPE *func)
+void free_node_box_list(struct NODE_BOX *box)
 {
 	//The actual AST node for the func will be freed while freeing the tree
 	//so all we need to do is free the prototype's themselves
 
-	struct FUNC_PROTOTYPE *next_func = NULL;
-	while(func != NULL)
+	struct NODE_BOX *next_box = NULL;
+	while(box != NULL)
 	{
-		next_func = func->next;
-		free(func);
-		func = next_func;
+		next_box = box->next;
+		free(box);
+		box = next_box;
 	}
 }

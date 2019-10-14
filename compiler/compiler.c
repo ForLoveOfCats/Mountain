@@ -126,8 +126,8 @@ int main(int arg_count, char *arg_array[])
 
 	first_module = NULL;
 	last_module = NULL;
-	first_func_prototype = NULL;
-	last_func_prototype = NULL;
+	first_boxed_func = NULL;
+	last_boxed_func = NULL;
 
 	for(int index = 0; index < file_count; index++)
 	{
@@ -232,7 +232,7 @@ int main(int arg_count, char *arg_array[])
 		current_module = next_module;
 	}
 
-	free_func_prototype_list(first_func_prototype);
+	free_node_box_list(first_boxed_func);
 
 	for(int index = 0; index < file_count; index++)
 	{
