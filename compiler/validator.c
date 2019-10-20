@@ -583,34 +583,39 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 	block->symbol_table = symbol_table;
 	populate_function_symbols(symbol_table, block);
 
-	struct NODE *node = block->first_child;
+	struct NODE *node = block->first_enum;
 	while(node != NULL)
 	{
-		if(node->node_type == AST_ENUM)
+		assert(node->node_type == AST_ENUM);
+
+		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
+		if(symbol != NULL)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
+
+		symbol = create_symbol(node->name, SYMBOL_ENUM, node->file, node->line_number);
+		symbol->enum_data = create_enum(node);
+		add_symbol(symbol_table, symbol);
+
+		struct NODE *entry = node->first_child;
+		while(entry != NULL)
 		{
-			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
-			if(symbol != NULL)
-				VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
-
-			symbol = create_symbol(node->name, SYMBOL_ENUM, node->file, node->line_number);
-			symbol->enum_data = create_enum(node);
-			add_symbol(symbol_table, symbol);
-
-			struct NODE *entry = node->first_child;
-			while(entry != NULL)
-			{
-				entry->index = next_index;
-				next_index++;
-				entry = entry->next;
-			}
-
-			node->index = next_index;
+			entry->index = next_index;
 			next_index++;
-
-			free_type(node->type);
-			node->type = create_type(node->name);
+			entry = entry->next;
 		}
 
+		node->index = next_index;
+		next_index++;
+
+		free_type(node->type);
+		node->type = create_type(node->name);
+
+		node = node->next;
+	}
+
+	node = block->first_child;
+	while(node != NULL)
+	{
 		if(node->node_type == AST_STRUCT)
 		{
 			assert(node->first_child->node_type == AST_BLOCK);

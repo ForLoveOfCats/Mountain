@@ -1346,7 +1346,6 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		token = parse_block(token, true, 0);
 		current_parse_parent_node = old_parse_parent_node;
 
- 		/* add_node(current_parse_parent_node, new_node); */
 		if(current_parse_parent_node->first_func == NULL)
 		{
 			current_parse_parent_node->first_func = new_node;
@@ -1406,7 +1405,18 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			add_node(new_node, entry);
 		}
 
-		add_node(current_parse_parent_node, new_node);
+		if(current_parse_parent_node->first_enum == NULL)
+		{
+			current_parse_parent_node->first_enum = new_node;
+			current_parse_parent_node->last_enum = new_node;
+		}
+		else
+		{
+			current_parse_parent_node->last_enum->next = new_node;
+			new_node->previous = current_parse_parent_node->last_enum;
+			current_parse_parent_node->last_enum = new_node;
+		}
+
 		token = token->next; //Don't check for EOF
 	}
 
