@@ -583,94 +583,106 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 	block->symbol_table = symbol_table;
 	populate_function_symbols(symbol_table, block);
 
-	struct NODE *node = block->first_child;
+	struct NODE *node = block->first_enum;
 	while(node != NULL)
 	{
-		if(node->node_type == AST_ENUM)
+		assert(node->node_type == AST_ENUM);
+
+		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
+		if(symbol != NULL)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
+
+		symbol = create_symbol(node->name, SYMBOL_ENUM, node->file, node->line_number);
+		symbol->enum_data = create_enum(node);
+		add_symbol(symbol_table, symbol);
+
+		struct NODE *entry = node->first_child;
+		while(entry != NULL)
 		{
-			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
-			if(symbol != NULL)
-				VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
-
-			symbol = create_symbol(node->name, SYMBOL_ENUM, node->file, node->line_number);
-			symbol->enum_data = create_enum(node);
-			add_symbol(symbol_table, symbol);
-
-			struct NODE *entry = node->first_child;
-			while(entry != NULL)
-			{
-				entry->index = next_index;
-				next_index++;
-				entry = entry->next;
-			}
-
-			node->index = next_index;
+			entry->index = next_index;
 			next_index++;
-
-			free_type(node->type);
-			node->type = create_type(node->name);
+			entry = entry->next;
 		}
 
-		if(node->node_type == AST_STRUCT)
-		{
-			assert(node->first_child->node_type == AST_BLOCK);
-			assert(count_node_children(node) == 1);
+		node->index = next_index;
+		next_index++;
 
-			node->index = next_index;
+		free_type(node->type);
+		node->type = create_type(node->name);
+
+		node = node->next;
+	}
+
+	node = block->first_struct;
+	while(node != NULL) //Populate all struct symbols
+	{
+		assert(node->node_type == AST_STRUCT);
+
+		assert(node->first_child->node_type == AST_BLOCK);
+		assert(count_node_children(node) == 1);
+
+		node->index = next_index;
+		next_index++;
+
+		free_type(node->type);
+		node->type = create_type(node->name);
+
+		struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
+		symbol->struct_data = create_struct(node);
+		add_symbol(symbol_table, symbol);
+
+		node = node->next;
+	}
+
+	node = block->first_struct;
+	while(node != NULL) //Validate all structs
+	{
+		assert(node->node_type == AST_STRUCT);
+
+		verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
+
+		struct NODE *child = node->first_child->first_child;
+		while(child != NULL)
+		{
+			if(child->node_type != AST_LET)
+				VALIDATE_ERROR_LF(child->line_number, child->file, "Struct '%s' can only contain variable declarations", node->name);
+
+			if(child->first_child != NULL)
+				VALIDATE_ERROR_LF(child->line_number, child->file, "Field '%s' must have undefined contents", child->name);
+
+			child->index = next_index;
 			next_index++;
 
-			free_type(node->type);
-			node->type = create_type(node->name);
+			verify_type_valid(child->type, symbol_table, false, child->line_number, child->file);
 
-			struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
-			symbol->struct_data = create_struct(node);
-			add_symbol(symbol_table, symbol);
+			child = child->next;
 		}
 
 		node = node->next;
 	}
 
-	node = block->first_child;
-	while(node != NULL)
+	if(block->node_type == AST_MODULE)
 	{
-		if(node->node_type == AST_LET && block->node_type == AST_MODULE) //TODO: Remove this little bit of duplicated code
+		node = block->first_child;
+		while(node != NULL)
 		{
-			node->symbol_table = symbol_table;
-
-			verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
-
-			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
-			if(symbol != NULL)
-				VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
-
-			node->index = next_index; //Not increasing as add_var will do that when creating the symbol
-			struct VAR_DATA *var = create_var(node->type);
-			add_var(symbol_table, node->name, var, node->file, node->line_number);
-		}
-
-		else if(node->node_type == AST_STRUCT)
-		{
-			verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
-
-			struct NODE *child = node->first_child->first_child;
-			while(child != NULL)
+			if(node->node_type == AST_LET) //TODO: Remove this little bit of duplicated code
 			{
-				if(child->node_type != AST_LET)
-					VALIDATE_ERROR_LF(child->line_number, child->file, "Struct '%s' can only contain variable declarations", node->name);
+				node->symbol_table = symbol_table;
 
-				if(child->first_child != NULL)
-					VALIDATE_ERROR_LF(child->line_number, child->file, "Field '%s' must have undefined contents", child->name);
+				verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
 
-				child->index = next_index;
-				next_index++;
+				struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
+				if(symbol != NULL)
+					VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
 
-				verify_type_valid(child->type, symbol_table, false, child->line_number, child->file);
-
-				child = child->next;
+				node->index = next_index; //Not increasing as add_var will do that when creating the symbol
+				struct VAR_DATA *var = create_var(node->type);
+				add_var(symbol_table, node->name, var, node->file, node->line_number);
 			}
-		}
 
-		node = node->next;
+			node = node->next;
+		}
 	}
 }
 
@@ -968,35 +980,32 @@ void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool r
 
 void populate_function_symbols(struct SYMBOL_TABLE *symbol_table, struct NODE *block)
 {
-	struct NODE *node = block->first_child;
-	while(node != NULL)
+	struct NODE *func_node = block->first_func;
+	while(func_node != NULL)
 	{
-		if(node->node_type == AST_FUNC)
+		verify_type_valid(func_node->type, symbol_table, true, func_node->line_number, func_node->file);
+
+		struct ARG_DATA *arg = func_node->first_arg;
+		while(arg != NULL)
 		{
-			verify_type_valid(node->type, symbol_table, true, node->line_number, node->file);
-
-			struct ARG_DATA *arg = node->first_arg;
-			while(arg != NULL)
-			{
-				verify_type_valid(arg->type, symbol_table, false, node->line_number, node->file);
-				arg = arg->next;
-			}
-
-			struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_FUNC, node->file, node->line_number);
-
-			struct FUNC_DATA *func_data = create_func(node->type);
-			func_data->first_arg = node->first_arg;
-			func_data->last_arg = node->last_arg;
-			symbol->func_data = func_data;
-
-			node->index = next_index;
-			symbol->index = next_index;
-			next_index++;
-
-			add_symbol(symbol_table, symbol);
+			verify_type_valid(arg->type, symbol_table, false, func_node->line_number, func_node->file);
+			arg = arg->next;
 		}
 
-		node = node->next;
+		struct SYMBOL *symbol = create_symbol(func_node->name, SYMBOL_FUNC, func_node->file, func_node->line_number);
+
+		struct FUNC_DATA *func_data = create_func(func_node->type);
+		func_data->first_arg = func_node->first_arg;
+		func_data->last_arg = func_node->last_arg;
+		symbol->func_data = func_data;
+
+		func_node->index = next_index;
+		symbol->index = next_index;
+		next_index++;
+
+		add_symbol(symbol_table, symbol);
+
+		func_node = func_node->next;
 	}
 }
 
@@ -1055,37 +1064,34 @@ void trace_return(struct NODE *func)
 
 void validate_functions(struct NODE *block, struct SYMBOL_TABLE *root_symbol_table)
 {
-	struct NODE *node = block->first_child;
-	while(node != NULL)
+	struct NODE *func_node = block->first_func;
+	while(func_node != NULL)
 	{
-		if(node->node_type == AST_FUNC)
+		assert(func_node->node_type == AST_FUNC);
+		assert(func_node->first_child->node_type == AST_BLOCK);
+		assert(count_node_children(func_node) == 1);
+
+		struct SYMBOL_TABLE *symbol_table = create_symbol_table(root_symbol_table, func_node->module);
+		func_node->symbol_table = symbol_table;
+
+		verify_type_valid(func_node->type, symbol_table, true, func_node->line_number, func_node->file);
+
+		struct ARG_DATA *arg = func_node->first_arg;
+		while(arg != NULL)
 		{
-			assert(node->node_type == AST_FUNC);
-			assert(node->first_child->node_type == AST_BLOCK);
-			assert(count_node_children(node) == 1);
+			verify_type_valid(arg->type, symbol_table, false, func_node->line_number, func_node->file);
 
-			struct SYMBOL_TABLE *symbol_table = create_symbol_table(root_symbol_table, node->module);
-			node->symbol_table = symbol_table;
+			arg->index = next_index; //next_index is incremented in add_var
+			add_var(symbol_table, arg->name, create_var(arg->type), arg->file, arg->line_number);
 
-			verify_type_valid(node->type, symbol_table, true, node->line_number, node->file);
-
-			struct ARG_DATA *arg = node->first_arg;
-			while(arg != NULL)
-			{
-				verify_type_valid(arg->type, symbol_table, false, node->line_number, node->file);
-
-				arg->index = next_index; //next_index is incremented in add_var
-				add_var(symbol_table, arg->name, create_var(arg->type), arg->file, arg->line_number);
-
-				arg = arg->next;
-			}
-
-			validate_block(node->first_child, symbol_table, false, 0);
-			if(strcmp(node->type->name, "Void") != 0)
-				trace_return(node);
-
+			arg = arg->next;
 		}
 
-		node = node->next;
+		validate_block(func_node->first_child, symbol_table, false, 0);
+		if(strcmp(func_node->type->name, "Void") != 0)
+			trace_return(func_node);
+
+
+		func_node = func_node->next;
 	}
 }

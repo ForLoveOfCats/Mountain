@@ -1346,7 +1346,17 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		token = parse_block(token, true, 0);
 		current_parse_parent_node = old_parse_parent_node;
 
-		add_node(current_parse_parent_node, new_node);
+		if(current_parse_parent_node->first_func == NULL)
+		{
+			current_parse_parent_node->first_func = new_node;
+			current_parse_parent_node->last_func = new_node;
+		}
+		else
+		{
+			current_parse_parent_node->last_func->next = new_node;
+			new_node->previous = current_parse_parent_node->last_func;
+			current_parse_parent_node->last_func = new_node;
+		}
 
 		struct NODE_BOX *prototype = create_node_box(new_node);
 		if(first_boxed_func == NULL)
@@ -1395,7 +1405,18 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 			add_node(new_node, entry);
 		}
 
-		add_node(current_parse_parent_node, new_node);
+		if(current_parse_parent_node->first_enum == NULL)
+		{
+			current_parse_parent_node->first_enum = new_node;
+			current_parse_parent_node->last_enum = new_node;
+		}
+		else
+		{
+			current_parse_parent_node->last_enum->next = new_node;
+			new_node->previous = current_parse_parent_node->last_enum;
+			current_parse_parent_node->last_enum = new_node;
+		}
+
 		token = token->next; //Don't check for EOF
 	}
 
@@ -1421,7 +1442,17 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		token = parse_block(token, true, 0);
 		current_parse_parent_node = old_parse_parent_node;
 
-		add_node(current_parse_parent_node, new_node);
+		if(current_parse_parent_node->first_struct == NULL)
+		{
+			current_parse_parent_node->first_struct = new_node;
+			current_parse_parent_node->last_struct = new_node;
+		}
+		else
+		{
+			current_parse_parent_node->last_struct->next = new_node;
+			new_node->previous = current_parse_parent_node->last_struct;
+			current_parse_parent_node->last_struct = new_node;
+		}
 	}
 
 	else if(strcmp(token->string, "import") == 0
