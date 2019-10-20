@@ -613,69 +613,76 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 		node = node->next;
 	}
 
-	node = block->first_child;
-	while(node != NULL)
+	node = block->first_struct;
+	while(node != NULL) //Populate all struct symbols
 	{
-		if(node->node_type == AST_STRUCT)
-		{
-			assert(node->first_child->node_type == AST_BLOCK);
-			assert(count_node_children(node) == 1);
+		assert(node->node_type == AST_STRUCT);
 
-			node->index = next_index;
+		assert(node->first_child->node_type == AST_BLOCK);
+		assert(count_node_children(node) == 1);
+
+		node->index = next_index;
+		next_index++;
+
+		free_type(node->type);
+		node->type = create_type(node->name);
+
+		struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
+		symbol->struct_data = create_struct(node);
+		add_symbol(symbol_table, symbol);
+
+		node = node->next;
+	}
+
+	node = block->first_struct;
+	while(node != NULL) //Validate all structs
+	{
+		assert(node->node_type == AST_STRUCT);
+
+		verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
+
+		struct NODE *child = node->first_child->first_child;
+		while(child != NULL)
+		{
+			if(child->node_type != AST_LET)
+				VALIDATE_ERROR_LF(child->line_number, child->file, "Struct '%s' can only contain variable declarations", node->name);
+
+			if(child->first_child != NULL)
+				VALIDATE_ERROR_LF(child->line_number, child->file, "Field '%s' must have undefined contents", child->name);
+
+			child->index = next_index;
 			next_index++;
 
-			free_type(node->type);
-			node->type = create_type(node->name);
+			verify_type_valid(child->type, symbol_table, false, child->line_number, child->file);
 
-			struct SYMBOL *symbol = create_symbol(node->name, SYMBOL_STRUCT, node->file, node->line_number);
-			symbol->struct_data = create_struct(node);
-			add_symbol(symbol_table, symbol);
+			child = child->next;
 		}
 
 		node = node->next;
 	}
 
-	node = block->first_child;
-	while(node != NULL)
+	if(block->node_type == AST_MODULE)
 	{
-		if(node->node_type == AST_LET && block->node_type == AST_MODULE) //TODO: Remove this little bit of duplicated code
+		node = block->first_child;
+		while(node != NULL)
 		{
-			node->symbol_table = symbol_table;
-
-			verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
-
-			struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
-			if(symbol != NULL)
-				VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
-
-			node->index = next_index; //Not increasing as add_var will do that when creating the symbol
-			struct VAR_DATA *var = create_var(node->type);
-			add_var(symbol_table, node->name, var, node->file, node->line_number);
-		}
-
-		else if(node->node_type == AST_STRUCT)
-		{
-			verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
-
-			struct NODE *child = node->first_child->first_child;
-			while(child != NULL)
+			if(node->node_type == AST_LET) //TODO: Remove this little bit of duplicated code
 			{
-				if(child->node_type != AST_LET)
-					VALIDATE_ERROR_LF(child->line_number, child->file, "Struct '%s' can only contain variable declarations", node->name);
+				node->symbol_table = symbol_table;
 
-				if(child->first_child != NULL)
-					VALIDATE_ERROR_LF(child->line_number, child->file, "Field '%s' must have undefined contents", child->name);
+				verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
 
-				child->index = next_index;
-				next_index++;
+				struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, false);
+				if(symbol != NULL)
+					VALIDATE_ERROR_LF(node->line_number, node->file, "A symbol named '%s' already exists", node->name);
 
-				verify_type_valid(child->type, symbol_table, false, child->line_number, child->file);
-
-				child = child->next;
+				node->index = next_index; //Not increasing as add_var will do that when creating the symbol
+				struct VAR_DATA *var = create_var(node->type);
+				add_var(symbol_table, node->name, var, node->file, node->line_number);
 			}
-		}
 
-		node = node->next;
+			node = node->next;
+		}
 	}
 }
 

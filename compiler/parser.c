@@ -1442,7 +1442,17 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		token = parse_block(token, true, 0);
 		current_parse_parent_node = old_parse_parent_node;
 
-		add_node(current_parse_parent_node, new_node);
+		if(current_parse_parent_node->first_struct == NULL)
+		{
+			current_parse_parent_node->first_struct = new_node;
+			current_parse_parent_node->last_struct = new_node;
+		}
+		else
+		{
+			current_parse_parent_node->last_struct->next = new_node;
+			new_node->previous = current_parse_parent_node->last_struct;
+			current_parse_parent_node->last_struct = new_node;
+		}
 	}
 
 	else if(strcmp(token->string, "import") == 0

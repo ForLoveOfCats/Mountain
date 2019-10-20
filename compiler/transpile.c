@@ -255,42 +255,38 @@ void transpile_types(FILE *target, struct NODE *block)
 		node = node->next;
 	}
 
-	node = block->first_child;
+	node = block->first_struct;
 	while(node != NULL)
 	{
-		if(node->node_type == AST_STRUCT)
-		{
-			assert(node->first_child->node_type == AST_BLOCK);
+		assert(node->node_type == AST_STRUCT);
+		assert(node->first_child->node_type == AST_BLOCK);
 
-			fprintf(target, "typedef struct symbol_%i symbol_%i;\n", node->index, node->index);
-		}
+		fprintf(target, "typedef struct symbol_%i symbol_%i;\n", node->index, node->index);
 
 		node = node->next;
 	}
 
-	node = block->first_child;
+	node = block->first_struct;
 	while(node != NULL)
 	{
-		if(node->node_type == AST_STRUCT)
+		assert(node->node_type == AST_STRUCT);
+		assert(node->first_child->node_type == AST_BLOCK);
+
+		fprintf(target, "typedef struct symbol_%i {\n", node->index);
+
+		struct NODE *entry = node->first_child->first_child;
+		while(entry != NULL)
 		{
-			assert(node->first_child->node_type == AST_BLOCK);
+			assert(entry->node_type == AST_LET);
 
-			fprintf(target, "typedef struct symbol_%i {\n", node->index);
+			char *type_str = type_to_c(entry->type);
+			fprintf(target, "%s symbol_%i;\n", type_str, entry->index);
+			free(type_str);
 
-			struct NODE *entry = node->first_child->first_child;
-			while(entry != NULL)
-			{
-				assert(entry->node_type == AST_LET);
-
-				char *type_str = type_to_c(entry->type);
-				fprintf(target, "%s symbol_%i;\n", type_str, entry->index);
-				free(type_str);
-
-				entry = entry->next;
-			}
-
-			fprintf(target, "} symbol_%i;\n", node->index);
+			entry = entry->next;
 		}
+
+		fprintf(target, "} symbol_%i;\n", node->index);
 
 		node = node->next;
 	}

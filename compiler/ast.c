@@ -195,6 +195,14 @@ void free_tree(struct NODE *node) //Frees *node and all descendant nodes
 		enum_node = next_enum;
 	}
 
+	struct NODE *struct_node = node->first_struct;
+	while(struct_node != NULL)
+	{
+		struct NODE *next_struct = struct_node->next;
+		free_tree(struct_node);
+		struct_node = next_struct;
+	}
+
 	struct ARG_DATA *arg = node->first_arg;
 	while(arg != NULL)
 	{
