@@ -5,4 +5,13 @@ module Main;
 
 
 func:Void main() {
+	struct:Test {
+		let:i32 field = undefined;
+	}
+
+	do_something();
+
+	func:Void do_something() {}
 }
+
+

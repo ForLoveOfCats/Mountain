@@ -1346,7 +1346,18 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 		token = parse_block(token, true, 0);
 		current_parse_parent_node = old_parse_parent_node;
 
-		add_node(current_parse_parent_node, new_node);
+ 		/* add_node(current_parse_parent_node, new_node); */
+		if(current_parse_parent_node->first_func == NULL)
+		{
+			current_parse_parent_node->first_func = new_node;
+			current_parse_parent_node->last_func = new_node;
+		}
+		else
+		{
+			current_parse_parent_node->last_func->next = new_node;
+			new_node->previous = current_parse_parent_node->last_func;
+			current_parse_parent_node->last_func = new_node;
+		}
 
 		struct NODE_BOX *prototype = create_node_box(new_node);
 		if(first_boxed_func == NULL)
