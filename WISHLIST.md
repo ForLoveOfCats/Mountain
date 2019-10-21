@@ -9,7 +9,7 @@
 * Code generation for static dispath wherever possible
 * Optional late binding when needed
 * Function and struct generics
-* Overriding methods from embeded structs
+* Overriding methods from embeded structs (?)
 * Adding methods to imported structs
 * Explicit function overloading
 * Operator overloading

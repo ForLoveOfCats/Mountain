@@ -19,10 +19,11 @@ Mountain has several core tenants:
     * Explicit does not always have to mean verbose
 * Maximizing expressiveness is valuable where possible
     * Balancing this with performance is a razors edge, trust the
-      developer to use the right language tools where appropriate
+      developer to use the right language tools where appropriate.
+* Avoid restricting the developer's freedom for philosophical reasons.
 * It is not the language's job to enforce a specific coding "style".
 
-Mountain draws much inspiration from Zig, Rust, Jai, and of course its
+Mountain draws much inspiration from Zig, Rust, and of course its
 parent language C.
 
 
@@ -42,21 +43,31 @@ a self-hosted compiler could be built. However now the goal is to port
 this codebase into Mountain so these design oversights are slowly
 being corrected.
 
+As of currently Mountain is a transpiling language in that the
+compiler emits C source code which is then fed through GCC or Clang in
+order to produce the final binary. Mountain should eventually move to
+directly using LLVM. I decided to not use LLVM right out of the gate
+due to the high barrier of entry to utilizing LLVM and the extra work
+it will take to ensure ABI compatibility with various C
+compilers. With the goal to get the language functional and useful
+quickly I opted to transpile to C for now.
+
 
 ### Currently supported features
 * Variable declaration (requires a value or explicitly left undefined)
 * Variable value set
 * Global variables
 * Symbol scoping
-* Basic type system (current builtin types are `u8`, `i32`, and
-  `Bool`, also supports custom types (currently only enums))
+* Basic type system (current builtin types are `u8`, `i32`, `Bool`,
+  and `Ptr`, also supports custom types (enums and structs))
 * Function declarations (with parameters and return type)
 * Return values from non-Void functions (can also return no value from
   Void functions to early exit)
 * Basic function return tracing
 * Function calls (with and without return value)
 * Enums definition and usage
-* Stuct definition
+* Stuct definition (TODO dependency loops not yet detected, reliant on
+  order relative to other structs)
 * Stack allocated struct initialization
 * Read and write to struct fields
 * Order of global symbols does not matter
