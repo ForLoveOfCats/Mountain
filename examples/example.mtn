@@ -9,7 +9,7 @@ using import YetAnotherModule;
 
 
 struct:MyType {
-	let:Bool field = undefined;
+	let:Bool field;
 }
 
 

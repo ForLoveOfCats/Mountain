@@ -1433,14 +1433,40 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 
 		NEXT_TOKEN(token);
 		expect(token, TOKEN_OPEN_BRACE);
-
-		NEXT_TOKEN(token);
-		struct NODE *old_parse_parent_node = current_parse_parent_node;
 		struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 		add_node(new_node, block);
-		current_parse_parent_node = block;
-		token = parse_block(token, true, 0);
-		current_parse_parent_node = old_parse_parent_node;
+
+		NEXT_TOKEN(token);
+		while(true)
+		{
+			expect(token, TOKEN_WORD);
+			if(strcmp(token->string, "let") != 0)
+				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected 'let' but found '%s'", token->string);
+			struct NODE *let_node = create_node(AST_LET, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_COLON);
+
+			NEXT_TOKEN(token);
+			free_type(let_node->type);
+			let_node->type = parse_type(&token, NULL);
+
+			expect(token, TOKEN_WORD); //The field name
+			free(let_node->name);
+			let_node->name = strdup(token->string);
+
+			NEXT_TOKEN(token);
+			expect(token, TOKEN_SEMICOLON);
+
+			add_node(block, let_node);
+
+			NEXT_TOKEN(token);
+			if(token->type == TOKEN_CLOSE_BRACE)
+			{
+				token = token->next; //Don't check for EOF
+				break;
+			}
+		}
 
 		if(current_parse_parent_node->first_struct == NULL)
 		{

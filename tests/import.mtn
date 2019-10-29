@@ -6,8 +6,8 @@ enum:AnotherEnum [Red, Green, Blue]
 
 
 struct:ImportedStruct {
-	let:i32 first = undefined;
-	let:Bool second = undefined;
+	let:i32 first;
+	let:Bool second;
 }
 
 

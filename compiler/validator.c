@@ -644,12 +644,6 @@ void prevalidate_block(struct NODE *block, struct SYMBOL_TABLE *symbol_table)
 		struct NODE *child = node->first_child->first_child;
 		while(child != NULL)
 		{
-			if(child->node_type != AST_LET)
-				VALIDATE_ERROR_LF(child->line_number, child->file, "Struct '%s' can only contain variable declarations", node->name);
-
-			if(child->first_child != NULL)
-				VALIDATE_ERROR_LF(child->line_number, child->file, "Field '%s' must have undefined contents", child->name);
-
 			child->index = next_index;
 			next_index++;
 

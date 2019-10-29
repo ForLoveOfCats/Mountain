@@ -282,8 +282,8 @@ test "Setting using imported global" {
 
 
 struct:TestStruct {
-	let:Bool first_field = undefined;
-	let:i32 second_field = undefined;
+	let:Bool first_field;
+	let:i32 second_field;
 }
 
 
@@ -368,7 +368,7 @@ test "Out of order struct definition" {
 }
 
 struct:OutOfOrderStruct {
-	let:i32 some_field = undefined;
+	let:i32 some_field;
 }
 
 
@@ -382,6 +382,6 @@ test "Local struct definition" {
 	return instance.char_field != 'A';
 
 	struct:LocalStruct {
-		let:u8 char_field = undefined;
+		let:u8 char_field;
 	}
 }
