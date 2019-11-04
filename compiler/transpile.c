@@ -169,9 +169,11 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 	}
 	else if(node->node_type == AST_CALL)
 	{
+		assert(node->first_child != NULL && node->first_child->node_type == AST_BLOCK); //Args
+
 		fprintf(target, "symbol_%i(", node->index);
 
-		struct NODE *arg = node->first_child;
+		struct NODE *arg = node->first_child->first_child;
 		while(arg != NULL)
 		{
 			transpile_expression(target, arg);
@@ -221,7 +223,7 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 	}
 	else
 	{
-		printf("INTERNAL ERROR: We don't know how to transpile this ast node\n");
+		printf("INTERNAL ERROR: We don't know how to transpile this ast node %i\n", node->node_type);
 		exit(EXIT_FAILURE);
 	}
 

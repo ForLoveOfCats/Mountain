@@ -626,11 +626,14 @@ struct NODE *parse_name_get_call(struct TOKEN **callsite_token, struct NODE *mod
 	{
 		new_node = create_node(AST_CALL, module, current_file, token->line_number, token->start_char, token->end_char);
 
+		struct NODE *block = create_node(AST_BLOCK, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+		token = parse_function_args(block, token);
+		expect(token, TOKEN_CLOSE_PARENTHESES);
+		add_node(new_node, block);
+
 		if(child != NULL)
 			add_node(new_node, child);
 
-		token = parse_function_args(new_node, token);
-		expect(token, TOKEN_CLOSE_PARENTHESES);
 
 		CHECK_RECURSE
 	}
@@ -790,7 +793,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 		}
 		else if(token_is_unop(token)) //Is an unop
 		{
-			if(token->type != TOKEN_PERIOD && ((left_value_node == NULL && root_op_node == NULL) || !(last_type == VALUE)) )
+			if((left_value_node == NULL && root_op_node == NULL) || !(last_type == VALUE))
 			{
 				PARSE_ERROR_LC(token->line_number, token->start_char, "Expected value before unary operation '%s'", token->string);
 			}

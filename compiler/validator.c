@@ -55,28 +55,9 @@ char *fatal_pretty_type_name(struct TYPE_DATA *type)
 
 bool is_lvalue(struct NODE *node)
 {
-	if(node->node_type == AST_GET
+	return node->node_type == AST_GET
 	   || (node->node_type == AST_UNOP && node->unop_type == UNOP_DEREFERENCE)
-	   || node->node_type == AST_FIELDGET)
-		return true;
-
-	if(node->node_type == AST_NAME)
-	{
-		while(true)
-		{
-			node = node->first_child;
-
-			if(node == NULL)
-				return false;
-
-			if(node->node_type == AST_GET
-			   || (node->node_type == AST_UNOP && node->unop_type == UNOP_DEREFERENCE)
-			   || node->node_type == AST_FIELDGET)
-				return true;
-		}
-	}
-
-	return false;
+	   || node->node_type == AST_FIELDGET;
 }
 
 
@@ -258,88 +239,11 @@ struct TYPE_DATA *typecheck_field_get(struct NODE *get, struct SYMBOL *struct_sy
 }
 
 
-struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool global, bool search_using_imports, int level) //Exits on failure
+struct TYPE_DATA *typecheck_get_fieldget_call(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool global, bool search_using_imports)
 {
-	if(node->node_type == AST_EXPRESSION)
-	{
-		return typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);
-	}
-	else if(node->node_type == AST_LITERAL)
-	{
-		verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
-		return copy_type(node->type);
-	}
-	else if(node->node_type == AST_NAME)
-	{
-		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, true);
-		if(symbol != NULL && symbol->type == SYMBOL_ENUM)
-		{
-			assert(node->first_child != NULL && node->first_child->node_type == AST_GET);
+	assert(node->node_type == AST_GET || node->node_type == AST_FIELDGET || node->node_type == AST_CALL);
 
-			bool found = false;
-			struct NODE *entry = symbol->enum_data->node->first_child;
-			while(entry != NULL)
-			{
-				assert(entry->node_type == AST_NAME);
-
-				if(strcmp(node->first_child->name, entry->name) == 0)
-				{
-					found = true;
-					node->first_child->index = entry->index;
-					break;
-				}
-
-				entry = entry->next;
-			}
-
-			if(!found)
-				VALIDATE_ERROR_LF(node->line_number, node->file, "The enum '%s' contains no entry '%s'",
-				                  node->name, node->first_child->name)
-
-			verify_type_valid(symbol->enum_data->node->type, symbol_table, false, node->line_number, node->file);
-			return copy_type(symbol->enum_data->node->type);
-		}
-		else if(symbol != NULL && symbol->type == SYMBOL_VAR)
-		{
-			struct SYMBOL *struct_symbol = NULL;
-			if(symbol->var_data->type->reach_module != NULL)
-			{
-				struct NODE *reach_module = lookup_module(symbol->var_data->type->reach_module);
-				if(reach_module == NULL)
-					VALIDATE_ERROR_LF(node->line_number, node->file, "No module has been imported with the name '%s'", symbol->var_data->type->reach_module);
-				struct_symbol = lookup_symbol(reach_module->symbol_table, symbol->var_data->type->name, node->file, false);
-			}
-			else
-				struct_symbol = lookup_symbol(symbol_table, symbol->var_data->type->name, node->file, true);
-
-			if(struct_symbol != NULL)
-			{
-				node->index = symbol->index;
-				return typecheck_field_get(node->first_child, struct_symbol);
-			}
-		}
-
-		if(strcmp(node->name, node->module->name) == 0)
-			return typecheck_expression(node->first_child, node->module->symbol_table, global, false, level + 1);
-
-		struct IMPORT_DATA *import_data = node->module->first_import;
-		while(import_data != NULL)
-		{
-			if(strcmp(import_data->name, node->name) == 0)
-			{
-				struct NODE *module = lookup_module(node->name);
-				assert(module != NULL);
-
-				if(import_data->file == node->file)
-					return typecheck_expression(node->first_child, module->symbol_table, global, false, level + 1);
-			}
-
-			import_data = import_data->next;
-		}
-
-		VALIDATE_ERROR_LF(node->line_number, node->file, "No situationally valid symbol '%s'", node->name);
-	}
-	else if(node->node_type == AST_GET)
+	if(node->node_type == AST_GET)
 	{
 		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, search_using_imports);
 		if(symbol == NULL)
@@ -350,54 +254,15 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 
 		node->index = symbol->index;
 
-		switch(symbol->type)
-		{
-			case SYMBOL_VAR:
-				return copy_type(symbol->var_data->type);
-
-			case SYMBOL_FUNC:
-			{
-				if(node->first_child == NULL || node->first_child->node_type != AST_CALL)
-					VALIDATE_ERROR_LF(node->line_number, node->file, "Expected symbol '%s' to be called", node->name)
-			}
-
-			default:
-				VALIDATE_ERROR_LF(node->line_number, node->file, "Invalid reference to symbol '%s'", node->name)
-		}
+		if(symbol->type == SYMBOL_VAR)
+			return copy_type(symbol->var_data->type);
 	}
-	else if(node->node_type == AST_CALL)
+	else if(node->node_type == AST_FIELDGET)
 	{
-		if(global)
-			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot call function in root scope");
+		if(node->first_child == NULL || node->first_child->node_type != AST_GET) //The parser should have already caught this
+			VALIDATE_ERROR_LF(node->line_number, node->file, "No struct instance to get field '%s' on", node->name);
 
-		struct SYMBOL *function = lookup_symbol(symbol_table, node->name, node->file, search_using_imports);
-		if(function == NULL || function->type != SYMBOL_FUNC)
-			VALIDATE_ERROR_LF(node->line_number, node->file, "No function named '%s'", node->name);
-
-		struct ARG_DATA *func_arg = function->func_data->first_arg;
-		struct NODE *call_arg = node->first_child; //The call args are expression nodes
-		while(func_arg != NULL)
-		{
-			if(call_arg == NULL)
-				VALIDATE_ERROR_LF(node->line_number, node->file, "To few arguments when calling function '%s'", function->name);
-
-			struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, global, search_using_imports, level + 1);
-			if(!are_types_equal(func_arg->type, call_arg_type))
-				VALIDATE_ERROR_LF(node->line_number, node->file, "Type mismatch on parameter '%s'", func_arg->name);
-			free_type(call_arg_type);
-
-			func_arg = func_arg->next;
-			call_arg = call_arg->next;
-		}
-		if(call_arg != NULL)
-			VALIDATE_ERROR_LF(node->line_number, node->file, "To many arguments when calling function '%s'", function->name);
-
-		node->index = function->index;
-		return copy_type(function->func_data->return_type);
-	}
-	/*else if(node->node_type == AST_FIELDGET)
-	{
-		struct TYPE_DATA *child_type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);
+		struct TYPE_DATA *child_type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, 0);
 
 		struct SYMBOL *symbol = NULL;
 		if(child_type->reach_module != NULL)
@@ -418,9 +283,61 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Type '%s' has no fields", node->type->name);
 
 		free_type(child_type);
-
 		return typecheck_field_get(node, symbol);
-	}*/
+	}
+	else if(node->node_type == AST_CALL)
+	{
+		assert(node->first_child != NULL && node->first_child->node_type == AST_BLOCK); //Args
+
+		if(global)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot call function in root scope");
+
+		if(node->first_child->next == NULL || node->first_child->next->node_type != AST_GET)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot call unspecified function");
+
+		struct SYMBOL *function = lookup_symbol(symbol_table, node->first_child->next->name, node->file, search_using_imports);
+		if(function == NULL || function->type != SYMBOL_FUNC)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "No function named '%s'", node->name);
+
+		struct ARG_DATA *func_arg = function->func_data->first_arg;
+		struct NODE *call_arg = node->first_child->first_child; //The call args are expression nodes
+		while(func_arg != NULL)
+		{
+			if(call_arg == NULL)
+				VALIDATE_ERROR_LF(node->line_number, node->file, "To few arguments when calling function '%s'", function->name);
+
+			struct TYPE_DATA *call_arg_type = typecheck_expression(call_arg, symbol_table, global, search_using_imports, 0);
+			if(!are_types_equal(func_arg->type, call_arg_type))
+				VALIDATE_ERROR_LF(node->line_number, node->file, "Type mismatch on parameter '%s'", func_arg->name);
+			free_type(call_arg_type);
+
+			func_arg = func_arg->next;
+			call_arg = call_arg->next;
+		}
+		if(call_arg != NULL)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "To many arguments when calling function '%s'", function->name);
+
+		node->index = function->index;
+		return copy_type(function->func_data->return_type);
+	}
+
+	VALIDATE_ERROR_LF(node->line_number, node->file, "Invalid reference to symbol '%s'", node->name);
+}
+
+
+struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool global, bool search_using_imports, int level) //Exits on failure
+{
+	if(node->node_type == AST_EXPRESSION)
+	{
+		return typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);
+	}
+	else if(node->node_type == AST_LITERAL)
+	{
+		verify_type_valid(node->type, symbol_table, false, node->line_number, node->file);
+		return copy_type(node->type);
+	}
+	else if(node->node_type == AST_GET || node->node_type == AST_FIELDGET || node->node_type == AST_CALL)
+		return typecheck_get_fieldget_call(node, symbol_table, global, search_using_imports);
 	else if(node->node_type == AST_UNOP)
 	{
 		struct TYPE_DATA *child_type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);

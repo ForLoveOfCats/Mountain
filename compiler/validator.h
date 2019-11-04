@@ -30,6 +30,9 @@ struct SCOPE *create_scope(struct SCOPE *parent);
 void free_scope_tree(struct SCOPE *scope);
 
 
+struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool global, bool search_using_imports, int level);
+
+
 void validate_block(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool root, int level);
 
 
