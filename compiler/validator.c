@@ -215,31 +215,7 @@ void verify_type_valid(struct TYPE_DATA *type, struct SYMBOL_TABLE *symbol_table
 }
 
 
-struct TYPE_DATA *typecheck_field_get(struct NODE *get, struct SYMBOL *struct_symbol)
-{
-	assert(get->node_type == AST_GET || get->node_type == AST_FIELDGET);
-	assert(struct_symbol->type == SYMBOL_STRUCT);
-
-	struct NODE *field = struct_symbol->struct_data->node->first_child->first_child;
-	while(field != NULL)
-	{
-		assert(field->node_type == AST_LET);
-
-		if(strcmp(get->name, field->name) == 0)
-		{
-			get->index = field->index;
-			return copy_type(field->type);
-		}
-
-		field = field->next;
-	}
-
-	VALIDATE_ERROR_LF(get->line_number, get->file, "Struct '%s' contains no field called '%s'",
-	                  struct_symbol->struct_data->node->name, get->name);
-}
-
-
-struct TYPE_DATA *typecheck_get_fieldget_call(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool global, bool search_using_imports)
+struct TYPE_DATA *typecheck_get_dotget_call(struct NODE *node, struct SYMBOL_TABLE *symbol_table, bool global, bool search_using_imports)
 {
 	assert(node->node_type == AST_GET || node->node_type == AST_FIELDGET || node->node_type == AST_CALL);
 
@@ -252,15 +228,26 @@ struct TYPE_DATA *typecheck_get_fieldget_call(struct NODE *node, struct SYMBOL_T
 		if(global && symbol->type == SYMBOL_VAR)
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot get variable contents in root scope");
 
-		node->index = symbol->index;
 
 		if(symbol->type == SYMBOL_VAR)
+		{
+			node->index = symbol->index;
 			return copy_type(symbol->var_data->type);
+		}
+		else if(symbol->type == SYMBOL_ENUM)
+		{
+			verify_type_valid(symbol->enum_data->node->type, symbol_table, false, node->line_number, node->file);
+			node->index = symbol->enum_data->node->index;
+			return copy_type(symbol->enum_data->node->type);
+		}
 	}
 	else if(node->node_type == AST_FIELDGET)
 	{
-		if(node->first_child == NULL || node->first_child->node_type != AST_GET) //The parser should have already caught this
-			VALIDATE_ERROR_LF(node->line_number, node->file, "No struct instance to get field '%s' on", node->name);
+		if(node->first_child == NULL
+		   || (node->first_child->node_type != AST_GET
+			   && node->first_child->node_type != AST_FIELDGET
+			   && node->first_child->node_type != AST_CALL))
+		   VALIDATE_ERROR_LF(node->line_number, node->file, "No item to get entry '%s' on", node->name);
 
 		struct TYPE_DATA *child_type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, 0);
 
@@ -279,11 +266,50 @@ struct TYPE_DATA *typecheck_get_fieldget_call(struct NODE *node, struct SYMBOL_T
 		{
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Type '%s' is not known in this context", node->type->name);
 		}
-		else if(symbol->type != SYMBOL_STRUCT)
-			VALIDATE_ERROR_LF(node->line_number, node->file, "Type '%s' has no fields", node->type->name);
+		else if(symbol->type != SYMBOL_STRUCT && symbol->type != SYMBOL_ENUM)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Type '%s' has no entries", node->type->name);
 
 		free_type(child_type);
-		return typecheck_field_get(node, symbol);
+
+		if(symbol->type == SYMBOL_STRUCT)
+		{
+			struct NODE *field = symbol->struct_data->node->first_child->first_child;
+			while(field != NULL)
+			{
+				assert(field->node_type == AST_LET);
+
+				if(strcmp(node->name, field->name) == 0)
+				{
+					node->index = field->index;
+					return copy_type(field->type);
+				}
+
+				field = field->next;
+			}
+
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Struct '%s' contains no field called '%s'",
+			                  symbol->struct_data->node->name, node->name);
+		}
+		else if(symbol->type == SYMBOL_ENUM)
+		{
+			struct NODE *entry = symbol->enum_data->node->first_child;
+			while(entry != NULL)
+			{
+				assert(entry->node_type == AST_NAME);
+
+				if(strcmp(node->name, entry->name) == 0)
+				{
+					node->index = entry->index;
+					verify_type_valid(symbol->enum_data->node->type, symbol_table, false, node->line_number, node->file);
+					return copy_type(symbol->enum_data->node->type);
+				}
+
+				entry = entry->next;
+			}
+
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Enum '%s' contains no entry called '%s'",
+			                  symbol->struct_data->node->name, node->name);
+		}
 	}
 	else if(node->node_type == AST_CALL)
 	{
@@ -321,7 +347,7 @@ struct TYPE_DATA *typecheck_get_fieldget_call(struct NODE *node, struct SYMBOL_T
 		return copy_type(function->func_data->return_type);
 	}
 
-	VALIDATE_ERROR_LF(node->line_number, node->file, "Invalid reference to symbol '%s'", node->name);
+	VALIDATE_ERROR_LF(node->line_number, node->file, "Invalid reference to symbol '%s' with type %i", node->name, node->node_type);
 }
 
 
@@ -337,7 +363,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		return copy_type(node->type);
 	}
 	else if(node->node_type == AST_GET || node->node_type == AST_FIELDGET || node->node_type == AST_CALL)
-		return typecheck_get_fieldget_call(node, symbol_table, global, search_using_imports);
+		return typecheck_get_dotget_call(node, symbol_table, global, search_using_imports);
 	else if(node->node_type == AST_UNOP)
 	{
 		struct TYPE_DATA *child_type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);

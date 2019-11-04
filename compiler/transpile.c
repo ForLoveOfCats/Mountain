@@ -157,12 +157,12 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 
 		transpile_expression(target, node->first_child);
 	}
-	/*else if(node->node_type == AST_FIELDGET)
+	else if(node->node_type == AST_FIELDGET)
 	{
 		fprintf(target, "(");
 		transpile_expression(target, node->first_child);
 		fprintf(target, ".symbol_%i)", node->index);
-	}*/
+	}
 	else if(node->node_type == AST_GET)
 	{
 		fprintf(target, "symbol_%i", node->index);
