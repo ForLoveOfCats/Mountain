@@ -239,8 +239,6 @@ struct TYPE_DATA *typecheck_field_get(struct NODE *get, struct SYMBOL *struct_sy
 	assert(get->node_type == AST_GET || get->node_type == AST_FIELDGET);
 	assert(struct_symbol->type == SYMBOL_STRUCT);
 
-	get->node_type = AST_FIELDGET;
-
 	struct NODE *field = struct_symbol->struct_data->node->first_child->first_child;
 	while(field != NULL)
 	{
@@ -343,15 +341,29 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 	}
 	else if(node->node_type == AST_GET)
 	{
-		if(global)
+		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, search_using_imports);
+		if(symbol == NULL)
+			VALIDATE_ERROR_LF(node->line_number, node->file, "Symbol '%s' is not known in this context", node->name);
+
+		if(global && symbol->type == SYMBOL_VAR)
 			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot get variable contents in root scope");
 
-		struct SYMBOL *symbol = lookup_symbol(symbol_table, node->name, node->file, search_using_imports);
-		if(symbol == NULL || symbol->type != SYMBOL_VAR)
-			VALIDATE_ERROR_LF(node->line_number, node->file, "Cannot get variable '%s' as it does not exist", node->name);
-
 		node->index = symbol->index;
-		return copy_type(symbol->var_data->type);
+
+		switch(symbol->type)
+		{
+			case SYMBOL_VAR:
+				return copy_type(symbol->var_data->type);
+
+			case SYMBOL_FUNC:
+			{
+				if(node->first_child == NULL || node->first_child->node_type != AST_CALL)
+					VALIDATE_ERROR_LF(node->line_number, node->file, "Expected symbol '%s' to be called", node->name)
+			}
+
+			default:
+				VALIDATE_ERROR_LF(node->line_number, node->file, "Invalid reference to symbol '%s'", node->name)
+		}
 	}
 	else if(node->node_type == AST_CALL)
 	{
@@ -383,7 +395,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		node->index = function->index;
 		return copy_type(function->func_data->return_type);
 	}
-	else if(node->node_type == AST_FIELDGET)
+	/*else if(node->node_type == AST_FIELDGET)
 	{
 		struct TYPE_DATA *child_type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);
 
@@ -408,7 +420,7 @@ struct TYPE_DATA *typecheck_expression(struct NODE *node, struct SYMBOL_TABLE *s
 		free_type(child_type);
 
 		return typecheck_field_get(node, symbol);
-	}
+	}*/
 	else if(node->node_type == AST_UNOP)
 	{
 		struct TYPE_DATA *child_type = typecheck_expression(node->first_child, symbol_table, global, search_using_imports, level + 1);

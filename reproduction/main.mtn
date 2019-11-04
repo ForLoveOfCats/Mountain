@@ -3,6 +3,8 @@
 module Main;
 
 
+func:Void function() {}
 
 func:Void main() {
+	function();
 }

@@ -585,40 +585,54 @@ int get_op_precedence(enum OP_TYPE op)
 }
 
 
-struct NODE *parse_name_get_call(struct TOKEN **callsite_token, struct NODE *module)
+struct NODE *parse_name_get_call(struct TOKEN **callsite_token, struct NODE *module, struct NODE *child)
 {
-	struct TOKEN *token = *callsite_token;
+	#define CHECK_RECURSE \
+		if(token->next != NULL && (token->next->type == TOKEN_OPEN_PARENTHESES || token->next->type == TOKEN_PERIOD)) \
+		{ \
+			token = token->next; \
+			new_node = parse_name_get_call(&token, module, new_node); \
+		} \
 
-	struct TOKEN *peeked = peek_next_token(token);
+	struct TOKEN *token = *callsite_token;
 	struct NODE *new_node = NULL;
 
-	if(peeked->type == TOKEN_PERIOD) //Name
+	if(token->type == TOKEN_WORD) //Get
 	{
-		new_node = create_node(AST_NAME, module, current_file, token->line_number, token->start_char, token->end_char);
-		free(new_node->name);
-		new_node->name = strdup(token->string);
-
-		NEXT_TOKEN(token);
-		expect(token, TOKEN_PERIOD);
-		NEXT_TOKEN(token);
-		add_node(new_node, parse_name_get_call(&token, module));
-	}
-	else if(peeked->type == TOKEN_OPEN_PARENTHESES) //Function call
-	{
-		new_node = create_node(AST_CALL, module, current_file, token->line_number, token->start_char, token->end_char);
-		free(new_node->name);
-		new_node->name = strdup(token->string);
-
-		NEXT_TOKEN(token);
-		expect(token, TOKEN_OPEN_PARENTHESES);
-		token = parse_function_args(new_node, token);
-	}
-	else if(token->type == TOKEN_WORD) //Get
-	{
-		//If the validator decides that this is getting a struct field then it will change it to AST_FIELDGET
 		new_node = create_node(AST_GET, module, current_file, token->line_number, token->start_char, token->end_char);
 		free(new_node->name);
 		new_node->name = strdup(token->string);
+
+		if(child != NULL)
+			add_node(new_node, child);
+
+		CHECK_RECURSE
+	}
+	else if(token->type == TOKEN_PERIOD) //Fieldget
+	{
+		NEXT_TOKEN(token);
+		expect(token, TOKEN_WORD);
+
+		new_node = create_node(AST_FIELDGET, module, current_file, token->line_number, token->start_char, token->end_char);
+		free(new_node->name);
+		new_node->name = strdup(token->string);
+
+		if(child != NULL)
+			add_node(new_node, child);
+
+		CHECK_RECURSE
+	}
+	else if(token->type == TOKEN_OPEN_PARENTHESES) //Call
+	{
+		new_node = create_node(AST_CALL, module, current_file, token->line_number, token->start_char, token->end_char);
+
+		if(child != NULL)
+			add_node(new_node, child);
+
+		token = parse_function_args(new_node, token);
+		expect(token, TOKEN_CLOSE_PARENTHESES);
+
+		CHECK_RECURSE
 	}
 	else
 	{
@@ -789,7 +803,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 
 					NEXT_TOKEN(token);
 					expect(token, TOKEN_WORD);
-					new_node = create_node(AST_FIELDGET, root->module, current_file, token->line_number, token->start_char, token->end_char);
+					new_node = create_node(AST_GET, root->module, current_file, token->line_number, token->start_char, token->end_char);
 					free(new_node->name);
 					new_node->name = strdup(token->string);
 
@@ -917,7 +931,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			}
 			else //Must be a name, get, or function call
 			{
-				new_node = parse_name_get_call(&token, root->module);
+				new_node = parse_name_get_call(&token, root->module, NULL);
 				previous_node = new_node;
 			}
 			assert(new_node != NULL);
