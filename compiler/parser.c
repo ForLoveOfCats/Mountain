@@ -1416,7 +1416,7 @@ struct TOKEN *parse_next_statement(struct TOKEN *token)
 				break;
 
 			expect(token, TOKEN_WORD);
-			struct NODE *entry = create_node(AST_NAME, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
+			struct NODE *entry = create_node(AST_ENUMENTRY, current_parse_parent_node->module, current_file, token->line_number, token->start_char, token->end_char);
 			free(entry->name);
 			entry->name = strdup(token->string);
 			add_node(new_node, entry);

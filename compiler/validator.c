@@ -295,7 +295,7 @@ struct TYPE_DATA *typecheck_get_dotget_call(struct NODE *node, struct SYMBOL_TAB
 			struct NODE *entry = symbol->enum_data->node->first_child;
 			while(entry != NULL)
 			{
-				assert(entry->node_type == AST_NAME);
+				assert(entry->node_type == AST_ENUMENTRY);
 
 				if(strcmp(node->name, entry->name) == 0)
 				{

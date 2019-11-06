@@ -62,7 +62,7 @@ void transpile_expression(FILE *target, struct NODE *node) //TODO support non-nu
 		return;
 	}
 
-	if(node->node_type == AST_NAME)
+	if(node->node_type == AST_ENUMENTRY)
 	{
 		/* if(node->first_child->node_type == AST_FIELDGET) */
 		/* fprintf(target, "(symbol_%i.symbol_%i)", node->index, node->first_child->index); */
@@ -245,7 +245,7 @@ void transpile_types(FILE *target, struct NODE *block)
 		struct NODE *entry = node->first_child;
 		while(entry != NULL)
 		{
-			assert(entry->node_type == AST_NAME);
+			assert(entry->node_type == AST_ENUMENTRY);
 
 			fprintf(target, "symbol_%i,", entry->index);
 
