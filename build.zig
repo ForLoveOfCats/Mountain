@@ -10,5 +10,7 @@ pub fn build(b: *Builder) void
     const exe = b.addExecutable("Mountain", "compiler/compiler.zig");
     exe.setBuildMode(mode);
 
+    exe.linkSystemLibrary("c");
+
     exe.install();
 }
