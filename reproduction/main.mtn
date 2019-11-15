@@ -3,25 +3,16 @@
 module Main;
 
 
-// struct:T {
-// let:Bool field;
-// }
-
-enum:Enum [first, second]
+struct:T {
+	let:Bool field;
+	let:i32 other_field;
+}
 
 test "Reproduction" {
-	// func:T function() {
-	// return new:T::{
-	// .field = true;
-	// };
-	// }
+	let:T instance = new:T::{
+		.field = false;
+		.other_field = 42;
+	};
 
-	// return function().field;
-
-	func:Enum function() {
-		return Enum.second;
-	}
-	let:Enum instance = function().second;
-	// return instance != Enum.first;
-	return true;
+	return instance.field;
 }

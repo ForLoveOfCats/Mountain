@@ -585,21 +585,21 @@ int get_op_precedence(enum OP_TYPE op)
 }
 
 
-struct NODE *parse_name_get_call(struct TOKEN **callsite_token, struct NODE *module, struct NODE *child)
+struct NODE *parse_name_dotget_call(struct TOKEN **callsite_token, struct NODE *module, struct NODE *child)
 {
 	#define CHECK_RECURSE \
 		if(token->next != NULL && (token->next->type == TOKEN_OPEN_PARENTHESES || token->next->type == TOKEN_PERIOD)) \
 		{ \
 			token = token->next; \
-			new_node = parse_name_get_call(&token, module, new_node); \
+			new_node = parse_name_dotget_call(&token, module, new_node); \
 		} \
 
 	struct TOKEN *token = *callsite_token;
 	struct NODE *new_node = NULL;
 
-	if(token->type == TOKEN_WORD) //Get
+	if(token->type == TOKEN_WORD) //Name
 	{
-		new_node = create_node(AST_GET, module, current_file, token->line_number, token->start_char, token->end_char);
+		new_node = create_node(AST_NAME, module, current_file, token->line_number, token->start_char, token->end_char);
 		free(new_node->name);
 		new_node->name = strdup(token->string);
 
@@ -608,12 +608,12 @@ struct NODE *parse_name_get_call(struct TOKEN **callsite_token, struct NODE *mod
 
 		CHECK_RECURSE
 	}
-	else if(token->type == TOKEN_PERIOD) //Fieldget
+	else if(token->type == TOKEN_PERIOD) //Also name
 	{
 		NEXT_TOKEN(token);
 		expect(token, TOKEN_WORD);
 
-		new_node = create_node(AST_FIELDGET, module, current_file, token->line_number, token->start_char, token->end_char);
+		new_node = create_node(AST_NAME, module, current_file, token->line_number, token->start_char, token->end_char);
 		free(new_node->name);
 		new_node->name = strdup(token->string);
 
@@ -806,7 +806,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 
 					NEXT_TOKEN(token);
 					expect(token, TOKEN_WORD);
-					new_node = create_node(AST_GET, root->module, current_file, token->line_number, token->start_char, token->end_char);
+					new_node = create_node(AST_NAME, root->module, current_file, token->line_number, token->start_char, token->end_char);
 					free(new_node->name);
 					new_node->name = strdup(token->string);
 
@@ -934,7 +934,7 @@ void parse_expression_bounds(struct NODE *root, struct TOKEN *start, struct TOKE
 			}
 			else //Must be a name, get, or function call
 			{
-				new_node = parse_name_get_call(&token, root->module, NULL);
+				new_node = parse_name_dotget_call(&token, root->module, NULL);
 				previous_node = new_node;
 			}
 			assert(new_node != NULL);

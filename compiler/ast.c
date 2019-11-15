@@ -54,6 +54,7 @@ struct NODE *create_node(enum AST_TYPE type, struct NODE *module, int file, int 
 	struct NODE *new_node = (struct NODE *)malloc(sizeof(struct NODE));
 
 	new_node->node_type = type;
+	new_node->name_type = NAME_NONE;
 
 	new_node->module = module;
 	new_node->parent = NULL;

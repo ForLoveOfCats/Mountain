@@ -30,18 +30,27 @@ enum AST_TYPE {
 	AST_STRUCT,
 	AST_LET,
 	AST_ENUMENTRY,
-	AST_GET,
+	AST_NAME,
 	AST_CALL,
 	AST_RETURN,
 	AST_EXPRESSION,
 	AST_LITERAL,
 	AST_NEW,
 	AST_FIELDVALUE,
-	AST_FIELDGET,
 	AST_ENUMGET,
 	AST_OP,
 	AST_UNOP,
 	AST_NEGATE
+};
+
+enum NAME_TYPE {
+	NAME_NONE, //Not a name, default sentinal value
+	NAME_MODULE, //Reference to a module/namespace
+	NAME_ENUM, //Reference to an enum type (not instance)
+	NAME_ENUMENTRY, //Reference to an entry in an enum
+	NAME_GET, //Reference to a variable instance
+	NAME_DOTGET, //Reference to a field in a struct instance
+	NAME_FUNC, //Reference to a callable function
 };
 
 enum OP_TYPE {
@@ -77,6 +86,7 @@ enum LITERAL_TYPE {
 struct NODE
 {
 	enum AST_TYPE node_type;
+	enum NAME_TYPE name_type;
 
 	struct NODE *module;
 	struct NODE *parent;
