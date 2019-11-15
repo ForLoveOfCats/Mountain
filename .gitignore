@@ -1,3 +1,2 @@
 build
-.ccls-cache
-.sconsign.dblite
+zig-cache
