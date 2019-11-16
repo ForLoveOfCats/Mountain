@@ -28,10 +28,9 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
         .i = 0,
     };
 
-    while(iterator.nextCodepoint()) |point| {
-        var chars: [4]u8 = undefined;
-        var length = try unicode.utf8Encode(point, chars[0..chars.len]);
-        print("{}", chars[0..length]);
+    while(iterator.nextCodepoint()) |codepoint| {
+        var point = try CodePoint8.init(codepoint);
+        print("{}", point.chars());
     }
 
     return tokens.toOwnedSlice();

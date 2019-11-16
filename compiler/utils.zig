@@ -2,6 +2,7 @@ const std = @import("std");
 const io = std.io;
 const fs = std.fs;
 const File = fs.File;
+const unicode = std.unicode;
 
 
 
@@ -59,3 +60,23 @@ pub fn newCharNumber(number: i32) CharNumber {
         .number = number,
     };
 }
+
+
+pub const CodePoint8 = struct {
+    bytes: [4]u8,
+    length: usize,
+
+    pub fn chars(self: CodePoint8) []u8 {
+        return self.bytes[0 .. self.length];
+    }
+
+    pub fn init(point: u32) !CodePoint8 {
+        var bytes: [4]u8 = undefined;
+        var length = try unicode.utf8Encode(point, bytes[0..4]);
+
+        return CodePoint8 {
+            .bytes = bytes,
+            .length = length,
+        };
+    }
+};
