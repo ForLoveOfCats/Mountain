@@ -19,6 +19,13 @@ pub fn println(comptime fmt: []const u8, args: ...) void {
     stdout.print("\n") catch return;
 }
 
+pub fn print(comptime fmt: []const u8, args: ...) void {
+    const held = stdout_mutex.acquire();
+    defer held.release();
+    const stdout = getStdoutStream() catch return;
+    stdout.print(fmt, args) catch return;
+}
+
 fn getStdoutStream() !*io.OutStream(File.WriteError) {
     if (stdout_stream) |st| {
         return st;
@@ -29,4 +36,26 @@ fn getStdoutStream() !*io.OutStream(File.WriteError) {
         stdout_stream = st;
         return st;
     }
+}
+
+
+pub const LineNumber = struct {
+    number: i32,
+};
+
+pub fn newLineNumber(number: i32) LineNumber {
+    return LineNumber {
+        .number = number,
+    };
+}
+
+
+pub const CharNumber = struct {
+    number: i32,
+};
+
+pub fn newCharNumber(number: i32) CharNumber {
+    return CharNumber {
+        .number = number,
+    };
 }

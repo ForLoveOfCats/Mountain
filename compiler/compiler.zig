@@ -1,15 +1,17 @@
 const std = @import("std");
 const mem = std.mem;
+const heap = std.heap;
 const fs = std.fs;
 const DirEntry = fs.Walker.Entry;
 const warn = std.debug.warn;
 
+const tokenizer = @import("tokenizer.zig");
 usingnamespace @import("utils.zig");
 
 
 
 pub fn main() anyerror!void {
-    const allocator = std.heap.c_allocator;
+    const allocator = heap.c_allocator;
 
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
@@ -22,13 +24,13 @@ pub fn main() anyerror!void {
     const dir_path = try fs.realpathAlloc(allocator, args[1]);
     defer allocator.free(dir_path);
 
-    var files = std.ArrayList(DirEntry).init(allocator);
-    defer files.deinit();
+    var entries = std.ArrayList(DirEntry).init(allocator);
+    defer entries.deinit();
 
     var walker = try fs.walkPath(allocator, dir_path);
     while(try walker.next()) |entry| {
         if(entry.kind == .File and mem.endsWith(u8, entry.basename, ".mtn")) {
-            try files.append(DirEntry {
+            try entries.append(DirEntry {
                 .path = try mem.dupe(allocator, u8, entry.path),
                 .basename = try mem.dupe(allocator, u8, entry.basename),
                 .kind = entry.kind,
@@ -36,7 +38,11 @@ pub fn main() anyerror!void {
         }
     }
 
-    for(files.toSlice()) |file| {
-        println("Found file {}", file.basename);
+    var token_allocator = heap.ArenaAllocator.init(heap.c_allocator);
+    defer token_allocator.deinit();
+
+    for(entries.toSlice()) |entry| {
+        println("Tokenizing {}", entry.basename);
+        _ = try tokenizer.tokenize_file(&token_allocator.allocator, entry.path);
     }
 }
