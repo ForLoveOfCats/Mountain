@@ -25,9 +25,16 @@ pub fn main() anyerror!void {
     defer allocator.free(dir_path);
 
     var entries = std.ArrayList(DirEntry).init(allocator);
-    defer entries.deinit();
+    defer {
+        for(entries.toSlice()) |entry| {
+            allocator.free(entry.path);
+            allocator.free(entry.basename);
+        }
+        entries.deinit();
+    }
 
     var walker = try fs.walkPath(allocator, dir_path);
+    defer walker.deinit();
     while(try walker.next()) |entry| {
         if(entry.kind == .File and mem.endsWith(u8, entry.basename, ".mtn")) {
             try entries.append(DirEntry {
