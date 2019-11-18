@@ -72,6 +72,21 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
             },
 
             ':', '.', ';', ',', '#', '=', '>', '<', '+', '-', '*', '/', '!', '&', '$', '(', ')', '{', '}', '[', ']', => {
+                if(point.bytes[0] == '/') comment: { //Lets check for a comment
+                    var peeked = try CodePoint8.init(iterator.nextCodepoint() orelse break :comment);
+                    if(peeked.bytes[0] == '/') { //It is a comment, consume to end of line
+                        while(iterator.nextCodepoint()) |consuming32| {
+                            var consuming = try CodePoint8.init(consuming32);
+                            if(consuming.bytes[0] == '\n') { //We've reached the end of the line
+                                break;
+                            }
+                        }
+                        continue;
+                    } else { //not a comment, rewind the iterator
+                        iterator.i -= peeked.length;
+                    }
+                }
+
                 if(token.string.len > 0) {
                     try tokens.append(token);
                     token = Token {
