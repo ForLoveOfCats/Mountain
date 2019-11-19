@@ -5,4 +5,5 @@ module Main;
 
 
 func:Void main() {
+	something;
 }

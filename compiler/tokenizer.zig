@@ -43,7 +43,10 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
         column += 1;
         if(point.bytes[0] == '\n') {
             line += 1;
-            column = 1;
+            column = 0;
+        }
+        else if(point.bytes[0] == '\t') { //Count a tab as four spaces
+            column += 3; //We've already advanced one column
         }
 
         if(token.string.len <= 0) {
@@ -81,6 +84,8 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
                                 break;
                             }
                         }
+                        line += 1;
+                        column = 0;
                         continue;
                     } else { //not a comment, rewind the iterator
                         iterator.i -= peeked.length;
@@ -95,6 +100,7 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
                         .end = newCharNumber(column),
                         .string = [_]u8 {},
                     };
+                    column -= 1;
                     iterator.i -= point.length;
                 }
                 else {
