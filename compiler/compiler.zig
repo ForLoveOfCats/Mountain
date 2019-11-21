@@ -6,6 +6,7 @@ const DirEntry = fs.Walker.Entry;
 const warn = std.debug.warn;
 
 const tokenizer = @import("tokenizer.zig");
+const parser = @import("parser/parser.zig");
 usingnamespace @import("utils.zig");
 
 
@@ -49,7 +50,7 @@ pub fn main() anyerror!void {
     defer token_allocator.deinit();
 
     for(entries.toSlice()) |entry| {
-        println("Tokenizing {}", entry.basename);
-        _ = try tokenizer.tokenize_file(&token_allocator.allocator, entry.path);
+        var tokens = try tokenizer.tokenize_file(&token_allocator.allocator, entry.path);
+        try parser.parse_file(tokens);
     }
 }
