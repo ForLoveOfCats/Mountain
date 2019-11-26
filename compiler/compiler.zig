@@ -1,13 +1,6 @@
-const std = @import("std");
-const mem = std.mem;
-const heap = std.heap;
-const fs = std.fs;
-const DirEntry = fs.Walker.Entry;
-const warn = std.debug.warn;
+usingnamespace @import("imports.zig");
 
-const tokenizer = @import("tokenizer.zig");
-const parser = @import("parser/parser.zig");
-usingnamespace @import("utils.zig");
+const DirEntry = fs.Walker.Entry;
 
 
 

@@ -1,9 +1,4 @@
-const std = @import("std");
-const mem = std.mem;
-const io = std.io;
-const unicode = std.unicode;
-
-usingnamespace @import("utils.zig");
+usingnamespace @import("imports.zig");
 
 
 
