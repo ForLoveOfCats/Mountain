@@ -1,4 +1,4 @@
-usingnamespace @import("imports.zig");
+usingnamespace @import("../imports.zig");
 
 usingnamespace tokenizer;
 
@@ -6,3 +6,4 @@ usingnamespace tokenizer;
 
 pub fn parse_file(tokens: []Token) anyerror!void {
 }
+
