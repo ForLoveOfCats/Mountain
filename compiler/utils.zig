@@ -64,19 +64,19 @@ pub fn newCharNumber(number: i32) CharNumber {
 
 pub const CodePoint8 = struct {
     bytes: [4]u8,
-    length: usize,
+    len: usize,
 
     pub fn chars(self: CodePoint8) []u8 {
-        return self.bytes[0 .. self.length];
+        return self.bytes[0 .. self.len];
     }
 
     pub fn init(point: u32) !CodePoint8 {
         var bytes: [4]u8 = undefined;
-        var length = try unicode.utf8Encode(point, bytes[0..4]);
+        var len = try unicode.utf8Encode(point, bytes[0..4]);
 
         return CodePoint8 {
             .bytes = bytes,
-            .length = length,
+            .len = len,
         };
     }
 };

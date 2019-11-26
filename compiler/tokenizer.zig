@@ -88,7 +88,7 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
                         column = 0;
                         continue;
                     } else { //not a comment, rewind the iterator
-                        iterator.i -= peeked.length;
+                        iterator.i -= peeked.len;
                     }
                 }
 
@@ -101,7 +101,7 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
                         .string = [_]u8 {},
                     };
                     column -= 1;
-                    iterator.i -= point.length;
+                    iterator.i -= point.len;
                 }
                 else {
                     try tokens.append(Token {
