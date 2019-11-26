@@ -43,7 +43,10 @@ pub fn main() anyerror!void {
     defer token_allocator.deinit();
 
     for(entries.toSlice()) |entry| {
-        var tokens = try tokenizer.tokenize_file(&token_allocator.allocator, entry.path);
-        try parser.parse_file(tokens);
+        var source = try io.readFileAlloc(&token_allocator.allocator, entry.path);
+        var tokens = std.ArrayList(tokenizer.Token).init(&token_allocator.allocator);
+
+        try tokenizer.tokenize_file(source, &tokens);
+        try parser.parse_file(tokens.toSlice());
     }
 }

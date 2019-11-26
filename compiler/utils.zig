@@ -41,10 +41,10 @@ fn getStdoutStream() !*io.OutStream(File.WriteError) {
 
 
 pub const LineNumber = struct {
-    number: i32,
+    number: usize,
 };
 
-pub fn newLineNumber(number: i32) LineNumber {
+pub fn newLineNumber(number: usize) LineNumber {
     return LineNumber {
         .number = number,
     };
@@ -52,31 +52,11 @@ pub fn newLineNumber(number: i32) LineNumber {
 
 
 pub const CharNumber = struct {
-    number: i32,
+    number: usize,
 };
 
-pub fn newCharNumber(number: i32) CharNumber {
+pub fn newCharNumber(number: usize) CharNumber {
     return CharNumber {
         .number = number,
     };
 }
-
-
-pub const CodePoint8 = struct {
-    bytes: [4]u8,
-    len: usize,
-
-    pub fn chars(self: CodePoint8) []u8 {
-        return self.bytes[0 .. self.len];
-    }
-
-    pub fn init(point: u32) !CodePoint8 {
-        var bytes: [4]u8 = undefined;
-        var len = try unicode.utf8Encode(point, bytes[0..4]);
-
-        return CodePoint8 {
-            .bytes = bytes,
-            .len = len,
-        };
-    }
-};

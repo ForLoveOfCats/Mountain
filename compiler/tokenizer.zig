@@ -4,19 +4,41 @@ usingnamespace @import("imports.zig");
 
 pub const Token = struct {
     line: LineNumber,
-    start: CharNumber,
-    end: CharNumber,
+    column_start: CharNumber,
+    column_end: CharNumber,
+    start: usize,
+    end: usize,
     string: []u8,
 };
 
 
-pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Token {
-    var tokens = std.ArrayList(Token).init(allocator);
+pub const StreamCodePoint8 = struct {
+    bytes: [4]u8,
+    len: usize,
+    start: usize,
+    end: usize,
 
-    var source = try io.readFileAlloc(allocator, path);
-    defer allocator.free(source);
+    pub fn chars(self: StreamCodePoint8) []u8 {
+        return self.bytes[0 .. self.len];
+    }
+
+    pub fn init(point: u32, start: usize) !StreamCodePoint8 {
+        var bytes: [4]u8 = undefined;
+        var len = try unicode.utf8Encode(point, bytes[0..4]);
+
+        return StreamCodePoint8 {
+            .bytes = bytes,
+            .len = len,
+            .start = start,
+            .end = start + (len-1),
+        };
+    }
+};
+
+
+pub fn tokenize_file(source: []const u8, tokens: *std.ArrayList(Token)) !void {
     if(source.len <= 0) {
-        return tokens.toOwnedSlice();
+        return;
     }
 
     var iterator = unicode.Utf8Iterator {
@@ -24,16 +46,18 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
         .i = 0,
     };
 
-    var line: i32 = 1;
-    var column: i32 = 0;
+    var line: usize = 1;
+    var column: usize = 0;
     var token = Token {
         .line = newLineNumber(0),
-        .start = newCharNumber(0),
-        .end = newCharNumber(0),
+        .column_start = newCharNumber(0),
+        .column_end = newCharNumber(0),
+        .start = 0,
+        .end = 0,
         .string = [_]u8 {},
     };
     while(iterator.nextCodepoint()) |codepoint32| {
-        var point = try CodePoint8.init(codepoint32);
+        var point = try StreamCodePoint8.init(codepoint32, iterator.i-1);
 
         column += 1;
         if(point.bytes[0] == '\n') {
@@ -45,14 +69,16 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
         }
 
         if(token.string.len <= 0) {
-            token = Token  {
+            token = Token {
                 .line = newLineNumber(line),
-                .start = newCharNumber(column),
-                .end = newCharNumber(column),
+                .column_start = newCharNumber(column),
+                .column_end = newCharNumber(column),
+                .start = point.start,
+                .end = point.end,
                 .string = [_]u8 {},
             };
         }
-        token.end = newCharNumber(column);
+        token.column_end = newCharNumber(column);
 
         switch(point.bytes[0]) {
             ' ', '\t', '\n' => {
@@ -60,8 +86,10 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
                     try tokens.append(token);
                     token = Token  {
                         .line = newLineNumber(line),
-                        .start = newCharNumber(column),
-                        .end = newCharNumber(column),
+                        .column_start = newCharNumber(column),
+                        .column_end = newCharNumber(column),
+                        .start = point.start,
+                        .end = point.end,
                         .string = [_]u8 {},
                     };
                 }
@@ -71,10 +99,10 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
 
             ':', '.', ';', ',', '#', '=', '>', '<', '+', '-', '*', '/', '!', '&', '$', '(', ')', '{', '}', '[', ']', => {
                 if(point.bytes[0] == '/') comment: { //Lets check for a comment
-                    var peeked = try CodePoint8.init(iterator.nextCodepoint() orelse break :comment);
+                    var peeked = try StreamCodePoint8.init(iterator.nextCodepoint() orelse break :comment, iterator.i-1);
                     if(peeked.bytes[0] == '/') { //It is a comment, consume to end of line
                         while(iterator.nextCodepoint()) |consuming32| {
-                            var consuming = try CodePoint8.init(consuming32);
+                            var consuming = try StreamCodePoint8.init(consuming32, iterator.i-1);
                             if(consuming.bytes[0] == '\n') { //We've reached the end of the line
                                 break;
                             }
@@ -91,8 +119,10 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
                     try tokens.append(token);
                     token = Token {
                         .line = newLineNumber(line),
-                        .start = newCharNumber(column),
-                        .end = newCharNumber(column),
+                        .column_start = newCharNumber(column),
+                        .column_end = newCharNumber(column),
+                        .start = point.start,
+                        .end = point.end,
                         .string = [_]u8 {},
                     };
                     column -= 1;
@@ -101,9 +131,11 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
                 else {
                     try tokens.append(Token {
                         .line = newLineNumber(line),
-                        .start = newCharNumber(column),
-                        .end = newCharNumber(column),
-                        .string = try mem.dupe(allocator, u8, point.chars()),
+                        .column_start = newCharNumber(column),
+                        .column_end = newCharNumber(column+1),
+                        .start = point.start,
+                        .end = point.end,
+                        .string = source[point.start .. point.end+1],
                     });
                 }
 
@@ -113,10 +145,6 @@ pub fn tokenize_file(allocator: *mem.Allocator, path: []const u8) anyerror![]Tok
             else => {},
         }
 
-        var new_string = try mem.concat(allocator, u8, [_] []u8 { token.string, point.chars() });
-        allocator.free(token.string);
-        token.string = new_string;
+        token.string = source[token.start .. point.end+1];
     }
-
-    return tokens.toOwnedSlice();
 }
