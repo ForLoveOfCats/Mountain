@@ -84,21 +84,28 @@ pub fn warn_line_error(file: usize, start: usize, end: usize) void {
 
     warnln("{}{}", spacer, source[line_start..line_end+1]);
 
+    var iterator = unicode.Utf8Iterator {
+        .bytes = source,
+        .i = line_start,
+    };
+
     var underline_start_spaces: usize = 0;
     while(true) {
-        if(line_start+underline_start_spaces == start) {
+        if(iterator.i == start) {
             break;
         }
 
+        _ = iterator.nextCodepoint();
         underline_start_spaces += 1;
     }
 
     var underline_length: usize = 0;
     while(true) {
-        if(line_start+underline_start_spaces+underline_length == end) {
+        if(iterator.i == end) {
             break;
         }
 
+        _ = iterator.nextCodepoint();
         underline_length += 1;
     }
 
