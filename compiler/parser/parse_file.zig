@@ -7,7 +7,6 @@ usingnamespace tokenizer;
 
 pub fn parse_file(tokens: []Token) anyerror!void {
     for(tokens) |token| {
-        expect_kind(token, .Word);
+        expect_word(token, "module");
     }
 }
-
