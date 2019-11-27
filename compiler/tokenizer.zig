@@ -157,6 +157,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                 }
 
                 if(token.string.len > 0) {
+                    token.end = iterator.i-1;
                     try tokens.append(token);
                     token = Token {
                         .file = file,
