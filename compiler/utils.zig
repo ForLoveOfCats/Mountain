@@ -1,8 +1,6 @@
-const std = @import("std");
-const io = std.io;
-const fs = std.fs;
+usingnamespace @import("imports.zig");
+
 const File = fs.File;
-const unicode = std.unicode;
 
 
 
@@ -37,6 +35,19 @@ fn getStdoutStream() !*io.OutStream(File.WriteError) {
         stdout_stream = st;
         return st;
     }
+}
+
+
+pub fn warnln(comptime fmt: []const u8, args: ...) void {
+    std.debug.warn(fmt, args);
+    std.debug.warn("\n");
+}
+
+
+pub fn parse_error(token: tokenizer.Token, comptime fmt: []const u8, args: ...) noreturn {
+    std.debug.warn("Parse error @ line {}, column {}: ", token.line.number, token.column_start.number);
+    warnln(fmt, args);
+    std.process.exit(1);
 }
 
 
