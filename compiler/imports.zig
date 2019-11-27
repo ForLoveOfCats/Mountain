@@ -1,8 +1,10 @@
 pub const std = @import("std");
+pub const debug = std.debug;
+pub const warn = debug.warn;
 pub const mem = std.mem;
 pub const heap = std.heap;
+pub const os = std.os;
 pub const fs = std.fs;
-pub const warn = std.debug.warn;
 pub const io = std.io;
 pub const unicode = std.unicode;
 

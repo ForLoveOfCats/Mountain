@@ -33,6 +33,7 @@ pub const tKind = enum {
 
 
 pub const Token = struct {
+    file: usize,
     line: LineNumber,
     column_start: CharNumber,
     column_end: CharNumber,
@@ -69,7 +70,7 @@ pub const StreamCodePoint8 = struct {
 };
 
 
-pub fn tokenize_file(source: []const u8, tokens: *std.ArrayList(Token)) !void {
+pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Token)) !void {
     if(source.len <= 0) {
         return;
     }
@@ -82,6 +83,7 @@ pub fn tokenize_file(source: []const u8, tokens: *std.ArrayList(Token)) !void {
     var line: usize = 1;
     var column: usize = 0;
     var token = Token {
+        .file = file,
         .line = newLineNumber(0),
         .column_start = newCharNumber(0),
         .column_end = newCharNumber(0),
@@ -104,6 +106,7 @@ pub fn tokenize_file(source: []const u8, tokens: *std.ArrayList(Token)) !void {
 
         if(token.string.len <= 0) {
             token = Token {
+                .file = file,
                 .line = newLineNumber(line),
                 .column_start = newCharNumber(column),
                 .column_end = newCharNumber(column),
@@ -118,8 +121,10 @@ pub fn tokenize_file(source: []const u8, tokens: *std.ArrayList(Token)) !void {
         switch(point.bytes[0]) {
             ' ', '\t', '\n' => {
                 if(token.string.len > 0) {
+                    token.end = iterator.i-1;
                     try tokens.append(token);
                     token = Token {
+                        .file = file,
                         .line = newLineNumber(line),
                         .column_start = newCharNumber(column),
                         .column_end = newCharNumber(column),
@@ -154,6 +159,7 @@ pub fn tokenize_file(source: []const u8, tokens: *std.ArrayList(Token)) !void {
                 if(token.string.len > 0) {
                     try tokens.append(token);
                     token = Token {
+                        .file = file,
                         .line = newLineNumber(line),
                         .column_start = newCharNumber(column),
                         .column_end = newCharNumber(column),
@@ -167,6 +173,7 @@ pub fn tokenize_file(source: []const u8, tokens: *std.ArrayList(Token)) !void {
                 }
                 else {
                     var char_token = Token {
+                        .file = file,
                         .line = newLineNumber(line),
                         .column_start = newCharNumber(column),
                         .column_end = newCharNumber(column+1),
@@ -259,5 +266,6 @@ pub fn tokenize_file(source: []const u8, tokens: *std.ArrayList(Token)) !void {
         }
 
         token.string = source[token.start .. point.end+1];
+        token.end = iterator.i-1;
     }
 }
