@@ -17,18 +17,26 @@ pub fn parse_file(self: *TokenIterator) !void {
 
     self.next();
     expect_kind(self.token(), .Word); //Module name
-    var module: pModule = undefined;
+    var module: *pModule = undefined;
     if(modules.contains(self.token().string)) {
         var kv = modules.get(self.token().string) orelse unreachable;
-        module = kv.value;
+        module = &kv.value;
     }
     else {
-        module = pModule {
+        var stack_module = pModule {
             .name = self.token().string,
+            .block = pBlock.init(),
         };
-        _ = try modules.put(self.token().string, module);
+        _ = try modules.put(self.token().string, stack_module);
+        var kv = modules.get(self.token().string) orelse unreachable;
+        module = &kv.value;
     }
 
     self.next();
     expect_kind(self.token(), .Semicolon);
+
+    if(self.has_next()) {
+        self.next();
+        try parse_block(self, &module.block, true);
+    }
 }

@@ -1,6 +1,8 @@
 usingnamespace @import("../imports.zig");
 
 pub usingnamespace @import("parse_file.zig");
+pub usingnamespace @import("parse_block.zig");
+pub usingnamespace @import("parse_func.zig");
 pub usingnamespace @import("parser_nodes.zig");
 pub usingnamespace @import("expect.zig");
 
@@ -17,20 +19,22 @@ pub const TokenIterator = struct {
         return self.tokens[self.index];
     }
 
+    pub fn has_next(self: *TokenIterator) bool {
+        return !(self.index+1 >= self.tokens.len);
+    }
+
     pub fn next(self: *TokenIterator) void {
-        self.index += 1;
-
-        if(self.index >= self.tokens.len) {
-            var previous_index = self.index - 1;
-
+        if(!has_next(self)) {
             parse_error_file_line_column_start_end(
-                self.tokens[previous_index].file,
-                self.tokens[previous_index].line,
-                self.tokens[previous_index].column_end,
-                self.tokens[previous_index].start,
-                self.tokens[previous_index].end,
+                self.tokens[self.index].file,
+                self.tokens[self.index].line,
+                self.tokens[self.index].column_end,
+                self.tokens[self.index].start,
+                self.tokens[self.index].end,
                 "Unexpectedly encountered end of file"
             );
         }
+
+        self.index += 1;
     }
 };

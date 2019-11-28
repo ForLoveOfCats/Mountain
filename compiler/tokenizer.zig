@@ -43,6 +43,10 @@ pub const Token = struct {
 
     kind: tKind,
     string: []u8,
+
+    pub fn println(self: Token) void {
+        utils.println("{}", self.string);
+    }
 };
 
 

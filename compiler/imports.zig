@@ -11,4 +11,6 @@ pub const unicode = std.unicode;
 pub const compiler = @import("compiler.zig");
 pub const tokenizer = @import("tokenizer.zig");
 pub const parser = @import("parser/parser.zig");
-pub usingnamespace @import("utils.zig");
+pub const utils = @import("utils.zig");
+
+pub usingnamespace utils;

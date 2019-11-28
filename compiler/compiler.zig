@@ -74,4 +74,10 @@ pub fn main() anyerror!void {
 
         try parser.parse_file(&token_iterator);
     }
+
+    println("There were the following module(s)");
+    var iterator = parser.modules.iterator();
+    while(iterator.next()) |module| {
+        module.value.debug_print(0);
+    }
 }
