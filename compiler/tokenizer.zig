@@ -272,9 +272,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
 
         token.string = source[token.start .. point.end+1];
         token.end = last_index;
-
-        if(iterator.i != source.len)
-            last_index = iterator.i;
+        last_index = iterator.i;
     }
     if(token.string.len > 0) {
         token.end = last_index;

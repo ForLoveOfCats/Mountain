@@ -27,7 +27,7 @@ pub const TokenIterator = struct {
                 self.tokens[previous_index].file,
                 self.tokens[previous_index].line,
                 self.tokens[previous_index].column_end,
-                self.tokens[previous_index].end,
+                self.tokens[previous_index].start,
                 self.tokens[previous_index].end,
                 "Unexpectedly encountered end of file"
             );
