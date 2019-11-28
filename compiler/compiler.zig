@@ -46,18 +46,32 @@ pub fn main() anyerror!void {
         }
     }
 
-    var token_allocator = heap.ArenaAllocator.init(heap.c_allocator);
-    defer token_allocator.deinit();
+    parser.modules = std.StringHashMap(parser.pModule).init(allocator);
+    defer {
+        var iterator = parser.modules.iterator();
+        while(iterator.next()) |module| {
+            module.value.deinit();
+        }
+        parser.modules.deinit();
+    }
 
-    sources = std.ArrayList([]u8).init(&token_allocator.allocator);
+    var source_allocator = heap.ArenaAllocator.init(allocator);
+    defer source_allocator.deinit();
+
+    sources = std.ArrayList([]u8).init(&source_allocator.allocator);
 
     for(files.toSlice()) |file| {
-        var source = try io.readFileAlloc(&token_allocator.allocator, file.path);
+        var source = try io.readFileAlloc(&source_allocator.allocator, file.path);
         try sources.append(source);
 
-        var tokens = std.ArrayList(tokenizer.Token).init(&token_allocator.allocator);
+        var tokens = std.ArrayList(tokenizer.Token).init(&source_allocator.allocator);
 
         try tokenizer.tokenize_file(source, sources.len-1, &tokens);
-        try parser.parse_file(tokens.toSlice());
+        var token_iterator = parser.TokenIterator {
+            .tokens = tokens.toSlice(),
+            .index = 0,
+        };
+
+        try parser.parse_file(&token_iterator);
     }
 }
