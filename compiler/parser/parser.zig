@@ -19,5 +19,18 @@ pub const TokenIterator = struct {
 
     pub fn next(self: *TokenIterator) void {
         self.index += 1;
+
+        if(self.index >= self.tokens.len) {
+            var previous_index = self.index - 1;
+
+            parse_error_file_line_column_start_end(
+                self.tokens[previous_index].file,
+                self.tokens[previous_index].line,
+                self.tokens[previous_index].column_end,
+                self.tokens[previous_index].end,
+                self.tokens[previous_index].end,
+                "Unexpectedly encountered end of file"
+            );
+        }
     }
 };
