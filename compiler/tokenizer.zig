@@ -79,6 +79,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
         .bytes = source,
         .i = 0,
     };
+    var last_index: usize = 0;
 
     var line: usize = 1;
     var column: usize = 0;
@@ -121,7 +122,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
         switch(point.bytes[0]) {
             ' ', '\t', '\n' => {
                 if(token.string.len > 0) {
-                    token.end = iterator.i-1;
+                    token.end = last_index;
                     try tokens.append(token);
                     token = Token {
                         .file = file,
@@ -135,6 +136,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                     };
                 }
 
+                last_index = iterator.i;
                 continue;
             },
 
@@ -150,6 +152,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                         }
                         line += 1;
                         column = 0;
+                        last_index = iterator.i;
                         continue;
                     } else { //not a comment, rewind the iterator
                         iterator.i -= peeked.len;
@@ -157,7 +160,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                 }
 
                 if(token.string.len > 0) {
-                    token.end = iterator.i-1;
+                    token.end = last_index;
                     try tokens.append(token);
                     token = Token {
                         .file = file,
@@ -260,6 +263,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                     try tokens.append(char_token);
                 }
 
+                last_index = iterator.i;
                 continue;
             },
 
@@ -267,6 +271,11 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
         }
 
         token.string = source[token.start .. point.end+1];
-        token.end = iterator.i-1;
+        token.end = last_index;
+        last_index = iterator.i;
+    }
+    if(token.string.len > 0) {
+        token.end = last_index;
+        try tokens.append(token);
     }
 }

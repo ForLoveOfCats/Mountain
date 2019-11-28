@@ -6,6 +6,10 @@ usingnamespace tokenizer;
 
 
 pub fn parse_file(self: *TokenIterator) !void {
+    if(self.tokens.len == 0) {
+        return; //Empty file
+    }
+
     expect_word(self.token(), "module");
 
     self.next();
