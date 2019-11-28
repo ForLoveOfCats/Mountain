@@ -2,6 +2,11 @@ usingnamespace @import("../imports.zig");
 
 
 
+pub fn debug_print_level(level: usize) void {
+    print_many(level, "    ");
+}
+
+
 pub const pModule = struct {
     name: []u8,
     block: pBlock,
@@ -11,7 +16,7 @@ pub const pModule = struct {
     }
 
     pub fn debug_print(self: pModule, level: usize) void {
-        print_many(level, "  ");
+        debug_print_level(level);
         println("Module '{}':", self.name);
         self.block.debug_print(level+1);
     }
@@ -40,7 +45,7 @@ pub const pBlock = struct {
     }
 
     pub fn debug_print(self: pBlock, level: usize) void {
-        print_many(level, "  ");
+        debug_print_level(level);
         println("Block:");
 
         for(self.contents.toSlice()) |item| {
@@ -56,7 +61,7 @@ pub const pFunc = struct {
     name: []u8,
 
     pub fn debug_print(self: pFunc, level: usize) void {
-        print_many(level, "  ");
+        debug_print_level(level);
         println("Func '{}':", self.name);
     }
 };
