@@ -82,7 +82,7 @@ pub fn warn_line_error(file: usize, start: usize, end: usize) void {
     var source = compiler.sources.toSlice()[file];
 
     var line_start = start;
-    while(true) {
+    while(true) { //Rewind until start of actual line
         if(line_start == 0) {
             break;
         }
@@ -92,6 +92,12 @@ pub fn warn_line_error(file: usize, start: usize, end: usize) void {
         }
 
         line_start -= 1;
+    }
+    while(true) { //Proceed until first non-whitespace character
+        switch(source[line_start]) {
+            ' ', '\t' => line_start += 1,
+            else => break,
+        }
     }
 
     var line_end = end;
@@ -117,8 +123,13 @@ pub fn warn_line_error(file: usize, start: usize, end: usize) void {
             break;
         }
 
-        _ = iterator.nextCodepoint();
-        underline_start_spaces += 1;
+        var point = iterator.nextCodepoint() orelse unreachable;
+        if(point == '\t') {
+            underline_start_spaces += 4;
+        }
+        else {
+            underline_start_spaces += 1;
+        }
     }
 
     var underline_length: usize = 0;
