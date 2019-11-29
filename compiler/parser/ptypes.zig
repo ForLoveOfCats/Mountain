@@ -91,15 +91,20 @@ pub const pBlock = struct {
 pub const pFunc = struct {
     name: []u8,
     ptype: *pType,
+    block: pBlock,
 
     pub fn deinit(self: *pFunc) void {
+        self.block.deinit();
         self.ptype.deinit();
     }
 
     pub fn debug_print(self: pFunc, level: usize) void {
         debug_print_level(level);
+
         print("Func '{}' with return type '", self.name);
         self.ptype.debug_print();
         println("':");
+
+        self.block.debug_print(level+1);
     }
 };

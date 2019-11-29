@@ -13,14 +13,38 @@ pub fn parse_func(self: *TokenIterator) anyerror!pFunc {
 
     self.next();
     expect_kind(self.token(), .Word);
-    var ptype = try parse_type(self, null);
+    const ptype = try parse_type(self, null);
 
     self.next();
     expect_kind(self.token(), .Word); //Name
-    var name = self.token().string;
+    const name = self.token().string;
+
+    self.next();
+    expect_kind(self.token(), .OpenParentheses);
+    var open_count: usize = 0;
+    while(true) {
+        if(self.token().kind == .OpenParentheses) {
+            open_count += 1;
+        }
+        else if(self.token().kind == .CloseParentheses) {
+            open_count -= 1;
+        }
+
+        if(open_count <= 0) {
+            break;
+        }
+        self.next();
+    }
+    assert(self.token().kind == .CloseParentheses);
+
+    self.next();
+    expect_kind(self.token(), .OpenBrace);
+    var block = pBlock.init();
+    try parse_block(self, &block, false);
 
     return pFunc {
         .name = name,
         .ptype = ptype,
+        .block = block,
     };
 }

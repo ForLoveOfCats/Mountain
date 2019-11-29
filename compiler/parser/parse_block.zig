@@ -7,7 +7,7 @@ usingnamespace tokenizer;
 
 pub fn parse_block(self: *TokenIterator, block: *pBlock, global: bool) anyerror!void {
     if(!global) {
-        expect_kind(self.token(), .OpenBracket);
+        expect_kind(self.token(), .OpenBrace);
         self.next();
     }
 

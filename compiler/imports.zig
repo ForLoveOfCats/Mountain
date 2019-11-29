@@ -8,6 +8,8 @@ pub const fs = std.fs;
 pub const io = std.io;
 pub const unicode = std.unicode;
 
+pub const assert = std.debug.assert;
+
 pub const compiler = @import("compiler.zig");
 pub const tokenizer = @import("tokenizer.zig");
 pub const parser = @import("parser/parser.zig");
