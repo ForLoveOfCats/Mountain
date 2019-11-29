@@ -7,6 +7,29 @@ pub fn debug_print_level(level: usize) void {
 }
 
 
+pub const pType = struct {
+    name: []u8,
+    reach_module: []u8,
+    child: ?*pType,
+
+    pub fn deinit(self: *pType) void {
+        if(self.child) |actual| {
+            actual.deinit();
+        }
+        heap.c_allocator.destroy(self);
+    }
+
+    pub fn debug_print(self: *pType) void {
+        if(self.child) |actual| {
+            actual.debug_print();
+            print(":");
+        }
+
+        print("{}", self.name);
+    }
+};
+
+
 pub const pModule = struct {
     name: []u8,
     block: pBlock,
@@ -41,6 +64,14 @@ pub const pBlock = struct {
     }
 
     pub fn deinit(self: pBlock) void {
+        for(self.contents.toSlice()) |*item| {
+            switch(item.*) {
+                .Func => |*func| {
+                    func.deinit();
+                },
+            }
+        }
+
         self.contents.deinit();
     }
 
@@ -59,9 +90,16 @@ pub const pBlock = struct {
 
 pub const pFunc = struct {
     name: []u8,
+    ptype: *pType,
+
+    pub fn deinit(self: *pFunc) void {
+        self.ptype.deinit();
+    }
 
     pub fn debug_print(self: pFunc, level: usize) void {
         debug_print_level(level);
-        println("Func '{}':", self.name);
+        print("Func '{}' with return type '", self.name);
+        self.ptype.debug_print();
+        println("':");
     }
 };

@@ -12,10 +12,7 @@ pub fn parse_block(self: *TokenIterator, block: *pBlock, global: bool) anyerror!
     }
 
     if(mem.eql(u8, self.token().string, "func")) {
-        var func = pFunc {
-            .name = [_]u8 {},
-        };
-        try parse_func(self, &func);
+        var func = try parse_func(self);
         try block.contents.append(pBlock.InBlock {.Func = func});
     }
 }

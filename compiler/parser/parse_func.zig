@@ -5,7 +5,7 @@ usingnamespace tokenizer;
 
 
 
-pub fn parse_func(self: *TokenIterator, func: *pFunc) anyerror!void {
+pub fn parse_func(self: *TokenIterator) anyerror!pFunc {
     expect_word(self.token(), "func"); //Sanity check
 
     self.next();
@@ -13,8 +13,14 @@ pub fn parse_func(self: *TokenIterator, func: *pFunc) anyerror!void {
 
     self.next();
     expect_kind(self.token(), .Word);
+    var ptype = try parse_type(self, null);
 
     self.next();
     expect_kind(self.token(), .Word); //Name
-    func.name = self.token().string;
+    var name = self.token().string;
+
+    return pFunc {
+        .name = name,
+        .ptype = ptype,
+    };
 }

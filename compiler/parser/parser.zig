@@ -3,7 +3,8 @@ usingnamespace @import("../imports.zig");
 pub usingnamespace @import("parse_file.zig");
 pub usingnamespace @import("parse_block.zig");
 pub usingnamespace @import("parse_func.zig");
-pub usingnamespace @import("parser_nodes.zig");
+pub usingnamespace @import("parse_type.zig");
+pub usingnamespace @import("ptypes.zig");
 pub usingnamespace @import("expect.zig");
 
 
@@ -21,6 +22,10 @@ pub const TokenIterator = struct {
 
     pub fn has_next(self: *TokenIterator) bool {
         return !(self.index+1 >= self.tokens.len);
+    }
+
+    pub fn peek(self: *TokenIterator) tokenizer.Token {
+        return self.tokens[self.index+1]; //Will crash if not checked with has_next first
     }
 
     pub fn next(self: *TokenIterator) void {
