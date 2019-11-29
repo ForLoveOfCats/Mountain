@@ -5,6 +5,5 @@ module Main;
 
 
 func:Void:Ptr main() {
-	something;
-	= == > >= < <= ! !=
+	let:i32 variable = undefined;
 }

@@ -50,10 +50,12 @@ pub const pBlock = struct {
     contents: std.ArrayList(InBlock),
 
     pub const InBlockEnum = enum {
+        Let,
         Func,
     };
 
     pub const InBlock = union(InBlockEnum) {
+        Let: pLet,
         Func: pFunc,
     };
 
@@ -69,6 +71,10 @@ pub const pBlock = struct {
                 .Func => |*func| {
                     func.deinit();
                 },
+
+                .Let => |*let| {
+                    let.deinit();
+                },
             }
         }
 
@@ -81,9 +87,28 @@ pub const pBlock = struct {
 
         for(self.contents.toSlice()) |item| {
             switch(item) {
+                .Let => |let| let.debug_print(level+1),
                 .Func => |func| func.debug_print(level+1),
             }
         }
+    }
+};
+
+
+pub const pLet = struct {
+    name: []u8,
+    ptype: *pType,
+
+    pub fn deinit(self: *pLet) void {
+        self.ptype.deinit();
+    }
+
+    pub fn debug_print(self: pLet, level: usize) void {
+        debug_print_level(level);
+
+        print("Let '{}' with type '", self.name);
+        self.ptype.debug_print();
+        println("'");
     }
 };
 
