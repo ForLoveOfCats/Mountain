@@ -4,5 +4,6 @@ module Main;
 
 
 
-func:Void main() {
+func:Void:Ptr main() {
+	let:i32 variable = undefined;
 }

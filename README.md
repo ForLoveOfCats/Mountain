@@ -4,8 +4,8 @@
 
 ### Welcome to the Github repo for the (WIP) Mountain bootstrap compiler
 
-The goal is to have a self hosted compiler by the end of
-summer 2020. At the moment Mountain rather far away from that goal.
+My current goal with Mountain it to have it useful for writing real
+software as soon as possible. **It is not yet usable**
 
 
 ### Vision
@@ -15,45 +15,57 @@ Mountain has several core tenants:
   of usefulness.
     * Seamless C interop is important for usefulness.
     * High performance is important for usefulness.
+	* Readability of code is important for usefulness by way of
+      maintainability.
+* Encourage writing good code by making it easy to do the "right
+  thing".
+    * Yet at the same time avoid *significantly* restricting the
+    developer's freedom.
+    * A specific coding "style" should not be enforced but instead
+    encouraged.
 * Explicitness is important for readability and reason-ability.
-    * Explicit does not always have to mean verbose
-* Maximizing expressiveness is valuable where possible
-    * Balancing this with performance is a razors edge, trust the
-      developer to use the right language tools where appropriate.
-* Avoid restricting the developer's freedom for philosophical reasons.
-* It is not the language's job to enforce a specific coding "style".
+    * Explicit does not always have to mean verbose.
+* Maximizing expressiveness is valuable where possible.
+    * This includes such things as block expressions, operator
+      overloading, explicit function overloading, ect.
 
-Mountain draws much inspiration from Zig, Rust, and of course its
-parent language C.
+Mountain draws heavily from Zig and C with Rust, Odin, and Jai
+providing some auxiliary inspiration.
 
 
 # This language is nowhere near usable for literally anything
-This is currently little more than a fun side project with hopes of
-eventually becoming more. Read the feature wishlist
-[here](WISHLIST.md) for more information about what Mountain hopes to
-be capable of. Feel free to poke around.
+This is currently little more than a fun side project. While it is
+currently defined as a toy language I fully intend on bringing it
+beyond "toy" status. Read the feature wishlist [here](WISHLIST.md) for
+more information about what Mountain hopes to be capable of. Feel free
+to poke around.
 
-Be aware that this is *extremely* WIP. There are many areas where
-things should change or be improved. Performance could be improved by
-fixing a few rather egregious design cases (symbol lookup is a worst
-case O(n) while loop checking each symbol with strcmp, the nodes
-should be tagged unions, I should be using string interning,
-ect). Originally this compiler was being built to be thrown away once
-a self-hosted compiler could be built. However now the goal is to port
-this codebase into Mountain so these design oversights are slowly
-being corrected.
+Be aware that this is *extremely* WIP and undergoing a complete
+rewrite. The compiler was initially written in C but is being
+redesigned from the ground up in Zig. The original C implementation
+was capable of compiling and running all sources in the `./examples`
+and `./tests` and is accessable from the `OriginalC` branch.
 
-As of currently Mountain is a transpiling language in that the
-compiler emits C source code which is then fed through GCC or Clang in
-order to produce the final binary. Mountain should eventually move to
-directly using LLVM. I decided to not use LLVM right out of the gate
-due to the high barrier of entry to utilizing LLVM and the extra work
-it will take to ensure ABI compatibility with various C
-compilers. With the goal to get the language functional and useful
-quickly I opted to transpile to C for now.
+Currently the compiler is being built to transpile. That means that
+the compiler emits C source code which is then fed through GCC or
+Clang in order to produce the final binary. Mountain should eventually
+move to directly using LLVM in addition to a custom, minimally
+optimizing, direct machine code generating backend. I decided to not
+use LLVM right out of the gate due to the high barrier of entry to
+utilizing LLVM and the extra work it will take to ensure ABI
+compatibility with various C compilers. With the goal to get the
+language functional and useful quickly I opted to transpile to C for
+now.
+
+The gameplan at the moment is to finish fleshing out the parser until
+it is capable of correctly parsing a useful subset of the Mountain
+syntax. Then the validator can begin to be built which will transform
+the parse tree into a semantic tree. Once the validator is
+sufficiently capable the transpiler can be easily built to spit out C
+code from the valid semantic tree.
 
 
-### Currently supported features
+### Features **originally** supported by the **C implementation**
 * Variable declaration (requires a value or explicitly left undefined)
 * Variable value set
 * Global variables
@@ -66,7 +78,7 @@ quickly I opted to transpile to C for now.
 * Basic function return tracing
 * Function calls (with and without return value)
 * Enums definition and usage
-* Stuct definition (TODO dependency loops not yet detected, reliant on
+* Stuct definition (TODO dependency loops were not detected, reliant on
   order relative to other structs)
 * Stack allocated struct initialization
 * Read and write to struct fields
@@ -90,27 +102,19 @@ quickly I opted to transpile to C for now.
 * Character literal parsing (with escape sequence support)
 * Semi-decent parse errors
 * As many validation error checks (with decent messages) that I could
-  think of
+  think of at the time
 
 
 ## This is currently only tested on Linux
 
-It will probably work on macOS but *will not* work on Windows as it
-uses `dirent.h`. This will change in the future, until then if you
-really want to run this on Windows go grab an dirent wrapper or open
-an issue to bug me into prioritizing this more.
+However it *should* work unmodified on Windows and macOS as well. If
+you are on one of these platforms and it does not build please open an
+issue.
 
 
 ## Building
 
-Requires SCons and a recent revision of Clang. It will also build with
-GCC but depending on the platform the `SConstruct` will need to be
-modified.
-
-To perform the most basic build simply execute the command `scons`
-while in the repo root.
-
-The shell script `Debug.sh` builds the compiler, compiles the code
-under `./examples`, and then runs it. The other script `Test.sh`
-builds the compiler, builds the test code under `./tests`, and then
-runs those tests.
+Requires Zig 0.5.* On Linux/macOS the `./Debug.sh` script will build
+the compiler then attempt to run it on the files under
+`./reproduction`. To just build (on any platform) simply `zig build`
+which will output a binary at `./zig-cache/bin/Mountain`. Cheers!
