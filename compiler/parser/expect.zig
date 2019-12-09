@@ -5,7 +5,7 @@ usingnamespace tokenizer;
 
 pub fn expect_kind(token: Token, expected: tKind) void {
     if(token.kind != expected) {
-        parse_error(token, "Expected '{}' but found '{}'", expected, token.kind);
+        parse_error(token, "Expected {} but found {}", @tagName(expected), @tagName(token.kind));
     }
 }
 
