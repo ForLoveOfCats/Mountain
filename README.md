@@ -15,8 +15,10 @@ Mountain has several core tenants:
   of usefulness.
     * Seamless C interop is important for usefulness.
     * High performance is important for usefulness.
-	* Readability of code is important for usefulness by way of
+    * Readability of code is important for usefulness by way of
       maintainability.
+    * A reliable compiler and core library is important for
+      usefulness.
 * Encourage writing good code by making it easy to do the "right
   thing".
     * Yet at the same time avoid *significantly* restricting the
