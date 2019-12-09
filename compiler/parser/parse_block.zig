@@ -19,5 +19,8 @@ pub fn parse_block(self: *TokenIterator, block: *pBlock, global: bool) anyerror!
     else {
         var expression = try parse_expression(self);
         try block.contents.append(pBlock.InBlock {.Expression = expression});
+
+        self.next();
+        expect_kind(self.token(), .Semicolon);
     }
 }

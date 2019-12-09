@@ -23,10 +23,14 @@ pub fn parse_let(self: *TokenIterator) anyerror!pLet {
     expect_kind(self.token(), .Equals);
 
     self.next();
-    expect_word(self.token(), "undefined");
+    var expression: ?*pExpression = null;
+    if(!mem.eql(u8, self.token().string, "undefined")) {
+        expression = try parse_expression(self);
+    }
 
     return pLet {
         .name = name,
         .ptype = ptype,
+        .expression = expression,
     };
 }

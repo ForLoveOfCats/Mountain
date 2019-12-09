@@ -5,10 +5,13 @@ usingnamespace tokenizer;
 
 
 
-pub fn parse_expression(self: *TokenIterator) anyerror!pExpression {
+pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
+    var expression = try heap.c_allocator.create(pExpression);
+
     if(mem.eql(u8, self.token().string, "let")) {
         var let = try parse_let(self);
-        return pExpression { .Let = let };
+        expression.* = pExpression { .Let = let };
+        return expression;
     }
 
     else {

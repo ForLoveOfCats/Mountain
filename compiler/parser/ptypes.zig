@@ -56,7 +56,7 @@ pub const pBlock = struct {
 
     pub const InBlock = union(InBlockEnum) {
         Func: pFunc,
-        Expression: pExpression,
+        Expression: *pExpression,
     };
 
     pub fn init() pBlock {
@@ -72,7 +72,7 @@ pub const pBlock = struct {
                     func.deinit();
                 },
 
-                .Expression => |*expression| {
+                .Expression => |expression| {
                     expression.deinit();
                 },
             }
@@ -124,6 +124,7 @@ pub const pExpression = union(InExpressionEnum) {
 pub const pLet = struct {
     name: []u8,
     ptype: *pType,
+    expression: ?*pExpression,
 
     pub fn deinit(self: *pLet) void {
         self.ptype.deinit();
@@ -135,6 +136,10 @@ pub const pLet = struct {
         print("Let '{}' with type '", self.name);
         self.ptype.debug_print();
         println("'");
+
+        if(self.expression) |actual| {
+            actual.debug_print(level+1);
+        }
     }
 };
 
