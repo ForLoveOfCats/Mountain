@@ -2,7 +2,7 @@
 ## A (hopefully) fast, C compatible, language designed to enable greatness
 
 
-### Welcome to the Github repo for the (WIP) Mountain bootstrap compiler
+### Welcome to the Github repo for the (WIP) Mountain compiler
 
 My current goal with Mountain it to have it useful for writing real
 software as soon as possible. **It is not yet usable**
@@ -65,7 +65,7 @@ sufficiently capable the transpiler can be easily built to spit out C
 code from the valid semantic tree.
 
 
-### Features **originally** supported by the **C implementation**
+### Features ORIGINALLY supported by the C implementation
 * Variable declaration (requires a value or explicitly left undefined)
 * Variable value set
 * Global variables
