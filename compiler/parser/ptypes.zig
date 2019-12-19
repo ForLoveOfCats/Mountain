@@ -49,12 +49,7 @@ pub const pModule = struct {
 pub const pBlock = struct {
     contents: std.ArrayList(InBlock),
 
-    pub const InBlockEnum = enum {
-        Func,
-        Expression,
-    };
-
-    pub const InBlock = union(InBlockEnum) {
+    pub const InBlock = union(enum) {
         Func: pFunc,
         Expression: *pExpression,
     };
@@ -95,11 +90,7 @@ pub const pBlock = struct {
 };
 
 
-pub const InExpressionEnum = enum {
-    Let,
-};
-
-pub const pExpression = union(InExpressionEnum) {
+pub const pExpression = union(enum) {
     Let: pLet,
 
     pub fn deinit(self: *pExpression) void {
