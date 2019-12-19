@@ -1,9 +1,5 @@
 //Use this file when hacking on the compiler
 
-module Main;
-
-
-
 func:Void:Ptr main() {
 	let:i32 variable = let:i32 other = undefined;
 	let:Bool something = undefined;

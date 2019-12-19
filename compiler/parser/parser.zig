@@ -11,7 +11,7 @@ pub usingnamespace @import("expect.zig");
 
 
 
-pub var modules: std.StringHashMap(parser.pModule) = undefined;
+pub var main_block: pBlock = undefined;
 
 
 pub const TokenIterator = struct {

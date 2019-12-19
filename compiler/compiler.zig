@@ -46,14 +46,8 @@ pub fn main() anyerror!void {
         }
     }
 
-    parser.modules = std.StringHashMap(parser.pModule).init(allocator);
-    defer {
-        var iterator = parser.modules.iterator();
-        while(iterator.next()) |module| {
-            module.value.deinit();
-        }
-        parser.modules.deinit();
-    }
+    parser.main_block = parser.pBlock.init();
+    defer parser.main_block.deinit();
 
     var source_allocator = heap.ArenaAllocator.init(allocator);
     defer source_allocator.deinit();
@@ -75,9 +69,6 @@ pub fn main() anyerror!void {
         try parser.parse_file(&token_iterator);
     }
 
-    println("There were the following module(s)");
-    var iterator = parser.modules.iterator();
-    while(iterator.next()) |module| {
-        module.value.debug_print(0);
-    }
+    println("Parsed the following ast");
+    parser.main_block.debug_print(0);
 }
