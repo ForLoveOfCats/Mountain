@@ -1,4 +1,4 @@
-usingnamespace @import("imports.zig");
+usingnamespace @import("../imports.zig");
 
 
 
@@ -46,6 +46,39 @@ pub const Token = struct {
 
     pub fn println(self: Token) void {
         utils.println("{}", self.string);
+    }
+};
+
+
+pub const TokenIterator = struct {
+    tokens: []Token,
+    index: usize,
+
+    pub fn token(self: TokenIterator) Token {
+        return self.tokens[self.index];
+    }
+
+    pub fn has_next(self: *TokenIterator) bool {
+        return !(self.index+1 >= self.tokens.len);
+    }
+
+    pub fn peek(self: *TokenIterator) Token {
+        return self.tokens[self.index+1]; //Will crash if not checked with has_next first
+    }
+
+    pub fn next(self: *TokenIterator) void {
+        if(!has_next(self)) {
+            parse_error_file_line_column_start_end(
+                self.tokens[self.index].file,
+                self.tokens[self.index].line,
+                self.tokens[self.index].column_end,
+                self.tokens[self.index].start,
+                self.tokens[self.index].end,
+                "Unexpectedly encountered end of file"
+            );
+        }
+
+        self.index += 1;
     }
 };
 

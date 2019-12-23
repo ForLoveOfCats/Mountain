@@ -64,9 +64,9 @@ pub fn main() anyerror!void {
         var source = try io.readFileAlloc(&source_allocator.allocator, file.path);
         try sources.append(source);
 
-        var tokens = std.ArrayList(tokenizer.Token).init(&source_allocator.allocator);
+        var tokens = std.ArrayList(parser.Token).init(&source_allocator.allocator);
 
-        try tokenizer.tokenize_file(source, sources.len-1, &tokens);
+        try parser.tokenize_file(source, sources.len-1, &tokens);
         var token_iterator = parser.TokenIterator {
             .tokens = tokens.toSlice(),
             .index = 0,

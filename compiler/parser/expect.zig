@@ -1,6 +1,7 @@
 usingnamespace @import("../imports.zig");
 
-usingnamespace tokenizer;
+usingnamespace parser;
+
 
 
 pub fn expect_kind(token: Token, expected: tKind) void {
