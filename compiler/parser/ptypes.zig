@@ -99,6 +99,8 @@ pub const pExpression = union(enum) {
                 let.deinit();
             },
         }
+
+        heap.c_allocator.destroy(self);
     }
 
     pub fn debug_print(self: pExpression, level: usize) void {
@@ -119,6 +121,10 @@ pub const pLet = struct {
 
     pub fn deinit(self: *pLet) void {
         self.ptype.deinit();
+
+        if(self.expression) |actual| {
+            actual.deinit();
+        }
     }
 
     pub fn debug_print(self: pLet, level: usize) void {
