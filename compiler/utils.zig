@@ -83,11 +83,11 @@ pub fn warn_line_error(file: usize, start: usize, end: usize) void {
 
     var line_start = start;
     while(true) { //Rewind until start of actual line
-        if(line_start == 0) {
+        if(source[line_start] == '\n') {
+            line_start += 1;
             break;
         }
-        else if(source[line_start] == '\n') {
-            line_start += 1;
+        else if(line_start == 0) {
             break;
         }
 
