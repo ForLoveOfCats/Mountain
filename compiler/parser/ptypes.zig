@@ -12,6 +12,16 @@ pub const pType = struct {
     reach_module: []u8,
     child: ?*pType,
 
+    pub fn init(name: []u8, reach_module: []u8, child: ?*pType) !*pType {
+        var self = try heap.c_allocator.create(pType);
+        self.* = pType {
+            .name = name,
+            .reach_module = reach_module,
+            .child = child,
+        };
+        return self;
+    }
+
     pub fn deinit(self: *pType) void {
         if(self.child) |actual| {
             actual.deinit();
@@ -92,6 +102,16 @@ pub const pBlock = struct {
 
 pub const pExpression = union(enum) {
     Let: pLet,
+
+    //This feels like a hack but allows the allocation to be done in
+    //the init which is consistant and less surprising in the long
+    //run. This consistency allows for directly destroying in the
+    //deinit functions when the need arises
+    pub fn init(exp: pExpression) !*pExpression {
+        var self = try heap.c_allocator.create(pExpression);
+        self.* = exp;
+        return self;
+    }
 
     pub fn deinit(self: *pExpression) void {
         switch(self.*) {

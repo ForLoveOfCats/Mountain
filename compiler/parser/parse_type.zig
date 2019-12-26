@@ -7,7 +7,7 @@ usingnamespace parser;
 pub fn parse_type(self: *TokenIterator, child: ?*pType) anyerror!*pType {
     expect_kind(self.token(), .Word);
 
-    var ptype = try heap.c_allocator.create(pType);
+    var maybe_ptype: ?*pType = null;
     if(self.has_next() and self.peek().kind == .Period) {
         var reach_module = self.token().string;
 
@@ -16,26 +16,31 @@ pub fn parse_type(self: *TokenIterator, child: ?*pType) anyerror!*pType {
 
         self.next();
         expect_kind(self.token(), .Word);
-        ptype.* = pType {
-            .name = self.token().string,
-            .reach_module = reach_module,
-            .child = child,
-        };
+        maybe_ptype = try pType.init(
+            self.token().string,
+            reach_module,
+            child,
+        );
     }
     else {
-        ptype.* = pType {
-            .name = self.token().string,
-            .reach_module = [_]u8 {},
-            .child = child,
-        };
+        maybe_ptype = try pType.init(
+            self.token().string,
+            [_]u8 {},
+            child,
+        );
     }
 
-    self.next();
-    if(self.token().kind == .Colon and !(self.has_next() and self.peek().kind == .Colon)) {
+    if(maybe_ptype) |ptype| {
         self.next();
-        return try parse_type(self, ptype);
-    }
-    self.index -= 1;
+        if(self.token().kind == .Colon and !(self.has_next() and self.peek().kind == .Colon)) {
+            self.next();
+            return try parse_type(self, ptype);
+        }
+        self.index -= 1;
 
-    return ptype;
+        return ptype;
+    }
+    else {
+        internal_error("`parse_type` failed to init the pType value");
+    }
 }

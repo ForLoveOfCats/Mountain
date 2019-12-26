@@ -53,6 +53,13 @@ pub fn print_many(count: usize, comptime fmt: []const u8, args: ...) void {
 }
 
 
+pub fn internal_error(comptime fmt: []const u8, args: ...) noreturn {
+    warn("Internal Error: ");
+    warnln(fmt, args);
+    std.process.exit(1);
+}
+
+
 pub fn parse_error(token: parser.Token, comptime fmt: []const u8, args: ...) noreturn {
     parse_error_file_line_column_start_end(token.file, token.line, token.column_start, token.start, token.end, fmt, args);
 }
