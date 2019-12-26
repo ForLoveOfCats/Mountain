@@ -1,0 +1,6 @@
+module Core;
+
+
+
+func:Void in_core()
+{}
