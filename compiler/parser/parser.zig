@@ -12,4 +12,4 @@ pub usingnamespace @import("expect.zig");
 
 
 
-pub var modules: std.StringHashMap(parser.pModule) = undefined;
+pub var rootmod: pModule = undefined;

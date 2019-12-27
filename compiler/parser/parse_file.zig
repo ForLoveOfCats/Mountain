@@ -15,23 +15,38 @@ pub fn parse_file(self: *TokenIterator) !void {
     }
 
     self.next();
-    expect_kind(self.token(), .Word); //Module name
-    var module: *pModule = undefined;
-    if(modules.contains(self.token().string)) {
-        var kv = modules.get(self.token().string) orelse unreachable;
-        module = &kv.value;
-    }
-    else {
-        var stack_module = pModule {
-            .name = self.token().string,
-            .block = pBlock.init(),
-        };
-        _ = try modules.put(self.token().string, stack_module);
-        var kv = modules.get(self.token().string) orelse unreachable;
-        module = &kv.value;
+    var name_parts = std.ArrayList([]u8).init(heap.c_allocator);
+    defer name_parts.deinit();
+    while(true) {
+        expect_kind(self.token(), .Word);
+        try name_parts.append(self.token().string);
+        self.next();
+
+        if(self.token().kind == .Period) { //Another part of the name is expected
+            self.next(); //Move to what should be a word
+            continue; //then continue to handle it
+        }
+        break; //We've handled the last part of the name
     }
 
-    self.next();
+    var module: *pModule = &rootmod;
+    for(name_parts.toSlice()) |name| {
+        if(module.children.contains(name)) {
+            var kv = module.children.get(name) orelse unreachable;
+            module = &kv.value;
+        }
+        else {
+            var stack_module = pModule {
+                .name = name,
+                .block = pBlock.init(),
+                .children = std.StringHashMap(parser.pModule).init(heap.c_allocator),
+            };
+            _ = try module.children.put(name, stack_module);
+            var kv = module.children.get(name) orelse unreachable;
+            module = &kv.value;
+        }
+    }
+
     expect_kind(self.token(), .Semicolon);
 
     if(self.has_next()) {

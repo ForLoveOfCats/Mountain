@@ -43,15 +43,28 @@ pub const pType = struct {
 pub const pModule = struct {
     name: []u8,
     block: pBlock,
+    children: std.StringHashMap(pModule),
 
     pub fn deinit(self: pModule) void {
         self.block.deinit();
+
+        var children_iterator = self.children.iterator();
+        while(children_iterator.next()) |child| {
+            child.value.deinit();
+        }
+        self.children.deinit();
     }
 
     pub fn debug_print(self: pModule, level: usize) void {
         debug_print_level(level);
         println("Module '{}':", self.name);
+
         self.block.debug_print(level+1);
+
+        var children_iterator = self.children.iterator();
+        while(children_iterator.next()) |child| {
+            child.value.debug_print(level+1);
+        }
     }
 };
 
@@ -88,12 +101,18 @@ pub const pBlock = struct {
 
     pub fn debug_print(self: pBlock, level: usize) void {
         debug_print_level(level);
-        println("Block:");
 
-        for(self.contents.toSlice()) |item| {
-            switch(item) {
-                .Func => |func| func.debug_print(level+1),
-                .Expression => |expression| expression.debug_print(level+1),
+        if(self.contents.len == 0) {
+            println("Block: (Empty)");
+        }
+        else {
+            println("Block:");
+
+            for(self.contents.toSlice()) |item| {
+                switch(item) {
+                    .Func => |func| func.debug_print(level+1),
+                    .Expression => |expression| expression.debug_print(level+1),
+                }
             }
         }
     }
