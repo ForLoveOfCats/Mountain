@@ -60,30 +60,6 @@ pub fn internal_error(comptime fmt: []const u8, args: ...) noreturn {
 }
 
 
-pub fn parse_error(token: parser.Token, comptime fmt: []const u8, args: ...) noreturn {
-    parse_error_file_line_column_start_end(token.file, token.line, token.column_start, token.start, token.end, fmt, args);
-}
-
-
-pub fn parse_error_file_line_column_start_end(
-    file: usize,
-    line: LineNumber,
-    column_start: CharNumber,
-    start: usize,
-    end: usize,
-    comptime fmt: []const u8,
-    args: ...
-) noreturn {
-    const file_entry = compiler.files.toSlice()[file];
-
-    warn("  Parse error in '{}' @ line {}, column {}: ", file_entry.path, line.number, column_start.number);
-    warnln(fmt, args);
-    warn_line_error(file, start, end);
-
-    std.process.exit(1);
-}
-
-
 pub fn warn_line_error(file: usize, start: usize, end: usize) void {
     const spacer = "        ";
     var source = compiler.sources.toSlice()[file];
