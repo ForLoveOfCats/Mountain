@@ -11,4 +11,6 @@ func:Void:Ptr main() {
 	func:Void function() {
 		let:i32 inner = undefined;
 	}
+
+	let:i32 test = 42;
 }

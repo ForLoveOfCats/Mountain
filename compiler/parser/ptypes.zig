@@ -163,6 +163,7 @@ pub const pNegate = struct {
 
 pub const pExpression = union(enum) {
     Let: pLet,
+    Int: big.Int,
     Negate: pNegate,
     Math: pMath,
 
@@ -179,6 +180,7 @@ pub const pExpression = union(enum) {
     pub fn deinit(self: *pExpression) void {
         switch(self.*) {
             .Let => |*let| let.deinit(),
+            .Int => |*int| int.deinit(),
             .Negate => |*negate| negate.deinit(),
             .Math => |*math| math.deinit(),
         }
@@ -199,6 +201,13 @@ pub const pExpression = union(enum) {
 
         switch(self) {
             .Let => |let| let.debug_print(level+1),
+            .Int => |int| {
+                debug_print_level(level+1);
+
+                var str = bignum.toString(int, heap.c_allocator, 10) catch unreachable;
+                defer heap.c_allocator.free(str);
+                println("Int: {}", str);
+            },
             .Negate => |negate| negate.debug_print(level+1),
             .Math => |math| math.debug_print(level+1),
         }

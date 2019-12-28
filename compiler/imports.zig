@@ -1,4 +1,5 @@
 pub const std = @import("std");
+pub const big = std.math.big;
 pub const debug = std.debug;
 pub const warn = debug.warn;
 pub const mem = std.mem;
@@ -13,5 +14,6 @@ pub const assert = std.debug.assert;
 pub const compiler = @import("compiler.zig");
 pub const parser = @import("parser/parser.zig");
 pub const utils = @import("utils.zig");
+pub const bignum = @import("bignum.zig");
 
 pub usingnamespace utils;
