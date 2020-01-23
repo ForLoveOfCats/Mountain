@@ -250,12 +250,13 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                         .string = source[point.start .. point.end+1],
                     };
 
+                    //Here we add 2 if it is ==, >=, or <= as slicing end is exclusive [start, end)
                     if(char_token.kind == .Equals) fail: {
                         var peeked = try StreamCodePoint8.init(iterator.nextCodepoint() orelse break :fail, iterator.i-1);
                         if(peeked.bytes[0] == '=') {
                             char_token.kind = .CompEqual;
-                            char_token.column_end.number += 1; //We know we can't have gone to the next line
-                            char_token.end += 1;
+                            char_token.column_end.number += 2; //We know we can't have gone to the next line
+                            char_token.end += 2;
                             char_token.string = source[char_token.start .. peeked.end+1];
                         }
                         else {
@@ -266,8 +267,8 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                         var peeked = try StreamCodePoint8.init(iterator.nextCodepoint() orelse break :fail, iterator.i-1);
                         if(peeked.bytes[0] == '=') {
                             char_token.kind = .CompGreaterEqual;
-                            char_token.column_end.number += 1; //We know we can't have gone to the next line
-                            char_token.end += 1;
+                            char_token.column_end.number += 2; //We know we can't have gone to the next line
+                            char_token.end += 2;
                             char_token.string = source[char_token.start .. peeked.end+1];
                         }
                         else {
@@ -278,8 +279,8 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                         var peeked = try StreamCodePoint8.init(iterator.nextCodepoint() orelse break :fail, iterator.i-1);
                         if(peeked.bytes[0] == '=') {
                             char_token.kind = .CompLessEqual;
-                            char_token.column_end.number += 1; //We know we can't have gone to the next line
-                            char_token.end += 1;
+                            char_token.column_end.number += 2; //We know we can't have gone to the next line
+                            char_token.end += 2;
                             char_token.string = source[char_token.start .. peeked.end+1];
                         }
                         else {
@@ -290,8 +291,8 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                         var peeked = try StreamCodePoint8.init(iterator.nextCodepoint() orelse break :fail, iterator.i-1);
                         if(peeked.bytes[0] == '=') {
                             char_token.kind = .CompNotEqual;
-                            char_token.column_end.number += 1; //We know we can't have gone to the next line
-                            char_token.end += 1;
+                            char_token.column_end.number += 2; //We know we can't have gone to the next line
+                            char_token.end += 2;
                             char_token.string = source[char_token.start .. peeked.end+1];
                         }
                         else {
