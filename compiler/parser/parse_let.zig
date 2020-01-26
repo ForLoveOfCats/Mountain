@@ -27,6 +27,9 @@ pub fn parse_let(self: *TokenIterator) anyerror!pLet {
         expression = try parse_expression(self);
     }
 
+    self.next();
+    expect_kind(self.token(), .Semicolon);
+
     return pLet {
         .name = name,
         .ptype = ptype,

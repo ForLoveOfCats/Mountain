@@ -73,6 +73,7 @@ pub const pBlock = struct {
     contents: std.ArrayList(InBlock),
 
     pub const InBlock = union(enum) {
+        Let: pLet,
         Func: pFunc,
         Expression: *pExpression,
     };
@@ -86,6 +87,10 @@ pub const pBlock = struct {
     pub fn deinit(self: pBlock) void {
         for(self.contents.toSlice()) |*item| {
             switch(item.*) {
+                .Let => |*let| {
+                    let.deinit();
+                },
+
                 .Func => |*func| {
                     func.deinit();
                 },
@@ -110,6 +115,7 @@ pub const pBlock = struct {
 
             for(self.contents.toSlice()) |item| {
                 switch(item) {
+                    .Let => |let| let.debug_print(level+1),
                     .Func => |func| func.debug_print(level+1),
                     .Expression => |expression| expression.debug_print(level+1),
                 }
@@ -162,7 +168,6 @@ pub const pNegate = struct {
 
 
 pub const pExpression = union(enum) {
-    Let: pLet,
     Int: big.Int,
     Negate: pNegate,
     Math: pMath,
@@ -179,7 +184,6 @@ pub const pExpression = union(enum) {
 
     pub fn deinit(self: *pExpression) void {
         switch(self.*) {
-            .Let => |*let| let.deinit(),
             .Int => |*int| int.deinit(),
             .Negate => |*negate| negate.deinit(),
             .Math => |*math| math.deinit(),
@@ -200,7 +204,6 @@ pub const pExpression = union(enum) {
         println("Expression:");
 
         switch(self) {
-            .Let => |let| let.debug_print(level+1),
             .Int => |int| {
                 debug_print_level(level+1);
 

@@ -5,12 +5,5 @@ module Main;
 
 
 func:Void:Ptr main() {
-	let:i32 variable = let:i32 other = undefined;
-	let:Bool something = undefined;
-
-	func:Void function() {
-		let:i32 inner = undefined;
-	}
-
-	let:i32 test = 42;
+	let:i32 variable = 5;
 }

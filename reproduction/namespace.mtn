@@ -1,6 +1,0 @@
-module Core.Collections;
-
-
-
-func:Void in_core_collections()
-{}

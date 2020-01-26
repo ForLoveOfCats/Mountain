@@ -25,6 +25,10 @@ pub fn parse_block(self: *TokenIterator, block: *pBlock, global: bool) anyerror!
             var func = try parse_func(self);
             try block.contents.append(pBlock.InBlock {.Func = func});
         }
+        else if(mem.eql(u8, self.token().string, "let")) {
+            var let = try parse_let(self);
+            try block.contents.append(pBlock.InBlock {.Let = let});
+        }
         else {
             var expression = try parse_expression(self);
             try block.contents.append(pBlock.InBlock {.Expression = expression});
