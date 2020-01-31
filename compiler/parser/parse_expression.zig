@@ -15,11 +15,23 @@ fn parse_int(string: []u8) !?big.Int {
 
 
 pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
-    if(try parse_int(self.token().string)) |int| {
-        return pExpression.init(pExpression{ .Int = int });
+    var output = std.ArrayList(*pExpression).init(heap.c_allocator);
+    defer output.deinit();
+
+    while(true) {
+        if(try parse_int(self.token().string)) |int| {
+            try output.append(try pExpression.init(pExpression{ .Int = int }));
+        }
+        else {
+            parse_error(self.token(), "Unexpected token '{}'", self.token().string);
+        }
+
+        self.next();
+        switch(self.token().kind) {
+            .Semicolon => break,
+            else => {},
+        }
     }
 
-    else {
-        parse_error(self.token(), "Unexpected token '{}'", self.token().string);
-    }
+    return output.items[0];
 }
