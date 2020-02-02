@@ -5,5 +5,5 @@ module Main;
 
 
 func:Void:Ptr main() {
-	let:i32 variable = 5 + 6;
+	let:i32 variable = 100 / 10 + 5 * 2;
 }
