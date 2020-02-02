@@ -6,19 +6,39 @@ usingnamespace parser;
 
 fn is_operator(token: Token) bool {
     return switch(token.kind) {
-        .Add, .Subtract, .Multiply, .Divide => true,
+        .Add,
+        .Subtract,
+        .Multiply,
+        .Divide,
+        .CompEqual,
+        .CompNotEqual,
+        .CompGreater,
+        .CompGreaterEqual,
+        .CompLess,
+        .CompLessEqual
+            => true,
+
         else => false
     };
 }
 
 
-fn get_operator_precedence(kind: pMathKind) i32 {
+fn get_operator_precedence(kind: pOperatorKind) i32 {
     return switch(kind) {
         .Add      => 1,
         .Subtract => 1,
 
         .Multiply => 2,
         .Divide   => 2,
+
+        .CompEqual => 0,
+        .CompNotEqual => 0,
+
+        .CompGreater => 0,
+        .CompGreaterEqual => 0,
+
+        .CompLess => 0,
+        .CompLessEqual => 0,
     };
 }
 
@@ -36,22 +56,33 @@ fn parse_int(string: []u8) !?big.Int {
 pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
     const InRpn = union(enum) {
         Expression: *pExpression,
-        Operator: pMathKind,
+        Operator: pOperatorKind,
     };
 
     var rpn = std.ArrayList(InRpn).init(heap.c_allocator);
     defer rpn.deinit();
 
-    var operators = std.ArrayList(pMathKind).init(heap.c_allocator);
+    var operators = std.ArrayList(pOperatorKind).init(heap.c_allocator);
     defer operators.deinit();
 
     while(true) {
         if(is_operator(self.token())) {
             var operator = switch(self.token().kind) {
-                .Add => pMathKind.Add,
-                .Subtract => pMathKind.Subtract,
-                .Multiply => pMathKind.Multiply,
-                .Divide => pMathKind.Divide,
+                .Add => pOperatorKind.Add,
+                .Subtract => pOperatorKind.Subtract,
+
+                .Multiply => pOperatorKind.Multiply,
+                .Divide => pOperatorKind.Divide,
+
+                .CompEqual => pOperatorKind.CompEqual,
+                .CompNotEqual => pOperatorKind.CompNotEqual,
+
+                .CompGreater => pOperatorKind.CompGreater,
+                .CompGreaterEqual => pOperatorKind.CompGreaterEqual,
+
+                .CompLess => pOperatorKind.CompLess,
+                .CompLessEqual => pOperatorKind.CompLessEqual,
+
                 else => unreachable,
             };
 

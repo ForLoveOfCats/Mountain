@@ -125,25 +125,35 @@ pub const pBlock = struct {
 };
 
 
-pub const pMathKind = enum {
+pub const pOperatorKind = enum {
     Add,
     Subtract,
+
     Multiply,
     Divide,
+
+    CompEqual,
+    CompNotEqual,
+
+    CompGreater,
+    CompGreaterEqual,
+
+    CompLess,
+    CompLessEqual,
 };
 
 
-pub const pMath = struct {
-    kind: pMathKind,
+pub const pOperator = struct {
+    kind: pOperatorKind,
     left: *pExpression,
     right: *pExpression,
 
-    pub fn deinit(self: *pMath) void {
+    pub fn deinit(self: *pOperator) void {
         self.left.deinit();
         self.right.deinit();
     }
 
-    pub fn debug_print(self: pMath, level: usize) void {
+    pub fn debug_print(self: pOperator, level: usize) void {
         debug_print_level(level);
         println("{}:", @tagName(self.kind));
         self.left.debug_print(level+1);
@@ -170,7 +180,7 @@ pub const pNegate = struct {
 pub const pExpression = union(enum) {
     Int: big.Int,
     Negate: pNegate,
-    Math: pMath,
+    Operator: pOperator,
 
     //This feels like a hack but allows the allocation to be done in
     //the init which is consistant and less surprising in the long
@@ -186,7 +196,7 @@ pub const pExpression = union(enum) {
         switch(self.*) {
             .Int => |*int| int.deinit(),
             .Negate => |*negate| negate.deinit(),
-            .Math => |*math| math.deinit(),
+            .Operator => |*math| math.deinit(),
         }
 
         heap.c_allocator.destroy(self);
@@ -194,7 +204,7 @@ pub const pExpression = union(enum) {
 
     pub fn is_math(self: pExpression) bool {
         return switch(self) {
-            Math => true,
+            Operator => true,
             else => false,
         };
     }
@@ -212,7 +222,7 @@ pub const pExpression = union(enum) {
                 println("Int: {}", str);
             },
             .Negate => |negate| negate.debug_print(level+1),
-            .Math => |math| math.debug_print(level+1),
+            .Operator => |operator| operator.debug_print(level+1),
         }
     }
 };
