@@ -25,20 +25,20 @@ fn is_operator(token: Token) bool {
 
 fn get_operator_precedence(kind: pOperatorKind) i32 {
     return switch(kind) {
-        .Add      => 1,
-        .Subtract => 1,
+        .Add      => 2,
+        .Subtract => 2,
 
-        .Multiply => 2,
-        .Divide   => 2,
+        .Multiply => 3,
+        .Divide   => 3,
 
-        .CompEqual => 0,
-        .CompNotEqual => 0,
+        .CompEqual => 1,
+        .CompNotEqual => 1,
 
-        .CompGreater => 0,
-        .CompGreaterEqual => 0,
+        .CompGreater => 1,
+        .CompGreaterEqual => 1,
 
-        .CompLess => 0,
-        .CompLessEqual => 0,
+        .CompLess => 1,
+        .CompLessEqual => 1,
     };
 }
 
@@ -171,7 +171,6 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
         println("{}", entry);
     }
     println("Operators end: =========================");
-
     println("");
 
     println("RPN start: =============================");
@@ -185,11 +184,37 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
         }
     }
     println("RPN end: ===============================");
-
     println("");
 
-    //Punt it for now and just return a big int 42
-    //TODO: Finish shunting yard and convert RPN to pExpression tree
-    var int = try big.Int.initSet(heap.c_allocator, 42);
-    return try pExpression.init(pExpression{ .Int = int });
+    var stack = std.ArrayList(*pExpression).init(heap.c_allocator);
+    defer stack.deinit();
+
+    for(rpn.toSlice()) |entry| { //Convert RPN to pExpression tree
+        switch(entry) {
+            .Expression => |expression| try stack.append(expression),
+
+            .Operator => |operator| {
+                var right = stack.pop();
+                var left = stack.pop();
+
+                var expression = try pExpression.init(
+                    pExpression {
+                        .Operator = pOperator {
+                            .kind = operator,
+                            .left = left,
+                            .right = right,
+                        }
+                    }
+                );
+                try stack.append(expression);
+            },
+        }
+    }
+
+    //We should now have only one pExpression in the stack
+    //It is the root of the expression tree we just built
+    if(stack.len != 1) {
+        internal_error("Expression parse tree building stack does not have only one remaining entry");
+    }
+    return stack.pop();
 }
