@@ -98,19 +98,16 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
 
             var precedence = get_operator_precedence(operator);
 
-            var pop_count: usize = 0;
-            for(operators.toSlice()) |in_queue| {
+            while(operators.popOrNull()) |in_queue| {
                 var in_queue_precedence = get_operator_precedence(in_queue);
                 if(precedence == in_queue_precedence or precedence < in_queue_precedence) {
-                    pop_count += 1;
                     try rpn.append(InRpn { .Operator = in_queue });
                 }
                 else {
+                    try operators.append(in_queue);
                     break;
                 }
             }
-
-            try operators.resize(operators.len - pop_count);
 
             try operators.append(operator);
 
@@ -153,16 +150,8 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
 
     var operators_slice = operators.toSlice();
     var index: usize = operators_slice.len - 1;
-    while(true) { //Add each remaining operator to RPN in reverse order
-        try rpn.append(InRpn { .Operator = operators_slice[index] });
-
-        //Because usize has 0 as min we cannot check this in the while condition as it would underflow
-        if(index > 0) {
-            index -= 1;
-        }
-        else {
-            break;
-        }
+    while(operators.popOrNull()) |operator| { //Add each remaining operator to RPN in reverse order
+        try rpn.append(InRpn { .Operator = operator });
     }
 
     println("Operators start: =======================");
