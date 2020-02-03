@@ -37,7 +37,11 @@ pub fn parse_block(self: *TokenIterator, block: *pBlock, global: bool) anyerror!
             expect_kind(self.token(), .Semicolon);
         }
 
-        if(self.has_next())
+        if(self.has_next()) {
             self.next();
+        }
+        else if(!global) {
+            parse_error(self.token(), "Unexpected end of file");
+        }
     }
 }
