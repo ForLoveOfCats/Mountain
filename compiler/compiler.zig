@@ -7,18 +7,54 @@ pub var files: std.ArrayList(DirEntry) = undefined;
 pub var sources: std.ArrayList([]u8) = undefined;
 
 
+fn help_message(comptime fmt: []const u8, args: ...) void {
+    print("    ");
+    println(fmt, args);
+}
+
+fn print_help() void {
+    println("Mountain programming language compiler:");
+    help_message("Usage: `mountain --build ./Path/To/Input`");
+
+    println("");
+
+    println("Flags:");
+    help_message("--help");
+    help_message("--build");
+}
+
+
 pub fn main() anyerror!void {
     const allocator = heap.c_allocator;
 
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    if (args.len != 2) {
-        warn("Please provide an input folder path to compile\n");
+    if(args.len < 2) { //Need at least one arg
+        print_help();
         std.process.exit(1);
     }
 
-    const dir_path = try fs.realpathAlloc(allocator, args[1]);
+    const Mode = enum {
+        Build,
+    };
+    var mode: Mode = .Build;
+
+    if(mem.eql(u8, args[1], "--help")) {
+        print_help();
+        std.process.exit(0);
+    }
+    else if(!mem.eql(u8, args[1], "--build")) {
+        println("Expected '--build' flag but found '{}' instead", args[1]);
+        std.process.exit(1);
+    }
+
+    if(args.len != 3) {
+        println("Expected input folder path following '--build' flag");
+        std.process.exit(1);
+    }
+
+    const dir_path = try fs.realpathAlloc(allocator, args[2]);
     defer allocator.free(dir_path);
 
     files = std.ArrayList(DirEntry).init(allocator);
