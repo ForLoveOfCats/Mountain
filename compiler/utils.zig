@@ -10,26 +10,26 @@ var stdout_file_out_stream: File.OutStream = undefined;
 var stdout_stream: ?*io.OutStream(File.WriteError) = null;
 var stdout_mutex = std.Mutex.init();
 
-pub fn println(comptime fmt: []const u8, args: ...) void {
+pub fn println(comptime fmt: []const u8, args: var) void {
     const held = stdout_mutex.acquire();
     defer held.release();
-    const stdout = getStdoutStream() catch return;
+    const stdout = getStdoutStream();
     stdout.print(fmt, args) catch return;
-    stdout.print("\n") catch return;
+    stdout.print("\n", .{}) catch return;
 }
 
-pub fn print(comptime fmt: []const u8, args: ...) void {
+pub fn print(comptime fmt: []const u8, args: var) void {
     const held = stdout_mutex.acquire();
     defer held.release();
-    const stdout = getStdoutStream() catch return;
+    const stdout = getStdoutStream();
     stdout.print(fmt, args) catch return;
 }
 
-fn getStdoutStream() !*io.OutStream(File.WriteError) {
+fn getStdoutStream() *io.OutStream(File.WriteError) {
     if (stdout_stream) |st| {
         return st;
     } else {
-        stdout_file = try io.getStdOut();
+        stdout_file = io.getStdOut();
         stdout_file_out_stream = stdout_file.outStream();
         const st = &stdout_file_out_stream.stream;
         stdout_stream = st;
@@ -38,13 +38,13 @@ fn getStdoutStream() !*io.OutStream(File.WriteError) {
 }
 
 
-pub fn warnln(comptime fmt: []const u8, args: ...) void {
+pub fn warnln(comptime fmt: []const u8, args: var) void {
     warn(fmt, args);
-    warn("\n");
+    warn("\n", .{});
 }
 
 
-pub fn print_many(count: usize, comptime fmt: []const u8, args: ...) void {
+pub fn print_many(count: usize, comptime fmt: []const u8, args: var) void {
     var index: usize = 0;
     while(index < count) {
         index += 1;
@@ -53,8 +53,8 @@ pub fn print_many(count: usize, comptime fmt: []const u8, args: ...) void {
 }
 
 
-pub fn internal_error(comptime fmt: []const u8, args: ...) noreturn {
-    warn("Internal Error: ");
+pub fn internal_error(comptime fmt: []const u8, args: var) noreturn {
+    warn("Internal Error: ", .{});
     warnln(fmt, args);
     std.process.exit(1);
 }
@@ -93,7 +93,7 @@ pub fn warn_line_error(file: usize, start: usize, end: usize) void {
         line_end += 1;
     }
 
-    warnln("{}{}", spacer, source[line_start..line_end+1]);
+    warnln("{}{}", .{spacer, source[line_start..line_end+1]});
 
     var iterator = unicode.Utf8Iterator {
         .bytes = source,
@@ -125,23 +125,23 @@ pub fn warn_line_error(file: usize, start: usize, end: usize) void {
         underline_length += 1;
     }
 
-    warn("{}", spacer);
+    warn("{}", .{spacer});
     var i: usize = 0;
     while(i < underline_start_spaces) {
         i += 1;
-        warn(" ");
+        warn(" ", .{});
     }
-    warn("^");
+    warn("^", .{});
 
     if(underline_length > 0) {
         i = 0;
         while(i < underline_length-1) {
             i += 1;
-            warn("^");
+            warn("^", .{});
         }
     }
 
-    warn("\n");
+    warn("\n", .{});
 }
 
 

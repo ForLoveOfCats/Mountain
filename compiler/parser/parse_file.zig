@@ -11,7 +11,7 @@ pub fn parse_file(self: *TokenIterator) !void {
 
     //Purposely don't check token kind to improve error UX
     if(!mem.eql(u8, self.token().string, "module")) {
-        parse_error(self.token(), "File must first declare a module");
+        parse_error(self.token(), "File must first declare a module", .{});
     }
 
     self.next();

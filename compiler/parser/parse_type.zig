@@ -25,7 +25,7 @@ pub fn parse_type(self: *TokenIterator, child: ?*pType) anyerror!*pType {
     else {
         maybe_ptype = try pType.init(
             self.token().string,
-            [_]u8 {},
+            "",
             child,
         );
     }
@@ -41,6 +41,6 @@ pub fn parse_type(self: *TokenIterator, child: ?*pType) anyerror!*pType {
         return ptype;
     }
     else {
-        internal_error("`parse_type` failed to init the pType value");
+        internal_error("`parse_type` failed to init the pType value", .{});
     }
 }

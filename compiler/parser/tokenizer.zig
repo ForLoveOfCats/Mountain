@@ -76,7 +76,8 @@ pub const TokenIterator = struct {
                 self.tokens[self.index].column_end,
                 self.tokens[self.index].start,
                 self.tokens[self.index].end,
-                "Unexpectedly encountered end of file"
+                "Unexpectedly encountered end of file",
+                .{}
             );
         }
 
@@ -95,7 +96,7 @@ pub const StreamCodePoint8 = struct {
         return self.bytes[0 .. self.len];
     }
 
-    pub fn init(point: u32, start: usize) !StreamCodePoint8 {
+    pub fn init(point: u21, start: usize) !StreamCodePoint8 {
         var bytes: [4]u8 = undefined;
         var len = try unicode.utf8Encode(point, bytes[0..4]);
 
@@ -130,7 +131,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
         .start = 0,
         .end = 0,
         .kind = .Word,
-        .string = [_]u8 {},
+        .string = "",
     };
     while(iterator.nextCodepoint()) |codepoint32| {
         var point = try StreamCodePoint8.init(codepoint32, iterator.i-1);
@@ -153,7 +154,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                 .start = point.start,
                 .end = point.end,
                 .kind = .Word,
-                .string = [_]u8 {},
+                .string = "",
             };
         }
         token.column_end = newCharNumber(column);
@@ -171,7 +172,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                         .start = point.start,
                         .end = point.end,
                         .kind = .Word,
-                        .string = [_]u8 {},
+                        .string = "",
                     };
                 }
 
@@ -209,7 +210,7 @@ pub fn tokenize_file(source: []const u8, file: usize, tokens: *std.ArrayList(Tok
                         .start = point.start,
                         .end = point.end,
                         .kind = .Word,
-                        .string = [_]u8 {},
+                        .string = "",
                     };
                     column -= 1;
                     iterator.i -= point.len;

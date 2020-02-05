@@ -3,7 +3,7 @@ usingnamespace @import("../imports.zig");
 
 
 pub fn debug_print_level(level: usize) void {
-    print_many(level, "    ");
+    print_many(level, "    ", .{});
 }
 
 
@@ -32,10 +32,10 @@ pub const pType = struct {
     pub fn debug_print(self: *pType) void {
         if(self.child) |actual| {
             actual.debug_print();
-            print(":");
+            print(":", .{});
         }
 
-        print("{}", self.name);
+        print("{}", .{self.name});
     }
 };
 
@@ -57,7 +57,7 @@ pub const pModule = struct {
 
     pub fn debug_print(self: pModule, level: usize) void {
         debug_print_level(level);
-        println("Module '{}':", self.name);
+        println("Module '{}':", .{self.name});
 
         self.block.debug_print(level+1);
 
@@ -108,10 +108,10 @@ pub const pBlock = struct {
         debug_print_level(level);
 
         if(self.contents.len == 0) {
-            println("Block: (Empty)");
+            println("Block: (Empty)", .{});
         }
         else {
-            println("Block:");
+            println("Block:", .{});
 
             for(self.contents.toSlice()) |item| {
                 switch(item) {
@@ -155,7 +155,7 @@ pub const pOperator = struct {
 
     pub fn debug_print(self: pOperator, level: usize) void {
         debug_print_level(level);
-        println("{}:", @tagName(self.kind));
+        println("{}:", .{@tagName(self.kind)});
         self.left.debug_print(level+1);
         self.right.debug_print(level+1);
     }
@@ -171,7 +171,7 @@ pub const pNegate = struct {
 
     pub fn debug_print(self: pNegate, level: usize) void {
         debug_print_level(level);
-        println("Negate:");
+        println("Negate:", .{});
         self.expression.debug_print(level+1);
     }
 };
@@ -211,15 +211,15 @@ pub const pExpression = union(enum) {
 
     pub fn debug_print(self: pExpression, level: usize) void {
         debug_print_level(level);
-        println("Expression:");
+        println("Expression:", .{});
 
         switch(self) {
             .Int => |int| {
                 debug_print_level(level+1);
 
-                var str = bignum.toString(int, heap.c_allocator, 10) catch unreachable;
+                var str = int.toString(heap.c_allocator, 10) catch unreachable;
                 defer heap.c_allocator.free(str);
-                println("Int: {}", str);
+                println("Int: {}", .{str});
             },
             .Negate => |negate| negate.debug_print(level+1),
             .Operator => |operator| operator.debug_print(level+1),
@@ -244,9 +244,9 @@ pub const pLet = struct {
     pub fn debug_print(self: pLet, level: usize) void {
         debug_print_level(level);
 
-        print("Let '{}' with type '", self.name);
+        print("Let '{}' with type '", .{self.name});
         self.ptype.debug_print();
-        println("'");
+        println("'", .{});
 
         if(self.expression) |actual| {
             actual.debug_print(level+1);
@@ -268,9 +268,9 @@ pub const pFunc = struct {
     pub fn debug_print(self: pFunc, level: usize) void {
         debug_print_level(level);
 
-        print("Func '{}' with return type '", self.name);
+        print("Func '{}' with return type '", .{self.name});
         self.ptype.debug_print();
-        println("':");
+        println("':", .{});
 
         self.block.debug_print(level+1);
     }

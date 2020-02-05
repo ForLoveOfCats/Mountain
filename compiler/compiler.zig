@@ -1,26 +1,31 @@
 usingnamespace @import("imports.zig");
 
-const DirEntry = fs.Walker.Entry;
 
 
-pub var files: std.ArrayList(DirEntry) = undefined;
+const FileInfo = struct {
+    basename: []const u8,
+    path: []const u8,
+};
+
+
+pub var files: std.ArrayList(FileInfo) = undefined;
 pub var sources: std.ArrayList([]u8) = undefined;
 
 
-fn help_message(comptime fmt: []const u8, args: ...) void {
-    print("    ");
+fn help_message(comptime fmt: []const u8, args: var) void {
+    print("    ", .{});
     println(fmt, args);
 }
 
 fn print_help() void {
-    println("Mountain programming language compiler:");
-    help_message("Usage: `mountain --build ./Path/To/Input`");
+    println("Mountain programming language compiler:", .{});
+    help_message("Usage: `mountain --build ./Path/To/Input`", .{});
 
-    println("");
+    println("", .{});
 
-    println("Flags:");
-    help_message("--help");
-    help_message("--build");
+    println("Flags:", .{});
+    help_message("--help", .{});
+    help_message("--build", .{});
 }
 
 
@@ -45,19 +50,19 @@ pub fn main() anyerror!void {
         std.process.exit(0);
     }
     else if(!mem.eql(u8, args[1], "--build")) {
-        println("Expected '--build' flag but found '{}' instead", args[1]);
+        println("Expected '--build' flag but found '{}' instead", .{args[1]});
         std.process.exit(1);
     }
 
     if(args.len != 3) {
-        println("Expected input folder path following '--build' flag");
+        println("Expected input folder path following '--build' flag", .{});
         std.process.exit(1);
     }
 
     const dir_path = try fs.realpathAlloc(allocator, args[2]);
     defer allocator.free(dir_path);
 
-    files = std.ArrayList(DirEntry).init(allocator);
+    files = std.ArrayList(FileInfo).init(allocator);
     defer {
         for(files.toSlice()) |file| {
             allocator.free(file.path);
@@ -74,10 +79,9 @@ pub fn main() anyerror!void {
 
     while(try walker.next()) |file| {
         if(file.kind == .File and mem.endsWith(u8, file.basename, ".mtn")) {
-            try files.append(DirEntry {
+            try files.append(FileInfo {
                 .path = try fs.path.relative(allocator, cwd, file.path),//try mem.dupe(allocator, u8, file.path),
                 .basename = try mem.dupe(allocator, u8, file.basename),
-                .kind = file.kind,
             });
         }
     }
@@ -110,6 +114,6 @@ pub fn main() anyerror!void {
         try parser.parse_file(&token_iterator);
     }
 
-    println("The following parse tree was built");
+    println("The following parse tree was built", .{});
     parser.rootmod.debug_print(0);
 }

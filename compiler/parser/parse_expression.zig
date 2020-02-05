@@ -74,7 +74,7 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
     while(true) {
         if(is_operator(self.token())) { //Parse operator
             if(expected == .Value) {
-                parse_error(self.token(), "Expected value but found operator '{}'", self.token().string);
+                parse_error(self.token(), "Expected value but found operator '{}'", .{self.token().string});
             }
 
             var operator = switch(self.token().kind) {
@@ -115,7 +115,7 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
         }
         else { //Parse value
             if(expected == .Operator) {
-                parse_error(self.token(), "Expected operator but found value");
+                parse_error(self.token(), "Expected operator but found value", .{});
             }
 
             if(try parse_int(self.token().string)) |int| {
@@ -127,7 +127,7 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
                 try rpn.append(InRpn { .Expression = expression });
             }
             else {
-                parse_error(self.token(), "Unexpected token '{}'", self.token().string);
+                parse_error(self.token(), "Unexpected token '{}'", .{self.token().string});
             }
 
             expected = .Operator;
@@ -145,7 +145,7 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
     }
 
     if(expected == .Value) {
-        parse_error(self.token(), "Operator '{}' has no right side value", self.token().string);
+        parse_error(self.token(), "Operator '{}' has no right side value", .{self.token().string});
     }
 
     var operators_slice = operators.toSlice();
@@ -154,26 +154,26 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
         try rpn.append(InRpn { .Operator = operator });
     }
 
-    println("Operators start: =======================");
+    println("Operators start: =======================", .{});
     for(operators.toSlice()) |entry| {
         debug_print_level(1);
-        println("{}", entry);
+        println("{}", .{entry});
     }
-    println("Operators end: =========================");
-    println("");
+    println("Operators end: =========================", .{});
+    println("", .{});
 
-    println("RPN start: =============================");
+    println("RPN start: =============================", .{});
     for(rpn.toSlice()) |entry| {
         switch(entry) {
             .Expression => |expression| expression.debug_print(1),
             .Operator => |operator| {
                 debug_print_level(1);
-                println("{}", operator);
+                println("{}", .{operator});
             }
         }
     }
-    println("RPN end: ===============================");
-    println("");
+    println("RPN end: ===============================", .{});
+    println("", .{});
 
     var stack = std.ArrayList(*pExpression).init(heap.c_allocator);
     defer stack.deinit();
@@ -203,7 +203,7 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
     //We should now have only one pExpression in the stack
     //It is the root of the expression tree we just built
     if(stack.len != 1) {
-        internal_error("Expression parse tree building stack does not have only one remaining entry");
+        internal_error("Expression parse tree building stack does not have only one remaining entry", .{});
     }
     return stack.pop();
 }
