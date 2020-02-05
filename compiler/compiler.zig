@@ -8,6 +8,12 @@ const FileInfo = struct {
 };
 
 
+const Mode = enum {
+        Build,
+        Server,
+};
+
+
 pub var files: std.ArrayList(FileInfo) = undefined;
 pub var sources: std.ArrayList([]u8) = undefined;
 
@@ -26,6 +32,34 @@ fn print_help() void {
     println("Flags:", .{});
     help_message("--help", .{});
     help_message("--build", .{});
+    help_message("--server", .{});
+}
+
+
+fn process_cli(args: [][]const u8) Mode {
+    if(args.len < 2) { //Need at least one arg
+        print_help();
+        std.process.exit(1);
+    }
+
+    if(mem.eql(u8, args[1], "--help")) {
+        print_help();
+        std.process.exit(0);
+    }
+    else if(mem.eql(u8, args[1], "--server")) {
+        return .Server;
+    }
+    else if(!mem.eql(u8, args[1], "--build")) {
+        println("Expected '--build' or '--server' flag but found '{}' instead", .{args[1]});
+        std.process.exit(1);
+    }
+
+    if(args.len != 3) {
+        println("Expected input folder path following '--build' flag", .{});
+        std.process.exit(1);
+    }
+
+    return .Build;
 }
 
 
@@ -35,29 +69,20 @@ pub fn main() anyerror!void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    if(args.len < 2) { //Need at least one arg
-        print_help();
-        std.process.exit(1);
-    }
+    var mode = process_cli(args);
 
-    const Mode = enum {
-        Build,
+    var root_module_name = "RootModule";
+    parser.rootmod = parser.pModule {
+        .name = root_module_name[0..root_module_name.len],
+        .block = parser.pBlock.init(),
+        .children = std.StringHashMap(parser.pModule).init(allocator),
     };
-    var mode: Mode = .Build;
+    defer parser.rootmod.deinit();
 
-    if(mem.eql(u8, args[1], "--help")) {
-        print_help();
-        std.process.exit(0);
-    }
-    else if(!mem.eql(u8, args[1], "--build")) {
-        println("Expected '--build' flag but found '{}' instead", .{args[1]});
-        std.process.exit(1);
-    }
+    var source_allocator = heap.ArenaAllocator.init(allocator);
+    defer source_allocator.deinit();
 
-    if(args.len != 3) {
-        println("Expected input folder path following '--build' flag", .{});
-        std.process.exit(1);
-    }
+    sources = std.ArrayList([]u8).init(&source_allocator.allocator);
 
     const dir_path = try fs.realpathAlloc(allocator, args[2]);
     defer allocator.free(dir_path);
@@ -85,19 +110,6 @@ pub fn main() anyerror!void {
             });
         }
     }
-
-    var root_module_name = "RootModule";
-    parser.rootmod = parser.pModule {
-        .name = root_module_name[0..root_module_name.len],
-        .block = parser.pBlock.init(),
-        .children = std.StringHashMap(parser.pModule).init(allocator),
-    };
-    defer parser.rootmod.deinit();
-
-    var source_allocator = heap.ArenaAllocator.init(allocator);
-    defer source_allocator.deinit();
-
-    sources = std.ArrayList([]u8).init(&source_allocator.allocator);
 
     for(files.toSlice()) |file| {
         var source = try io.readFileAlloc(&source_allocator.allocator, file.path);
