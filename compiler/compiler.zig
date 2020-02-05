@@ -84,46 +84,53 @@ pub fn main() anyerror!void {
 
     sources = std.ArrayList([]u8).init(&source_allocator.allocator);
 
-    const dir_path = try fs.realpathAlloc(allocator, args[2]);
-    defer allocator.free(dir_path);
+    switch(mode) {
+        .Server => {
+        },
 
-    files = std.ArrayList(FileInfo).init(allocator);
-    defer {
-        for(files.toSlice()) |file| {
-            allocator.free(file.path);
-            allocator.free(file.basename);
-        }
-        files.deinit();
-    }
+        .Build => {
+            const dir_path = try fs.realpathAlloc(allocator, args[2]);
+            defer allocator.free(dir_path);
 
-    var cwd_buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    var cwd = try os.getcwd(&cwd_buffer);
+            files = std.ArrayList(FileInfo).init(allocator);
+            defer {
+                for(files.toSlice()) |file| {
+                    allocator.free(file.path);
+                    allocator.free(file.basename);
+                }
+                files.deinit();
+            }
 
-    var walker = try fs.walkPath(allocator, dir_path);
-    defer walker.deinit();
+            var cwd_buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+            var cwd = try os.getcwd(&cwd_buffer);
 
-    while(try walker.next()) |file| {
-        if(file.kind == .File and mem.endsWith(u8, file.basename, ".mtn")) {
-            try files.append(FileInfo {
-                .path = try fs.path.relative(allocator, cwd, file.path),//try mem.dupe(allocator, u8, file.path),
-                .basename = try mem.dupe(allocator, u8, file.basename),
-            });
-        }
-    }
+            var walker = try fs.walkPath(allocator, dir_path);
+            defer walker.deinit();
 
-    for(files.toSlice()) |file| {
-        var source = try io.readFileAlloc(&source_allocator.allocator, file.path);
-        try sources.append(source);
+            while(try walker.next()) |file| {
+                if(file.kind == .File and mem.endsWith(u8, file.basename, ".mtn")) {
+                    try files.append(FileInfo {
+                        .path = try fs.path.relative(allocator, cwd, file.path),//try mem.dupe(allocator, u8, file.path),
+                        .basename = try mem.dupe(allocator, u8, file.basename),
+                    });
+                }
+            }
 
-        var tokens = std.ArrayList(parser.Token).init(&source_allocator.allocator);
+            for(files.toSlice()) |file| {
+                var source = try io.readFileAlloc(&source_allocator.allocator, file.path);
+                try sources.append(source);
 
-        try parser.tokenize_file(source, sources.len-1, &tokens);
-        var token_iterator = parser.TokenIterator {
-            .tokens = tokens.toSlice(),
-            .index = 0,
-        };
+                var tokens = std.ArrayList(parser.Token).init(&source_allocator.allocator);
 
-        try parser.parse_file(&token_iterator);
+                try parser.tokenize_file(source, sources.len-1, &tokens);
+                var token_iterator = parser.TokenIterator {
+                    .tokens = tokens.toSlice(),
+                    .index = 0,
+                };
+
+                try parser.parse_file(&token_iterator);
+            }
+        },
     }
 
     println("The following parse tree was built", .{});
