@@ -35,7 +35,7 @@ pub const Project = struct {
         var definition_source = try project_dir.readFileAlloc(
             heap.c_allocator,
             "project.json",
-            1000 * 100 //1,000 kb
+            1000 * 1000 //1,000 kb
         );
         defer heap.c_allocator.free(definition_source);
 
