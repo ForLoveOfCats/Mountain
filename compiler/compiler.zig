@@ -100,30 +100,7 @@ pub fn main() anyerror!void {
             var project = try Project.load(dir_path);
             defer project.deinit();
 
-            files = std.ArrayList(FileInfo).init(allocator);
-            defer {
-                for(files.toSlice()) |file| {
-                    file.deinit();
-                }
-                files.deinit();
-            }
-
-            var cwd_buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-            var cwd = try os.getcwd(&cwd_buffer);
-
-            var walker = try fs.walkPath(allocator, dir_path);
-            defer walker.deinit();
-
-            while(try walker.next()) |file| {
-                if(file.kind == .File and mem.endsWith(u8, file.basename, ".mtn")) {
-                    var path: []u8 = try fs.path.relative(allocator, cwd, file.path);
-                    defer allocator.free(path);
-
-                    try files.append(try FileInfo.init(path, file.basename));
-                }
-            }
-
-            for(files.toSlice()) |file| {
+            for(project.files.toSlice()) |file| {
                 var source = try io.readFileAlloc(&source_allocator.allocator, file.path);
                 try sources.append(source);
 
