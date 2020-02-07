@@ -2,12 +2,6 @@ usingnamespace @import("imports.zig");
 
 
 
-const FileInfo = struct {
-    basename: []const u8,
-    path: []const u8,
-};
-
-
 const Mode = enum {
         Build,
         Server,
@@ -25,7 +19,7 @@ fn help_message(comptime fmt: []const u8, args: var) void {
 
 fn print_help() void {
     println("Mountain programming language compiler:", .{});
-    help_message("Usage: `mountain --build ./Path/To/Input`", .{});
+    help_message("Usage: `mountain --build ./Path/To/Project`", .{});
 
     println("", .{});
 
@@ -50,12 +44,15 @@ fn process_cli(args: [][]const u8) Mode {
         return .Server;
     }
     else if(!mem.eql(u8, args[1], "--build")) {
-        println("Expected '--build' or '--server' flag but found '{}' instead", .{args[1]});
+        println(
+            "Expected '--build' or '--server' flag but found '{}' instead",
+            .{args[1]}
+        );
         std.process.exit(1);
     }
 
     if(args.len != 3) {
-        println("Expected input folder path following '--build' flag", .{});
+        println("Expected project folder path following '--build' flag", .{});
         std.process.exit(1);
     }
 
@@ -84,6 +81,14 @@ pub fn main() anyerror!void {
 
     sources = std.ArrayList([]u8).init(&source_allocator.allocator);
 
+    projects = std.ArrayList(Project).init(allocator);
+    defer {
+        for(projects.toSlice()) |project| {
+            project.deinit();
+        }
+        projects.deinit();
+    }
+
     switch(mode) {
         .Server => {
         },
@@ -91,6 +96,8 @@ pub fn main() anyerror!void {
         .Build => {
             const dir_path = try fs.realpathAlloc(allocator, args[2]);
             defer allocator.free(dir_path);
+
+            var project = try Project.load(dir_path);
 
             files = std.ArrayList(FileInfo).init(allocator);
             defer {
@@ -109,14 +116,15 @@ pub fn main() anyerror!void {
 
             while(try walker.next()) |file| {
                 if(file.kind == .File and mem.endsWith(u8, file.basename, ".mtn")) {
-                    try files.append(FileInfo {
-                        .path = try fs.path.relative(allocator, cwd, file.path),//try mem.dupe(allocator, u8, file.path),
-                        .basename = try mem.dupe(allocator, u8, file.basename),
-                    });
+                    var path: []u8 = try fs.path.relative(allocator, cwd, file.path);
+                    defer allocator.free(path);
+
+                    try files.append(try FileInfo.init(path, file.basename));
                 }
             }
 
             for(files.toSlice()) |file| {
+                println("{}", .{file.path});
                 var source = try io.readFileAlloc(&source_allocator.allocator, file.path);
                 try sources.append(source);
 
