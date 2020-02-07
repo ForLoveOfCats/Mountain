@@ -41,7 +41,7 @@ pub const pType = struct {
 
 
 pub const pModule = struct {
-    name: []u8,
+    name: []const u8,
     block: pBlock,
     children: std.StringHashMap(pModule),
 

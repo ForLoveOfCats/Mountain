@@ -164,9 +164,8 @@ pub const Project = struct {
             }
         }
 
-        var root_module_name = "RootModule";
         var rootmod = parser.pModule {
-            .name = root_module_name[0..root_module_name.len],
+            .name = "RootModule",
             .block = parser.pBlock.init(),
             .children = std.StringHashMap(parser.pModule).init(heap.c_allocator),
         };
