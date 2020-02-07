@@ -98,12 +98,12 @@ pub fn main() anyerror!void {
             defer allocator.free(dir_path);
 
             var project = try Project.load(dir_path);
+            defer project.deinit();
 
             files = std.ArrayList(FileInfo).init(allocator);
             defer {
                 for(files.toSlice()) |file| {
-                    allocator.free(file.path);
-                    allocator.free(file.basename);
+                    file.deinit();
                 }
                 files.deinit();
             }
@@ -124,7 +124,6 @@ pub fn main() anyerror!void {
             }
 
             for(files.toSlice()) |file| {
-                println("{}", .{file.path});
                 var source = try io.readFileAlloc(&source_allocator.allocator, file.path);
                 try sources.append(source);
 
