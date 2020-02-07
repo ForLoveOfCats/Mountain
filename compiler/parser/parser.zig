@@ -12,9 +12,6 @@ pub usingnamespace @import("expect.zig");
 
 
 
-pub var rootmod: pModule = undefined;
-
-
 pub fn parse_error(token: parser.Token, comptime fmt: []const u8, args: var) noreturn {
     parse_error_file_line_column_start_end(token.file, token.line, token.column_start, token.start, token.end, fmt, args);
 }

@@ -68,14 +68,6 @@ pub fn main() anyerror!void {
 
     var mode = process_cli(args);
 
-    var root_module_name = "RootModule";
-    parser.rootmod = parser.pModule {
-        .name = root_module_name[0..root_module_name.len],
-        .block = parser.pBlock.init(),
-        .children = std.StringHashMap(parser.pModule).init(allocator),
-    };
-    defer parser.rootmod.deinit();
-
     var source_allocator = heap.ArenaAllocator.init(allocator);
     defer source_allocator.deinit();
 
@@ -112,11 +104,11 @@ pub fn main() anyerror!void {
                     .index = 0,
                 };
 
-                try parser.parse_file(&token_iterator);
+                try parser.parse_file(&token_iterator, &project.rootmod);
             }
+
+            println("The following parse tree was built", .{});
+            project.rootmod.debug_print(0);
         },
     }
-
-    println("The following parse tree was built", .{});
-    parser.rootmod.debug_print(0);
 }

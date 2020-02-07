@@ -115,6 +115,7 @@ fn project_source_path_alloc(definition: json.ObjectMap, dir_path: []const u8) !
 pub const Project = struct {
     name: []u8,
     files: std.ArrayList(FileInfo),
+    rootmod: parser.pModule,
 
     pub fn load(dir_path: []const u8) !Project {
         var project_dir = try fs.cwd().openDirList(dir_path);
@@ -163,9 +164,17 @@ pub const Project = struct {
             }
         }
 
+        var root_module_name = "RootModule";
+        var rootmod = parser.pModule {
+            .name = root_module_name[0..root_module_name.len],
+            .block = parser.pBlock.init(),
+            .children = std.StringHashMap(parser.pModule).init(heap.c_allocator),
+        };
+
         return Project {
             .name = project_name,
             .files = files,
+            .rootmod = rootmod,
         };
     }
 
@@ -177,5 +186,7 @@ pub const Project = struct {
             file.deinit();
         }
         self.files.deinit();
+
+        self.rootmod.deinit();
     }
 };

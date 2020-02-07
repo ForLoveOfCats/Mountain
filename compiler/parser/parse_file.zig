@@ -4,7 +4,7 @@ usingnamespace parser;
 
 
 
-pub fn parse_file(self: *TokenIterator) !void {
+pub fn parse_file(self: *TokenIterator, rootmod: *pModule) !void {
     if(self.tokens.len == 0) {
         return; //Empty file
     }
@@ -29,7 +29,7 @@ pub fn parse_file(self: *TokenIterator) !void {
         break; //We've handled the last part of the name
     }
 
-    var module: *pModule = &rootmod;
+    var module: *pModule = rootmod;
     for(name_parts.toSlice()) |name| {
         if(module.children.contains(name)) {
             var kv = module.children.get(name) orelse unreachable;
