@@ -57,6 +57,28 @@ fn check_project_type(definition: json.ObjectMap, dir_path: []const u8) void {
 }
 
 
+fn project_name_alloc(definition: json.ObjectMap, dir_path: []const u8) ![]u8 {
+    if(!definition.contains("Name")) {
+        invalid_project(
+            dir_path,
+            "Expected key 'Name' with string value",
+            .{}
+        );
+    }
+
+    var name_key = definition.get("Name").?;
+    if(name_key.value != .String) {
+        invalid_project(
+            dir_path,
+            "Value for 'Name' is not a string",
+            .{}
+        );
+    }
+
+    return try mem.dupe(heap.c_allocator, u8, name_key.value.String);
+}
+
+
 fn project_source_path_alloc(definition: json.ObjectMap, dir_path: []const u8) ![]u8 {
     if(!definition.contains("Source")) {
         invalid_project(
@@ -119,6 +141,8 @@ pub const Project = struct {
         var definition = tree.root.Object;
         check_project_type(definition, dir_path);
 
+        var project_name = try project_name_alloc(definition, dir_path);
+
         var files = std.ArrayList(FileInfo).init(heap.c_allocator);
 
         var cwd_buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
@@ -140,13 +164,15 @@ pub const Project = struct {
         }
 
         return Project {
-            .name = "",
+            .name = project_name,
             .files = files,
         };
     }
 
 
     pub fn deinit(self: Project) void {
+        heap.c_allocator.free(self.name);
+
         for(self.files.toSlice()) |file| {
             file.deinit();
         }
