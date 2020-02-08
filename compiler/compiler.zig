@@ -8,10 +8,6 @@ const Mode = enum {
 };
 
 
-pub var files: std.ArrayList(FileInfo) = undefined;
-pub var sources: std.ArrayList([]u8) = undefined;
-
-
 fn help_message(comptime fmt: []const u8, args: var) void {
     print("    ", .{});
     println(fmt, args);
@@ -68,11 +64,6 @@ pub fn main() anyerror!void {
 
     var mode = process_cli(args);
 
-    var source_allocator = heap.ArenaAllocator.init(allocator);
-    defer source_allocator.deinit();
-
-    sources = std.ArrayList([]u8).init(&source_allocator.allocator);
-
     projects = std.ArrayList(Project).init(allocator);
     defer {
         for(projects.toSlice()) |project| {
@@ -92,12 +83,12 @@ pub fn main() anyerror!void {
             defer project.deinit();
 
             for(project.files.toSlice()) |file| {
-                var source = try io.readFileAlloc(&source_allocator.allocator, file.path);
-                try sources.append(source);
+                file.contents = try io.readFileAlloc(allocator, file.path);
 
-                var tokens = std.ArrayList(parser.Token).init(&source_allocator.allocator);
+                var tokens = std.ArrayList(parser.Token).init(allocator);
+                defer tokens.deinit();
 
-                try parser.tokenize_file(source, sources.len-1, &tokens);
+                try parser.tokenize_file(&project, file.contents.?, file, &tokens);
                 var token_iterator = parser.TokenIterator {
                     .tokens = tokens.toSlice(),
                     .index = 0,

@@ -8,17 +8,30 @@ pub var projects: std.ArrayList(Project) = undefined;
 pub const FileInfo = struct {
     path: []const u8,
     basename: []const u8,
+    contents: ?[]u8,
 
-    pub fn init(path: []const u8, basename: []const u8) !FileInfo {
-        return FileInfo {
+    pub fn init(path: []const u8, basename: []const u8) !*FileInfo {
+        var instance = FileInfo {
             .path = try mem.dupe(heap.c_allocator, u8, path),
             .basename = try mem.dupe(heap.c_allocator, u8, basename),
+            .contents = null,
         };
+
+        var pointer = try heap.c_allocator.create(FileInfo);
+        pointer.* = instance;
+
+        return pointer;
     }
 
-    pub fn deinit(self: FileInfo) void {
+    pub fn deinit(self: *FileInfo) void {
         heap.c_allocator.free(self.path);
         heap.c_allocator.free(self.basename);
+
+        if(self.contents != null) {
+            heap.c_allocator.free(self.contents.?);
+        }
+
+        heap.c_allocator.destroy(self);
     }
 };
 
@@ -114,7 +127,7 @@ fn project_source_path_alloc(definition: json.ObjectMap, dir_path: []const u8) !
 
 pub const Project = struct {
     name: []u8,
-    files: std.ArrayList(FileInfo),
+    files: std.ArrayList(*FileInfo),
     rootmod: parser.pModule,
 
     pub fn load(dir_path: []const u8) !Project {
@@ -144,7 +157,7 @@ pub const Project = struct {
 
         var project_name = try project_name_alloc(definition, dir_path);
 
-        var files = std.ArrayList(FileInfo).init(heap.c_allocator);
+        var files = std.ArrayList(*FileInfo).init(heap.c_allocator);
 
         var cwd_buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
         var cwd = try os.getcwd(&cwd_buffer);

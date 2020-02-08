@@ -45,9 +45,9 @@ pub fn internal_error(comptime fmt: []const u8, args: var) noreturn {
 }
 
 
-pub fn warn_line_error(file: usize, start: usize, end: usize) void {
+pub fn warn_line_error(file: *FileInfo, start: usize, end: usize) void {
     const spacer = "        ";
-    var source = compiler.sources.toSlice()[file];
+    const source = file.contents.?;
 
     var line_start = start;
     while(true) { //Rewind until start of actual line

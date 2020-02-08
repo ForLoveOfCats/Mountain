@@ -18,7 +18,7 @@ pub fn parse_error(token: parser.Token, comptime fmt: []const u8, args: var) nor
 
 
 pub fn parse_error_file_line_column_start_end(
-    file: usize,
+    file: *FileInfo,
     line: LineNumber,
     column_start: CharNumber,
     start: usize,
@@ -26,9 +26,7 @@ pub fn parse_error_file_line_column_start_end(
     comptime fmt: []const u8,
     args: var
 ) noreturn {
-    const file_entry = compiler.files.toSlice()[file];
-
-    warn("  Parse error in '{}' @ line {}, column {}: ", .{file_entry.path, line.number, column_start.number});
+    warn("  Parse error in '{}' @ line {}, column {}: ", .{file.path, line.number, column_start.number});
     warnln(fmt, args);
     warn_line_error(file, start, end);
 
