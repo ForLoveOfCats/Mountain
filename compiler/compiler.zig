@@ -82,10 +82,9 @@ pub fn main() anyerror!void {
     }
 
     switch(mode) {
-        .Server => {
-        },
-
         .Build => {
+            logstream = &io.getStdOut().outStream().stream;
+
             const dir_path = try fs.realpathAlloc(allocator, args[2]);
             defer allocator.free(dir_path);
 
@@ -109,6 +108,17 @@ pub fn main() anyerror!void {
 
             println("The following parse tree was built", .{});
             project.rootmod.debug_print(0);
+        },
+
+        .Server => {
+            var actual_logfile = try fs.cwd().createFile(
+                "/home/forloveofcats/Stuff/Mountain/ServerLog.txt",
+                fs.File.CreateFlags {
+                    .read = false,
+                }
+            );
+            defer actual_logfile.close();
+            logstream = &actual_logfile.outStream().stream;
         },
     }
 }

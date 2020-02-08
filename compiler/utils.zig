@@ -4,37 +4,22 @@ const File = fs.File;
 
 
 
-var stdout_file: File = undefined;
-var stdout_file_out_stream: File.OutStream = undefined;
-
-var stdout_stream: ?*io.OutStream(File.WriteError) = null;
-var stdout_mutex = std.Mutex.init();
-
-pub fn println(comptime fmt: []const u8, args: var) void {
-    const held = stdout_mutex.acquire();
-    defer held.release();
-    const stdout = getStdoutStream();
-    stdout.print(fmt, args) catch return;
-    stdout.print("\n", .{}) catch return;
-}
+pub var logstream: ?*File.OutStream.Stream = null;
+var log_mutex = std.Mutex.init();
 
 pub fn print(comptime fmt: []const u8, args: var) void {
-    const held = stdout_mutex.acquire();
+    const held = log_mutex.acquire();
     defer held.release();
-    const stdout = getStdoutStream();
-    stdout.print(fmt, args) catch return;
+
+    logstream.?.print(fmt, args) catch return;
 }
 
-fn getStdoutStream() *io.OutStream(File.WriteError) {
-    if (stdout_stream) |st| {
-        return st;
-    } else {
-        stdout_file = io.getStdOut();
-        stdout_file_out_stream = stdout_file.outStream();
-        const st = &stdout_file_out_stream.stream;
-        stdout_stream = st;
-        return st;
-    }
+pub fn println(comptime fmt: []const u8, args: var) void {
+    const held = log_mutex.acquire();
+    defer held.release();
+
+    logstream.?.print(fmt, args) catch return;
+    logstream.?.print("\n", .{}) catch return;
 }
 
 
