@@ -1,3 +1,4 @@
 #!/usr/bin/sh
 
-zig build run -- --server
+zig build
+./zig-cache/bin/Mountain --server
