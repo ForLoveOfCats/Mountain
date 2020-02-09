@@ -19,3 +19,4 @@ pub const utils = @import("utils.zig");
 
 pub usingnamespace utils;
 pub usingnamespace projecter;
+pub usingnamespace compiler;

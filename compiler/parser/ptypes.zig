@@ -13,7 +13,7 @@ pub const pType = struct {
     child: ?*pType,
 
     pub fn init(name: []u8, reach_module: []u8, child: ?*pType) !*pType {
-        var self = try heap.c_allocator.create(pType);
+        var self = try allocator.create(pType);
         self.* = pType {
             .name = name,
             .reach_module = reach_module,
@@ -26,7 +26,7 @@ pub const pType = struct {
         if(self.child) |actual| {
             actual.deinit();
         }
-        heap.c_allocator.destroy(self);
+        allocator.destroy(self);
     }
 
     pub fn debug_print(self: *pType) void {
@@ -80,7 +80,7 @@ pub const pBlock = struct {
 
     pub fn init() pBlock {
         return pBlock {
-            .contents = std.ArrayList(InBlock).init(heap.c_allocator),
+            .contents = std.ArrayList(InBlock).init(allocator),
         };
     }
 
@@ -187,7 +187,7 @@ pub const pExpression = union(enum) {
     //run. This consistency allows for directly destroying in the
     //deinit functions when the need arises
     pub fn init(exp: pExpression) !*pExpression {
-        var self = try heap.c_allocator.create(pExpression);
+        var self = try allocator.create(pExpression);
         self.* = exp;
         return self;
     }
@@ -199,7 +199,7 @@ pub const pExpression = union(enum) {
             .Operator => |*math| math.deinit(),
         }
 
-        heap.c_allocator.destroy(self);
+        allocator.destroy(self);
     }
 
     pub fn is_math(self: pExpression) bool {
@@ -217,8 +217,8 @@ pub const pExpression = union(enum) {
             .Int => |int| {
                 debug_print_level(level+1);
 
-                var str = int.toString(heap.c_allocator, 10) catch unreachable;
-                defer heap.c_allocator.free(str);
+                var str = int.toString(allocator, 10) catch unreachable;
+                defer allocator.free(str);
                 println("Int: {}", .{str});
             },
             .Negate => |negate| negate.debug_print(level+1),

@@ -12,26 +12,26 @@ pub const FileInfo = struct {
 
     pub fn init(path: []const u8, basename: []const u8) !*FileInfo {
         var instance = FileInfo {
-            .path = try mem.dupe(heap.c_allocator, u8, path),
-            .basename = try mem.dupe(heap.c_allocator, u8, basename),
+            .path = try mem.dupe(allocator, u8, path),
+            .basename = try mem.dupe(allocator, u8, basename),
             .contents = null,
         };
 
-        var pointer = try heap.c_allocator.create(FileInfo);
+        var pointer = try allocator.create(FileInfo);
         pointer.* = instance;
 
         return pointer;
     }
 
     pub fn deinit(self: *FileInfo) void {
-        heap.c_allocator.free(self.path);
-        heap.c_allocator.free(self.basename);
+        allocator.free(self.path);
+        allocator.free(self.basename);
 
         if(self.contents != null) {
-            heap.c_allocator.free(self.contents.?);
+            allocator.free(self.contents.?);
         }
 
-        heap.c_allocator.destroy(self);
+        allocator.destroy(self);
     }
 };
 
@@ -88,7 +88,7 @@ fn project_name_alloc(definition: json.ObjectMap, dir_path: []const u8) ![]u8 {
         );
     }
 
-    return try mem.dupe(heap.c_allocator, u8, name_key.value.String);
+    return try mem.dupe(allocator, u8, name_key.value.String);
 }
 
 
@@ -111,7 +111,7 @@ fn project_source_path_alloc(definition: json.ObjectMap, dir_path: []const u8) !
     }
 
     var raw_source_path = try mem.concat(
-        heap.c_allocator,
+        allocator,
         u8,
         &[_][]const u8 {
             dir_path,
@@ -119,9 +119,9 @@ fn project_source_path_alloc(definition: json.ObjectMap, dir_path: []const u8) !
             source_key.value.String
         }
     );
-    defer heap.c_allocator.free(raw_source_path);
+    defer allocator.free(raw_source_path);
 
-    return try fs.realpathAlloc(heap.c_allocator, raw_source_path);
+    return try fs.realpathAlloc(allocator, raw_source_path);
 }
 
 
@@ -134,13 +134,13 @@ pub const Project = struct {
         var project_dir = try fs.cwd().openDirList(dir_path);
 
         var definition_source = try project_dir.readFileAlloc(
-            heap.c_allocator,
+            allocator,
             "project.json",
             1000 * 1000 //1,000 kb
         );
-        defer heap.c_allocator.free(definition_source);
+        defer allocator.free(definition_source);
 
-        var project_parser = json.Parser.init(heap.c_allocator, false);
+        var project_parser = json.Parser.init(allocator, false);
         defer project_parser.deinit();
 
         var tree = project_parser.parse(definition_source) catch |err| {
@@ -157,21 +157,21 @@ pub const Project = struct {
 
         var project_name = try project_name_alloc(definition, dir_path);
 
-        var files = std.ArrayList(*FileInfo).init(heap.c_allocator);
+        var files = std.ArrayList(*FileInfo).init(allocator);
 
         var cwd_buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
         var cwd = try os.getcwd(&cwd_buffer);
 
         var source_path = try project_source_path_alloc(definition, dir_path);
-        defer heap.c_allocator.free(source_path);
+        defer allocator.free(source_path);
 
-        var walker = try fs.walkPath(heap.c_allocator, source_path);
+        var walker = try fs.walkPath(allocator, source_path);
         defer walker.deinit();
 
         while(try walker.next()) |file| {
             if(file.kind == .File and mem.endsWith(u8, file.basename, ".mtn")) {
-                var path: []u8 = try fs.path.relative(heap.c_allocator, cwd, file.path);
-                defer heap.c_allocator.free(path);
+                var path: []u8 = try fs.path.relative(allocator, cwd, file.path);
+                defer allocator.free(path);
 
                 try files.append(try FileInfo.init(path, file.basename));
             }
@@ -180,7 +180,7 @@ pub const Project = struct {
         var rootmod = parser.pModule {
             .name = "RootModule",
             .block = parser.pBlock.init(),
-            .children = std.StringHashMap(parser.pModule).init(heap.c_allocator),
+            .children = std.StringHashMap(parser.pModule).init(allocator),
         };
 
         return Project {
@@ -192,7 +192,7 @@ pub const Project = struct {
 
 
     pub fn deinit(self: Project) void {
-        heap.c_allocator.free(self.name);
+        allocator.free(self.name);
 
         for(self.files.toSlice()) |file| {
             file.deinit();

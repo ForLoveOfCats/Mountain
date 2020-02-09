@@ -15,7 +15,7 @@ pub fn parse_file(self: *TokenIterator, rootmod: *pModule) !void {
     }
 
     self.next();
-    var name_parts = std.ArrayList([]u8).init(heap.c_allocator);
+    var name_parts = std.ArrayList([]u8).init(allocator);
     defer name_parts.deinit();
     while(true) {
         expect_kind(self.token(), .Word);
@@ -39,7 +39,7 @@ pub fn parse_file(self: *TokenIterator, rootmod: *pModule) !void {
             var stack_module = pModule {
                 .name = name,
                 .block = pBlock.init(),
-                .children = std.StringHashMap(parser.pModule).init(heap.c_allocator),
+                .children = std.StringHashMap(parser.pModule).init(allocator),
             };
             _ = try module.children.put(name, stack_module);
             var kv = module.children.get(name) orelse unreachable;

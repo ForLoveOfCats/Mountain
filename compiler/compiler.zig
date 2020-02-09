@@ -2,6 +2,9 @@ usingnamespace @import("imports.zig");
 
 
 
+pub const allocator = heap.c_allocator;
+
+
 const Mode = enum {
         Build,
         Server,
@@ -57,8 +60,6 @@ fn process_cli(args: [][]const u8) Mode {
 
 
 pub fn main() anyerror!void {
-    const allocator = heap.c_allocator;
-
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
@@ -127,8 +128,8 @@ pub fn main() anyerror!void {
 
                 println("Length in bytes: {}", .{content_length.?});
 
-                var content = try heap.c_allocator.alloc(u8, content_length.?);
-                defer heap.c_allocator.free(content);
+                var content = try allocator.alloc(u8, content_length.?);
+                defer allocator.free(content);
 
                 const read_length = try instream.read(content);
 

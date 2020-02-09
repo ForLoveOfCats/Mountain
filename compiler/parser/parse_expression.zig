@@ -44,7 +44,7 @@ fn get_operator_precedence(kind: pOperatorKind) i32 {
 
 
 fn parse_int(string: []u8) !?big.Int {
-    var int = try big.Int.init(heap.c_allocator);
+    var int = try big.Int.init(allocator);
     int.setString(10, string) catch {
         int.deinit();
         return null;
@@ -59,10 +59,10 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
         Operator: pOperatorKind,
     };
 
-    var rpn = std.ArrayList(InRpn).init(heap.c_allocator);
+    var rpn = std.ArrayList(InRpn).init(allocator);
     defer rpn.deinit();
 
-    var operators = std.ArrayList(pOperatorKind).init(heap.c_allocator);
+    var operators = std.ArrayList(pOperatorKind).init(allocator);
     defer operators.deinit();
 
     const ExpressionExpected = enum {
@@ -175,7 +175,7 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
     println("RPN end: ===============================", .{});
     println("", .{});
 
-    var stack = std.ArrayList(*pExpression).init(heap.c_allocator);
+    var stack = std.ArrayList(*pExpression).init(allocator);
     defer stack.deinit();
 
     for(rpn.toSlice()) |entry| { //Convert RPN to pExpression tree
