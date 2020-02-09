@@ -127,9 +127,9 @@ pub fn tokenize_file(project: *Project, source: []const u8, file: *FileInfo, tok
     var token = Token {
         .project = project,
         .file = file,
-        .line = newLineNumber(0),
-        .column_start = newCharNumber(0),
-        .column_end = newCharNumber(0),
+        .line = LineNumber.init(0),
+        .column_start = CharNumber.init(0),
+        .column_end = CharNumber.init(0),
         .start = 0,
         .end = 0,
         .kind = .Word,
@@ -151,16 +151,16 @@ pub fn tokenize_file(project: *Project, source: []const u8, file: *FileInfo, tok
             token = Token {
                 .project = project,
                 .file = file,
-                .line = newLineNumber(line),
-                .column_start = newCharNumber(column),
-                .column_end = newCharNumber(column),
+                .line = LineNumber.init(line),
+                .column_start = CharNumber.init(column),
+                .column_end = CharNumber.init(column),
                 .start = point.start,
                 .end = point.end,
                 .kind = .Word,
                 .string = "",
             };
         }
-        token.column_end = newCharNumber(column);
+        token.column_end = CharNumber.init(column);
 
         switch(point.bytes[0]) {
             ' ', '\t', '\n' => {
@@ -170,9 +170,9 @@ pub fn tokenize_file(project: *Project, source: []const u8, file: *FileInfo, tok
                     token = Token {
                         .project = project,
                         .file = file,
-                        .line = newLineNumber(line),
-                        .column_start = newCharNumber(column),
-                        .column_end = newCharNumber(column),
+                        .line = LineNumber.init(line),
+                        .column_start = CharNumber.init(column),
+                        .column_end = CharNumber.init(column),
                         .start = point.start,
                         .end = point.end,
                         .kind = .Word,
@@ -209,9 +209,9 @@ pub fn tokenize_file(project: *Project, source: []const u8, file: *FileInfo, tok
                     token = Token {
                         .project = project,
                         .file = file,
-                        .line = newLineNumber(line),
-                        .column_start = newCharNumber(column),
-                        .column_end = newCharNumber(column),
+                        .line = LineNumber.init(line),
+                        .column_start = CharNumber.init(column),
+                        .column_end = CharNumber.init(column),
                         .start = point.start,
                         .end = point.end,
                         .kind = .Word,
@@ -224,9 +224,9 @@ pub fn tokenize_file(project: *Project, source: []const u8, file: *FileInfo, tok
                     var char_token = Token {
                         .project = project,
                         .file = file,
-                        .line = newLineNumber(line),
-                        .column_start = newCharNumber(column),
-                        .column_end = newCharNumber(column+1),
+                        .line = LineNumber.init(line),
+                        .column_start = CharNumber.init(column),
+                        .column_end = CharNumber.init(column+1),
                         .start = point.start,
                         .end = point.end,
                         .kind = switch(point.bytes[0]) {

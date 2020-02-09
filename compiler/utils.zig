@@ -132,21 +132,21 @@ pub fn warn_line_error(file: *FileInfo, start: usize, end: usize) void {
 
 pub const LineNumber = struct {
     number: usize,
-};
 
-pub fn newLineNumber(number: usize) LineNumber {
-    return LineNumber {
-        .number = number,
-    };
-}
+    pub fn init(number: usize) LineNumber {
+        return LineNumber {
+            .number = number,
+        };
+    }
+};
 
 
 pub const CharNumber = struct {
     number: usize,
-};
 
-pub fn newCharNumber(number: usize) CharNumber {
-    return CharNumber {
-        .number = number,
-    };
-}
+    pub fn init(number: usize) CharNumber {
+        return CharNumber {
+            .number = number,
+        };
+    }
+};
