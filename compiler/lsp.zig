@@ -102,6 +102,92 @@ fn read_rpc(instream: *fs.File.InStream.Stream, arena: *mem.Allocator) !Rpc {
 }
 
 
+var outstream: ?*fs.File.OutStream.Stream = undefined;
+
+fn send(value: json.Value) !void {
+    if(outstream == null) {
+        outstream = &io.getStdOut().outStream().stream;
+    }
+
+    var buffer: [1024 * 4]u8 = undefined;
+    var slice_stream = io.SliceOutStream.init(&buffer);
+    const stream = &slice_stream.stream;
+
+    var writer = json.WriteStream(@TypeOf(stream).Child, 10).init(stream);
+    try writer.emitJson(value);
+
+    const formated = slice_stream.getWritten();
+
+    println("Sending: {}", .{formated});
+
+    try outstream.?.print("Content-Length: {}\r\n\r\n", .{formated.len});
+    try outstream.?.print("{}", .{formated});
+}
+
+
+fn send_response(id: Id, value: json.Value) !void {
+    var response = json.ObjectMap.init(allocator);
+    defer response.deinit();
+
+
+    switch(id) {
+        .String => |str| {
+            _ = try response.put(
+                "id",
+                json.Value {
+                    .String = str,
+                }
+            );
+        },
+
+        .Integer => |int| {
+            _ = try response.put(
+                "id",
+                json.Value {
+                    .Integer = int,
+                }
+            );
+        },
+    }
+
+    _ = try response.put(
+        "result",
+        value
+    );
+
+    try send(
+        json.Value {
+            .Object = response,
+        }
+    );
+}
+
+
+fn route_request(request: Request) !void {
+    if(mem.eql(u8, request.method, "initialize")) {
+        var textDocumentSync = json.ObjectMap.init(allocator);
+        defer textDocumentSync.deinit();
+        _ = try textDocumentSync.put("openClose", json.Value{ .Bool = true });
+        _ = try textDocumentSync.put("change", json.Value{ .Integer = 1 });
+
+        var capabilities = json.ObjectMap.init(allocator);
+        defer capabilities.deinit();
+        _ = try capabilities.put("textDocumentSync", json.Value{ .Object = textDocumentSync });
+
+        var results = json.ObjectMap.init(allocator);
+        defer results.deinit();
+        _ = try results.put("capabilities", json.Value{ .Object = capabilities });
+
+        try send_response(
+            request.id,
+            json.Value {
+                .Object = results,
+            }
+        );
+    }
+}
+
+
 pub fn serve() !void {
     var instream = &io.getStdIn().inStream().stream;
 
@@ -111,7 +197,7 @@ pub fn serve() !void {
 
         var rpc = try read_rpc(instream, &arena.allocator);
 
-        switch(rpc) {
+        switch(rpc) { //Debug printing
             .Request => |request| {
                 print("Recieved request '{}' of id ", .{request.method});
 
@@ -122,8 +208,13 @@ pub fn serve() !void {
             },
 
             .Notification => |notification| {
-                print("Recieved notification '{}'", .{notification.method});
+                println("Recieved notification '{}'", .{notification.method});
             },
+        }
+
+        switch(rpc) {
+            .Request => |request| try route_request(request),
+            .Notification => {},
         }
     }
 }
