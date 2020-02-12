@@ -1,4 +1,4 @@
-usingnamespace @import("imports.zig");
+usingnamespace @import("../imports.zig");
 
 
 

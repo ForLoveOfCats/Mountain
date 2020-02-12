@@ -15,7 +15,7 @@ pub const assert = std.debug.assert;
 pub const compiler = @import("compiler.zig");
 pub const projecter = @import("projecter.zig");
 pub const parser = @import("parser/parser.zig");
-pub const lsp = @import("lsp.zig");
+pub const lsp = @import("lsp/lsp.zig");
 pub const utils = @import("utils.zig");
 
 pub usingnamespace utils;
