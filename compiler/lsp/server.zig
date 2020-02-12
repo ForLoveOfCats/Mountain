@@ -5,8 +5,12 @@ usingnamespace lsp;
 
 
 pub const Server = struct {
+    initialized: bool,
+
     pub fn init() Server {
-        return Server{};
+        return Server {
+            .initialized = false,
+        };
     }
 
 
@@ -108,7 +112,7 @@ pub const Server = struct {
     }
 
 
-    fn send_response(id: Id, value: json.Value) !void {
+    fn send_response(id: Id, response_type: ResponseType, value: json.Value) !void {
         var response = json.ObjectMap.init(allocator);
         defer response.deinit();
 
@@ -133,10 +137,21 @@ pub const Server = struct {
             },
         }
 
-        _ = try response.put(
-            "result",
-            value
-        );
+        switch(response_type) {
+            .Result => {
+                _ = try response.put(
+                    "result",
+                    value
+                );
+            },
+
+            .Error => {
+                _ = try response.put(
+                    "error",
+                    value
+                );
+            }
+        }
 
         try send(
             json.Value {
@@ -146,7 +161,7 @@ pub const Server = struct {
     }
 
 
-    fn route_request(request: Request) !void {
+    fn route_request(self: *Server, request: Request) !void {
         if(mem.eql(u8, request.method, "initialize")) {
             var textDocumentSync = json.ObjectMap.init(allocator);
             defer textDocumentSync.deinit();
@@ -163,10 +178,39 @@ pub const Server = struct {
 
             try send_response(
                 request.id,
+                .Result,
                 json.Value {
                     .Object = results,
                 }
             );
+
+            self.initialized = true;
+        }
+
+        else {
+            if(!self.initialized) {
+                var ResponseError = try MakeResponseError(
+                    ServerNotInitialized,
+                    "Did not recieve prior 'initialize' request"
+                );
+                defer ResponseError.deinit();
+
+                try send_response(
+                    request.id,
+                    .Error,
+                    json.Value {
+                        .Object = ResponseError,
+                    }
+                );
+            }
+        }
+    }
+
+
+    fn route_notification(self: *Server, notification: Notification) void {
+        if(!self.initialized) {
+            println("Dropping notification: Server not initialized", .{});
+            return;
         }
     }
 
@@ -196,8 +240,8 @@ pub const Server = struct {
             }
 
             switch(rpc) {
-                .Request => |request| try route_request(request),
-                .Notification => {},
+                .Request => |request| try self.route_request(request),
+                .Notification => |notification| self.route_notification(notification),
             }
         }
     }
