@@ -104,7 +104,8 @@ pub fn main() anyerror!void {
 
         .Server => {
             logstream = &io.getStdErr().outStream().stream;
-            try lsp.serve();
+            var server = lsp.Server.init();
+            try server.serve();
         },
     }
 }
