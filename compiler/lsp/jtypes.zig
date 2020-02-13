@@ -26,7 +26,7 @@ pub const Id = union(enum) {
 pub const Request = struct {
     id: Id,
     method: []const u8,
-    params: *json.ObjectMap,
+    params: ?*json.ObjectMap,
 };
 
 

@@ -70,11 +70,19 @@ pub const Server = struct {
                 else => unreachable,
             }
 
+            var potential_params = object.get("params").?.value;
+            var params: ?*json.ObjectMap = undefined;
+            switch(potential_params) {
+                .Object => params = &potential_params.Object,
+                .Null => params = null,
+                else => unreachable,
+            }
+
             return Rpc {
                 .Request = Request {
                     .id = actual_id.?,
                     .method = object.get("method").?.value.String,
-                    .params = &object.get("params").?.value.Object,
+                    .params = params,
                 },
             };
         }
