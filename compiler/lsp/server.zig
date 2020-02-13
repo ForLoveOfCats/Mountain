@@ -108,7 +108,7 @@ pub const Server = struct {
         var slice_stream = io.SliceOutStream.init(&buffer);
         const stream = &slice_stream.stream;
 
-        var writer = json.WriteStream(@TypeOf(stream).Child, 10).init(stream);
+        var writer = json.WriteStream(@TypeOf(stream.*), 10).init(stream);
         try writer.emitJson(value);
 
         const formated = slice_stream.getWritten();
@@ -195,6 +195,14 @@ pub const Server = struct {
             self.initialized = true;
         }
 
+        else if(mem.eql(u8, request.method, "shutdown")) {
+            try send_response(
+                request.id,
+                .Result,
+                .Null
+            );
+        }
+
         else {
             if(!self.initialized) {
                 var ResponseError = try MakeResponseError(
@@ -215,11 +223,16 @@ pub const Server = struct {
     }
 
 
-    fn route_notification(self: *Server, notification: Notification) void {
-        if(!self.initialized) {
-            println("Dropping notification: Server not initialized", .{});
-            return;
+    fn route_notification(self: *Server, notification: Notification) bool {
+        if(mem.eql(u8, notification.method, "exit")) {
+            return true;
         }
+
+        else if(!self.initialized) {
+            println("Dropping notification: Server not initialized", .{});
+        }
+
+        return false;
     }
 
 
@@ -249,7 +262,12 @@ pub const Server = struct {
 
             switch(rpc) {
                 .Request => |request| try self.route_request(request),
-                .Notification => |notification| self.route_notification(notification),
+
+                .Notification => |notification| {
+                    if(self.route_notification(notification)) {
+                        return;
+                    }
+                },
             }
         }
     }
