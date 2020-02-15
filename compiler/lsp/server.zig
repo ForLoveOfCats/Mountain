@@ -97,12 +97,9 @@ pub const Server = struct {
     }
 
 
-    var outstream: ?*fs.File.OutStream.Stream = undefined;
 
     fn send(value: json.Value) !void {
-        if(outstream == null) {
-            outstream = &io.getStdOut().outStream().stream;
-        }
+        var outstream = &io.getStdOut().outStream().stream;
 
         var buffer: [1024 * 4]u8 = undefined;
         var slice_stream = io.SliceOutStream.init(&buffer);
@@ -115,8 +112,8 @@ pub const Server = struct {
 
         println("Sending: {}", .{formated});
 
-        try outstream.?.print("Content-Length: {}\r\n\r\n", .{formated.len});
-        try outstream.?.print("{}", .{formated});
+        try outstream.print("Content-Length: {}\r\n\r\n", .{formated.len});
+        try outstream.print("{}", .{formated});
     }
 
 
