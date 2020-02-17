@@ -40,13 +40,43 @@ pub const pType = struct {
 };
 
 
+pub const pFile = struct {
+    file: *FileInfo,
+    module_path: std.ArrayList([]u8),
+    block: pBlock,
+
+    pub fn init(pfile: pFile) !*pFile {
+        var self = try allocator.create(pFile);
+        self.* = pfile;
+        return self;
+    }
+
+    pub fn deinit(self: *
+pFile) void {
+        self.module_path.deinit();
+        self.block.deinit();
+        allocator.destroy(self);
+    }
+
+    pub fn debug_print(self: pFile, level: usize) void {
+        debug_print_level(level);
+        println("File '{}':", .{self.file.path});
+
+        self.block.debug_print(level+1);
+    }
+};
+
+
 pub const pModule = struct {
     name: []const u8,
-    block: pBlock,
+    pfiles: std.ArrayList(*pFile),
     children: std.StringHashMap(pModule),
 
     pub fn deinit(self: pModule) void {
-        self.block.deinit();
+        for(self.pfiles.toSlice()) |pfile| {
+            pfile.deinit();
+        }
+        self.pfiles.deinit();
 
         var children_iterator = self.children.iterator();
         while(children_iterator.next()) |child| {
@@ -59,7 +89,9 @@ pub const pModule = struct {
         debug_print_level(level);
         println("Module '{}':", .{self.name});
 
-        self.block.debug_print(level+1);
+        for(self.pfiles.toSlice()) |pfile| {
+            pfile.debug_print(level+1);
+        }
 
         var children_iterator = self.children.iterator();
         while(children_iterator.next()) |child| {

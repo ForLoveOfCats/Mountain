@@ -95,7 +95,9 @@ pub fn main() anyerror!void {
                     .index = 0,
                 };
 
-                try parser.parse_file(&token_iterator, &project.rootmod);
+                if(try parser.parse_file(&token_iterator)) |pfile| {
+                    try project.add_pfile(pfile);
+                }
             }
 
             println("The following parse tree was built", .{});

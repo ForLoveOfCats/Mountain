@@ -4,9 +4,9 @@ usingnamespace parser;
 
 
 
-pub fn parse_file(self: *TokenIterator, rootmod: *pModule) !void {
+pub fn parse_file(self: *TokenIterator) !?*pFile {
     if(self.tokens.len == 0) {
-        return; //Empty file
+        return null; //Empty file
     }
 
     //Purposely don't check token kind to improve error UX
@@ -16,7 +16,6 @@ pub fn parse_file(self: *TokenIterator, rootmod: *pModule) !void {
 
     self.next();
     var name_parts = std.ArrayList([]u8).init(allocator);
-    defer name_parts.deinit();
     while(true) {
         expect_kind(self.token(), .Word);
         try name_parts.append(self.token().string);
@@ -29,28 +28,20 @@ pub fn parse_file(self: *TokenIterator, rootmod: *pModule) !void {
         break; //We've handled the last part of the name
     }
 
-    var module: *pModule = rootmod;
-    for(name_parts.toSlice()) |name| {
-        if(module.children.contains(name)) {
-            var kv = module.children.get(name) orelse unreachable;
-            module = &kv.value;
+    var pfile = try pFile.init(
+        pFile {
+            .file = self.tokens[0].file,
+            .module_path = name_parts,
+            .block = pBlock.init(),
         }
-        else {
-            var stack_module = pModule {
-                .name = name,
-                .block = pBlock.init(),
-                .children = std.StringHashMap(parser.pModule).init(allocator),
-            };
-            _ = try module.children.put(name, stack_module);
-            var kv = module.children.get(name) orelse unreachable;
-            module = &kv.value;
-        }
-    }
+    );
 
     expect_kind(self.token(), .Semicolon);
 
     if(self.has_next()) {
         self.next();
-        try parse_block(self, &module.block, true);
+        try parse_block(self, &pfile.block, true);
     }
+
+    return pfile;
 }

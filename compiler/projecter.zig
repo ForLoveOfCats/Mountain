@@ -179,7 +179,7 @@ pub const Project = struct {
 
         var rootmod = parser.pModule {
             .name = "RootModule",
-            .block = parser.pBlock.init(),
+            .pfiles = std.ArrayList(*parser.pFile).init(allocator),
             .children = std.StringHashMap(parser.pModule).init(allocator),
         };
 
@@ -191,14 +191,35 @@ pub const Project = struct {
     }
 
 
+    pub fn add_pfile(self: *Project, pfile: *parser.pFile) !void {
+        var module = &self.rootmod;
+        for(pfile.module_path.toSlice()) |path_part| {
+            if(module.children.get(path_part)) |mod_kv| {
+                module = &mod_kv.value;
+            }
+            else {
+                var new_module = parser.pModule {
+                    .name = path_part,
+                    .pfiles = std.ArrayList(*parser.pFile).init(allocator),
+                    .children = std.StringHashMap(parser.pModule).init(allocator),
+                };
+                var mod_kv = try module.children.getOrPutValue(path_part, new_module);
+                module = &mod_kv.value;
+            }
+        }
+
+        try module.pfiles.append(pfile);
+    }
+
+
     pub fn deinit(self: Project) void {
-        allocator.free(self.name);
+        self.rootmod.deinit();
 
         for(self.files.toSlice()) |file| {
             file.deinit();
         }
         self.files.deinit();
 
-        self.rootmod.deinit();
+        allocator.free(self.name);
     }
 };
