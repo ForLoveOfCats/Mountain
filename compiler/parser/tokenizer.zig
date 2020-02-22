@@ -265,54 +265,32 @@ pub const TokenIterator = struct {
 
                         token.string = self.source[point.start .. point.end];
 
-                        //Here we add 2 if it is ==, >=, or <= as slicing end is exclusive [start, end)
-                        if(token.kind == .Equals) fail: {
-                            var peeked = try StreamCodePoint8.init(iterator.nextCodepoint() orelse break :fail, iterator.i-1);
-                            if(peeked.bytes[0] == '=') {
-                                token.kind = .CompEqual;
-                                token.column_end.number += 2; //We know we can't have gone to the next line
-                                token.end += 2;
-                                token.string = self.source[token.start .. peeked.end+1];
-                            }
-                            else {
-                                iterator.i -= peeked.len;
-                            }
-                        }
-                        else if(token.kind == .CompGreater) fail: {
-                            var peeked = try StreamCodePoint8.init(iterator.nextCodepoint() orelse break :fail, iterator.i-1);
-                            if(peeked.bytes[0] == '=') {
-                                token.kind = .CompGreaterEqual;
-                                token.column_end.number += 2; //We know we can't have gone to the next line
-                                token.end += 2;
-                                token.string = self.source[token.start .. peeked.end+1];
-                            }
-                            else {
-                                iterator.i -= peeked.len;
-                            }
-                        }
-                        else if(token.kind == .CompLess) fail: {
-                            var peeked = try StreamCodePoint8.init(iterator.nextCodepoint() orelse break :fail, iterator.i-1);
-                            if(peeked.bytes[0] == '=') {
-                                token.kind = .CompLessEqual;
-                                token.column_end.number += 2; //We know we can't have gone to the next line
-                                token.end += 2;
-                                token.string = self.source[token.start .. peeked.end+1];
-                            }
-                            else {
-                                iterator.i -= peeked.len;
-                            }
-                        }
-                        else if(token.kind == .Exclamation) fail: {
-                            var peeked = try StreamCodePoint8.init(iterator.nextCodepoint() orelse break :fail, iterator.i-1);
-                            if(peeked.bytes[0] == '=') {
-                                token.kind = .CompNotEqual;
-                                token.column_end.number += 2; //We know we can't have gone to the next line
-                                token.end += 2;
-                                token.string = self.source[token.start .. peeked.end+1];
-                            }
-                            else {
-                                iterator.i -= peeked.len;
-                            }
+                        switch(token.kind) {
+                            .Equals, .CompGreater, .CompLess, .Exclamation => {
+                                if(iterator.nextCodepoint()) |peeked_codepoint| {
+                                    var peeked = try StreamCodePoint8.init(peeked_codepoint, iterator.i);
+
+                                    if(peeked.bytes[0] == '=') {
+                                        self.column.number += 1;
+                                        token.column_end = self.column;
+                                        token.end = peeked.end;
+                                        token.string = self.source[token.start .. peeked.end];
+
+                                        token.kind = switch(token.kind) {
+                                            .Equals => .CompEqual,
+                                            .CompGreater => .CompGreaterEqual,
+                                            .CompLess => .CompLessEqual,
+                                            .Exclamation => .CompNotEqual,
+                                            else => unreachable,
+                                        };
+                                    }
+                                    else {
+                                        iterator.i -= peeked.len;
+                                    }
+                                }
+                            },
+
+                            else => {},
                         }
 
                         // println("Returning a single character", .{});
