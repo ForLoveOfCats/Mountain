@@ -4,20 +4,20 @@ usingnamespace parser;
 
 
 
-pub fn parse_file(self: *TokenIterator) !?*pFile {
+pub fn parse_file(self: *TokenIterator, file: *FileInfo) !?*pFile {
     //Purposely don't check token kind to improve error UX
-    if(!mem.eql(u8, self.token().string, "module")) {
-        parse_error(self.token(), "File must first declare a module", .{});
+    if(!mem.eql(u8, self.token.string, "module")) {
+        parse_error(self.token, "File must first declare a module", .{});
     }
 
     self.next();
     var name_parts = std.ArrayList([]u8).init(allocator);
     while(true) {
-        expect_kind(self.token(), .Word);
-        try name_parts.append(self.token().string);
+        expect_kind(self.token, .Word);
+        try name_parts.append(self.token.string);
         self.next();
 
-        if(self.token().kind == .Period) { //Another part of the name is expected
+        if(self.token.kind == .Period) { //Another part of the name is expected
             self.next(); //Move to what should be a word
             continue; //then continue to handle it
         }
@@ -26,13 +26,13 @@ pub fn parse_file(self: *TokenIterator) !?*pFile {
 
     var pfile = try pFile.init(
         pFile {
-            .file = self.tokens[0].file,
+            .file = file,
             .module_path = name_parts,
             .block = pBlock.init(),
         }
     );
 
-    expect_kind(self.token(), .Semicolon);
+    expect_kind(self.token, .Semicolon);
 
     if(self.has_next()) {
         self.next();

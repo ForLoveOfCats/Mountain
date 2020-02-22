@@ -70,8 +70,8 @@ pub const StreamCodePoint8 = struct {
         return StreamCodePoint8 {
             .bytes = bytes,
             .len = len,
-            .start = start,
-            .end = start + len,
+            .start = end - len,
+            .end = end,
         };
     }
 };
@@ -92,8 +92,8 @@ pub const TokenIterator = struct {
             .file = file,
             .source = source,
             .index = 0,
-            .line = LineNumber.init(0),
-            .column = CharNumber.init(0),
+            .line = LineNumber.init(1),
+            .column = CharNumber.init(1),
             .token = undefined,
         };
 
@@ -102,36 +102,52 @@ pub const TokenIterator = struct {
         return self;
     }
 
-    pub fn peek(self: *TokenIterator) ?Token {
-        return self.tokens[self.index+1]; //Will crash if not checked with has_next first
+    pub fn peek(self: *TokenIterator) Token {
+        var original = self.*;
+
+        var token = self.get_token() catch unreachable;
+        println("Peeking '{}'", .{token.?.string});
+
+        self.* = original;
+        return token.?;
+    }
+
+    pub fn has_next(self: *TokenIterator) bool {
+        return true;
     }
 
     pub fn next(self: *TokenIterator) void {
-        if(!has_next(self)) {
+        if(self.get_token() catch |err| {
+            println("Fatal tokenization error: {}", .{err});
+            std.process.exit(1);
+        }) |token| {
+            self.token = token;
+            println("Token '{}' of kind {}", .{token.string, @tagName(token.kind)});
+        }
+        else {
             parse_error_file_line_column_start_end(
-                self.tokens[self.index].file,
-                self.tokens[self.index].line,
-                self.tokens[self.index].column_end,
-                self.tokens[self.index].start,
-                self.tokens[self.index].end,
+                self.file,
+                self.token.line,
+                self.token.column_start,
+                self.token.start,
+                self.token.end,
                 "Unexpectedly encountered end of file",
                 .{}
             );
         }
-
-        self.index += 1;
     }
 
-    pub fn get_token(self: *TokenIterator) Token {
-        var start = self.index;
+    pub fn get_token(self: *TokenIterator) !?Token {
+        // println("Started get_token", .{});
 
         var iterator = unicode.Utf8Iterator {
             .bytes = self.source,
-            .i = start,
+            .i = self.index,
         };
 
-        while(iterator.nextCodepoint()) |codepoint| { //Consume to beginning of next token
-            var point = StreamCodePoint8.init(codepoint, iterator.i);
+        iteration: while(iterator.nextCodepoint()) |codepoint| { //Consume to beginning of next token
+            var point = try StreamCodePoint8.init(codepoint, iterator.i);
+
             if(point.bytes[0] == ' ') {
                 self.column.number += 1;
             }
@@ -140,20 +156,21 @@ pub const TokenIterator = struct {
                 self.column.number += 4;
             }
 
-            else if(point.bytes[0] == "\n") {
+            else if(point.bytes[0] == '\n') {
                 self.line.number += 1;
-                self.column.number = 0;
+                self.column.number = 1;
             }
 
             else if(point.bytes[0] == '/') {
                 if(iterator.nextCodepoint()) |second_codepoint| {
-                    var second_point = StreamCodePoint8.init(second_codepoint, iterator.i);
+                    var second_point = try StreamCodePoint8.init(second_codepoint, iterator.i);
                     if(second_point.bytes[0] == '/') { //Comment!
-                        while(iterator.nextCodepoint()) |consumed| {
+                        while(iterator.nextCodepoint()) |consumed_codepoint| {
+                            var consumed = try StreamCodePoint8.init(consumed_codepoint, iterator.i);
                             if(consumed.bytes[0] == '\n') {
                                 self.line.number += 1;
-                                self.column.number = 0;
-                                break;
+                                self.column.number = 1;
+                                continue :iteration;
                             }
                         }
                     }
@@ -164,34 +181,36 @@ pub const TokenIterator = struct {
 
                 //Rewind to before the '/' then break
                 iterator.i -= point.len;
-                break;
+                break :iteration;
             }
 
             else {
+                iterator.i -= point.len;
                 break;
             }
         }
 
         var token = Token {
-            .project = project,
-            .file = file,
+            .project = self.project,
+            .file = self.file,
             .line = self.line,
             .column_start = self.column,
             .column_end = self.column,
-            .start = self.index,
-            .end = self.index,
+            .start = iterator.i,
+            .end = iterator.i,
             .kind = .Word,
             .string = "",
         };
 
-        if(iterator.nextCodepoint()) |codepoint| {
-            var point = StreamCodePoint8.init(codepoint, iterator.i);
+        while(iterator.nextCodepoint()) |codepoint| {
+            var point = try StreamCodePoint8.init(codepoint, iterator.i);
             self.column.number += 1;
 
             switch(point.bytes[0]) {
                 else => {
+                    token.end = iterator.i;
                     token.column_end = self.column;
-                    
+                    token.string = self.source[token.start .. point.end];
                 },
 
                 ' ', '\t', '\n' => {
@@ -199,21 +218,22 @@ pub const TokenIterator = struct {
                         self.column.number += 3;
                     }
                     else if(point.bytes[0] == '\n') {
-                        self.column.number = 0;
+                        self.column.number = 1;
                         self.line.number += 1;
                     }
 
-                    if(token.string.len > 0) {
-                        token.end = iterator.i - point.len;
-                        return token;
-                    }
+                    // println("Returning due to whitespace", .{});
+                    self.index = iterator.i;
+                    return token;
                 },
 
                 ':', '.', ';', ',', '#', '=', '>', '<', '+', '-', '*', '/', '!', '&', '$', '(', ')', '{', '}', '[', ']', => {
                     if(token.string.len > 0) {
-                        token.end = iterator.i - point.len;
                         self.column.number -= 1;
                         iterator.i -= point.len;
+                        token.end = iterator.i;
+                        self.index = iterator.i;
+                        // println("Returning due to single character", .{});
                         return token;
                     }
                     else {
@@ -243,14 +263,16 @@ pub const TokenIterator = struct {
                             else => unreachable,
                         };
 
+                        token.string = self.source[point.start .. point.end];
+
                         //Here we add 2 if it is ==, >=, or <= as slicing end is exclusive [start, end)
-                        if(char_token.kind == .Equals) fail: {
-                            var peeked = try StreamCodePoint8.init(utf8.nextCodepoint() orelse break :fail, iterator.i-1);
+                        if(token.kind == .Equals) fail: {
+                            var peeked = try StreamCodePoint8.init(iterator.nextCodepoint() orelse break :fail, iterator.i-1);
                             if(peeked.bytes[0] == '=') {
                                 token.kind = .CompEqual;
                                 token.column_end.number += 2; //We know we can't have gone to the next line
                                 token.end += 2;
-                                token.string = source[token.start .. peeked.end+1];
+                                token.string = self.source[token.start .. peeked.end+1];
                             }
                             else {
                                 iterator.i -= peeked.len;
@@ -262,7 +284,7 @@ pub const TokenIterator = struct {
                                 token.kind = .CompGreaterEqual;
                                 token.column_end.number += 2; //We know we can't have gone to the next line
                                 token.end += 2;
-                                token.string = source[token.start .. peeked.end+1];
+                                token.string = self.source[token.start .. peeked.end+1];
                             }
                             else {
                                 iterator.i -= peeked.len;
@@ -274,7 +296,7 @@ pub const TokenIterator = struct {
                                 token.kind = .CompLessEqual;
                                 token.column_end.number += 2; //We know we can't have gone to the next line
                                 token.end += 2;
-                                token.string = source[token.start .. peeked.end+1];
+                                token.string = self.source[token.start .. peeked.end+1];
                             }
                             else {
                                 iterator.i -= peeked.len;
@@ -286,21 +308,23 @@ pub const TokenIterator = struct {
                                 token.kind = .CompNotEqual;
                                 token.column_end.number += 2; //We know we can't have gone to the next line
                                 token.end += 2;
-                                token.string = source[token.start .. peeked.end+1];
+                                token.string = self.source[token.start .. peeked.end+1];
                             }
                             else {
-                                utf8.i -= peeked.len;
+                                iterator.i -= peeked.len;
                             }
                         }
 
+                        // println("Returning a single character", .{});
+                        self.index = iterator.i;
                         return token;
                     }
                 },
             } //End of character switch
-
-            token.string = source[token.start .. point.end+1];
-            token.end = last_index;
-            last_index = utf8.i;
         }
+
+        //No next codepoint
+        self.index = iterator.i;
+        return null;
     }
 };

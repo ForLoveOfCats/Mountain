@@ -89,10 +89,8 @@ pub fn main() anyerror!void {
                 var tokens = std.ArrayList(parser.Token).init(allocator);
                 defer tokens.deinit();
 
-                // try parser.tokenize_file(&project, file.contents.?, file, &tokens);
                 var token_iterator = parser.TokenIterator.init(&project, file, file.contents.?);
-
-                if(try parser.parse_file(&token_iterator)) |pfile| {
+                if(try parser.parse_file(&token_iterator, file)) |pfile| {
                     try project.add_pfile(pfile);
                 }
             }
