@@ -12,7 +12,7 @@ pub fn parse_block(self: *TokenIterator, block: *pBlock, global: bool) anyerror!
 
     while(true) {
         //Short circut if reached the end of the block
-        if(global and !self.has_next()) {
+        if(global and !self.more_left()) {
             return;
         }
         else if(!global and self.token.kind == .CloseBrace) {
@@ -37,7 +37,7 @@ pub fn parse_block(self: *TokenIterator, block: *pBlock, global: bool) anyerror!
             expect_kind(self.token, .Semicolon);
         }
 
-        if(self.has_next()) {
+        if(self.more_left()) {
             self.next();
         }
         else if(!global) {

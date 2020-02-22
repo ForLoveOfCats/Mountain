@@ -9,21 +9,24 @@ pub fn parse_type(self: *TokenIterator, child: ?*pType) anyerror!*pType {
     expect_kind(self.token, .Word);
 
     var maybe_ptype: ?*pType = null;
-    if(self.has_next() and self.peek().kind == .Period) {
-        var reach_module = self.token.string;
+    if(self.peek()) |peeked| {
+        if(peeked.kind == .Period) {
+            var reach_module = self.token.string;
 
-        self.next();
-        expect_kind(self.token, .Period); //Sanity check
+            self.next();
+            expect_kind(self.token, .Period); //Sanity check
 
-        self.next();
-        expect_kind(self.token, .Word);
-        maybe_ptype = try pType.init(
-            self.token.string,
-            reach_module,
-            child,
-        );
+            self.next();
+            expect_kind(self.token, .Word);
+            maybe_ptype = try pType.init(
+                self.token.string,
+                reach_module,
+                child,
+            );
+        }
     }
-    else {
+
+    if(maybe_ptype == null) {
         maybe_ptype = try pType.init(
             self.token.string,
             "",
@@ -32,10 +35,12 @@ pub fn parse_type(self: *TokenIterator, child: ?*pType) anyerror!*pType {
     }
 
     if(maybe_ptype) |ptype| {
-        if(self.has_next() and self.peek().kind == .Colon) {
-            self.next(); //The colon
-            self.next();
-            return try parse_type(self, ptype);
+        if(self.peek()) |peeked| {
+            if(peeked.kind == .Colon) {
+                self.next(); //The colon
+                self.next();
+                return try parse_type(self, ptype);
+            }
         }
 
         return ptype;

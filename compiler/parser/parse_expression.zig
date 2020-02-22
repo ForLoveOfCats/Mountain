@@ -133,14 +133,14 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
             expected = .Operator;
         }
 
-        if(!self.has_next()) {
-            break;
-        }
-        else {
-            switch(self.peek().kind) {
+        if(self.peek()) |peeked| {
+            switch(peeked.kind) {
                 .Semicolon => break,
                 else => self.next(),
             }
+        }
+        else {
+            break;
         }
     }
 

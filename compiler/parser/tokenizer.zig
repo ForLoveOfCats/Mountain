@@ -102,18 +102,26 @@ pub const TokenIterator = struct {
         return self;
     }
 
-    pub fn peek(self: *TokenIterator) Token {
+    pub fn more_left(self: *TokenIterator) bool {
+        var index = self.index;
+        while(index < self.source.len) : (index += 1) {
+            switch(self.source[index]) {
+                ' ', '\t', '\n' => {},
+                else => return true,
+            }
+        }
+
+        return false;
+    }
+
+    pub fn peek(self: *TokenIterator) ?Token {
         var original = self.*;
 
         var token = self.get_token() catch unreachable;
         println("Peeking '{}'", .{token.?.string});
 
         self.* = original;
-        return token.?;
-    }
-
-    pub fn has_next(self: *TokenIterator) bool {
-        return true;
+        return token;
     }
 
     pub fn next(self: *TokenIterator) void {

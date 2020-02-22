@@ -34,7 +34,7 @@ pub fn parse_file(self: *TokenIterator, file: *FileInfo) !?*pFile {
 
     expect_kind(self.token, .Semicolon);
 
-    if(self.has_next()) {
+    if(self.more_left()) {
         self.next();
         try parse_block(self, &pfile.block, true);
     }
