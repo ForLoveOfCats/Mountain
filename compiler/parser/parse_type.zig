@@ -5,7 +5,6 @@ usingnamespace parser;
 
 
 pub fn parse_type(self: *TokenIterator, child: ?*pType) anyerror!*pType {
-    println("ParseType", .{});
     expect_kind(self.token, .Word);
 
     var maybe_ptype: ?*pType = null;

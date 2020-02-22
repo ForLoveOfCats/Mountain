@@ -13,14 +13,10 @@ pub fn parse_func(self: *TokenIterator) anyerror!pFunc {
     self.next();
     expect_kind(self.token, .Word);
     const ptype = try parse_type(self, null);
-    print("Type: ", .{});
-    ptype.debug_print();
-    println("", .{});
 
     self.next();
     expect_kind(self.token, .Word); //Name
     const name = self.token.string;
-    println("Name: {}", .{name});
 
     self.next();
     expect_kind(self.token, .OpenParentheses);

@@ -120,7 +120,6 @@ pub const TokenIterator = struct {
         var original = self.*;
 
         var token = self.get_token() catch unreachable;
-        println("Peeking '{}'", .{token.?.string});
 
         self.* = original;
         return token;
@@ -132,7 +131,6 @@ pub const TokenIterator = struct {
             std.process.exit(1);
         }) |token| {
             self.token = token;
-            println("Token '{}' of kind {}", .{token.string, @tagName(token.kind)});
         }
         else {
             parse_error_file_line_column_start_end(
@@ -148,8 +146,6 @@ pub const TokenIterator = struct {
     }
 
     pub fn get_token(self: *TokenIterator) !?Token {
-        // println("Started get_token", .{});
-
         var iterator = unicode.Utf8Iterator {
             .bytes = self.source,
             .i = self.index,
@@ -232,7 +228,6 @@ pub const TokenIterator = struct {
                         self.line.number += 1;
                     }
 
-                    // println("Returning due to whitespace", .{});
                     self.index = iterator.i;
                     return token;
                 },
@@ -243,7 +238,6 @@ pub const TokenIterator = struct {
                         iterator.i -= point.len;
                         token.end = iterator.i;
                         self.index = iterator.i;
-                        // println("Returning due to single character", .{});
                         return token;
                     }
                     else {
@@ -303,7 +297,6 @@ pub const TokenIterator = struct {
                             else => {},
                         }
 
-                        // println("Returning a single character", .{});
                         self.index = iterator.i;
                         return token;
                     }
