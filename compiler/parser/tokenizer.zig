@@ -97,7 +97,9 @@ pub const TokenIterator = struct {
             .token = undefined,
         };
 
-        self.next();
+        if(self.more_left()) {
+            self.next();
+        }
 
         return self;
     }
