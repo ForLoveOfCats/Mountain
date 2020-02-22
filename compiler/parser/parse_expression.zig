@@ -72,12 +72,12 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
     var expected: ExpressionExpected = .Value;
 
     while(true) {
-        if(is_operator(self.token())) { //Parse operator
+        if(is_operator(self.token)) { //Parse operator
             if(expected == .Value) {
-                parse_error(self.token(), "Expected value but found operator '{}'", .{self.token().string});
+                parse_error(self.token, "Expected value but found operator '{}'", .{self.token.string});
             }
 
-            var operator = switch(self.token().kind) {
+            var operator = switch(self.token.kind) {
                 .Add => pOperatorKind.Add,
                 .Subtract => pOperatorKind.Subtract,
 
@@ -115,10 +115,10 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
         }
         else { //Parse value
             if(expected == .Operator) {
-                parse_error(self.token(), "Expected operator but found value", .{});
+                parse_error(self.token, "Expected operator but found value", .{});
             }
 
-            if(try parse_int(self.token().string)) |int| {
+            if(try parse_int(self.token.string)) |int| {
                 var expression = try pExpression.init(
                     pExpression {
                         .Int = int
@@ -127,25 +127,25 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
                 try rpn.append(InRpn { .Expression = expression });
             }
             else {
-                parse_error(self.token(), "Unexpected token '{}'", .{self.token().string});
+                parse_error(self.token, "Unexpected token '{}'", .{self.token.string});
             }
 
             expected = .Operator;
         }
 
-        if(!self.has_next()) {
-            break;
-        }
-        else {
-            switch(self.peek().kind) {
+        if(self.peek()) |peeked| {
+            switch(peeked.kind) {
                 .Semicolon => break,
                 else => self.next(),
             }
         }
+        else {
+            break;
+        }
     }
 
     if(expected == .Value) {
-        parse_error(self.token(), "Operator '{}' has no right side value", .{self.token().string});
+        parse_error(self.token, "Operator '{}' has no right side value", .{self.token.string});
     }
 
     var operators_slice = operators.toSlice();

@@ -6,26 +6,26 @@ usingnamespace parser;
 
 pub fn parse_block(self: *TokenIterator, block: *pBlock, global: bool) anyerror!void {
     if(!global) {
-        expect_kind(self.token(), .OpenBrace);
+        expect_kind(self.token, .OpenBrace);
         self.next();
     }
 
     while(true) {
         //Short circut if reached the end of the block
-        if(global and !self.has_next()) {
+        if(global and !self.more_left()) {
             return;
         }
-        else if(!global and self.token().kind == .CloseBrace) {
-            expect_kind(self.token(), .CloseBrace); //Sanity check
+        else if(!global and self.token.kind == .CloseBrace) {
+            expect_kind(self.token, .CloseBrace); //Sanity check
             return;
         }
 
         //Parse the next item in block
-        if(mem.eql(u8, self.token().string, "func")) {
+        if(mem.eql(u8, self.token.string, "func")) {
             var func = try parse_func(self);
             try block.contents.append(pBlock.InBlock {.Func = func});
         }
-        else if(mem.eql(u8, self.token().string, "let")) {
+        else if(mem.eql(u8, self.token.string, "let")) {
             var let = try parse_let(self);
             try block.contents.append(pBlock.InBlock {.Let = let});
         }
@@ -34,14 +34,14 @@ pub fn parse_block(self: *TokenIterator, block: *pBlock, global: bool) anyerror!
             try block.contents.append(pBlock.InBlock {.Expression = expression});
 
             self.next();
-            expect_kind(self.token(), .Semicolon);
+            expect_kind(self.token, .Semicolon);
         }
 
-        if(self.has_next()) {
+        if(self.more_left()) {
             self.next();
         }
         else if(!global) {
-            parse_error(self.token(), "Unexpected end of file", .{});
+            parse_error(self.token, "Unexpected end of file", .{});
         }
     }
 }

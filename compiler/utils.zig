@@ -141,7 +141,7 @@ pub const LineNumber = struct {
 };
 
 
-pub const CharNumber = struct {
+pub const CharNumber = struct { //TODO: Rename to ColumnNumber
     number: usize,
 
     pub fn init(number: usize) CharNumber {
