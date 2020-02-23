@@ -21,8 +21,8 @@ pub fn parse_error_file_line_column_start_end(
     file: *FileInfo,
     line: LineNumber,
     column_start: CharNumber,
-    start: usize,
-    end: usize,
+    start: u64,
+    end: u64,
     comptime fmt: []const u8,
     args: var
 ) noreturn {

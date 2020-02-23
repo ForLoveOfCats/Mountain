@@ -149,7 +149,7 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
     }
 
     var operators_slice = operators.toSlice();
-    var index: usize = operators_slice.len - 1;
+    var index: u64 = operators_slice.len - 1;
     while(operators.popOrNull()) |operator| { //Add each remaining operator to RPN in reverse order
         try rpn.append(InRpn { .Operator = operator });
     }

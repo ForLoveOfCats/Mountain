@@ -29,8 +29,8 @@ pub fn warnln(comptime fmt: []const u8, args: var) void {
 }
 
 
-pub fn print_many(count: usize, comptime fmt: []const u8, args: var) void {
-    var index: usize = 0;
+pub fn print_many(count: u64, comptime fmt: []const u8, args: var) void {
+    var index: u64 = 0;
     while(index < count) {
         index += 1;
         print(fmt, args);
@@ -45,7 +45,7 @@ pub fn internal_error(comptime fmt: []const u8, args: var) noreturn {
 }
 
 
-pub fn warn_line_error(file: *FileInfo, start: usize, end: usize) void {
+pub fn warn_line_error(file: *FileInfo, start: u64, end: u64) void {
     const spacer = "        ";
     const source = file.contents.?;
 
@@ -85,7 +85,7 @@ pub fn warn_line_error(file: *FileInfo, start: usize, end: usize) void {
         .i = line_start,
     };
 
-    var underline_start_spaces: usize = 0;
+    var underline_start_spaces: u64 = 0;
     while(true) {
         if(iterator.i == start) {
             break;
@@ -100,7 +100,7 @@ pub fn warn_line_error(file: *FileInfo, start: usize, end: usize) void {
         }
     }
 
-    var underline_length: usize = 0;
+    var underline_length: u64 = 0;
     while(true) {
         if(iterator.i == end) {
             break;
@@ -111,7 +111,7 @@ pub fn warn_line_error(file: *FileInfo, start: usize, end: usize) void {
     }
 
     warn("{}", .{spacer});
-    var i: usize = 0;
+    var i: u64 = 0;
     while(i < underline_start_spaces) {
         i += 1;
         warn(" ", .{});
@@ -131,9 +131,9 @@ pub fn warn_line_error(file: *FileInfo, start: usize, end: usize) void {
 
 
 pub const LineNumber = struct {
-    number: usize,
+    number: u64,
 
-    pub fn init(number: usize) LineNumber {
+    pub fn init(number: u64) LineNumber {
         return LineNumber {
             .number = number,
         };
@@ -142,9 +142,9 @@ pub const LineNumber = struct {
 
 
 pub const CharNumber = struct { //TODO: Rename to ColumnNumber
-    number: usize,
+    number: u64,
 
-    pub fn init(number: usize) CharNumber {
+    pub fn init(number: u64) CharNumber {
         return CharNumber {
             .number = number,
         };

@@ -2,7 +2,7 @@ usingnamespace @import("../imports.zig");
 
 
 
-pub fn debug_print_level(level: usize) void {
+pub fn debug_print_level(level: u64) void {
     print_many(level, "    ", .{});
 }
 
@@ -58,7 +58,7 @@ pFile) void {
         allocator.destroy(self);
     }
 
-    pub fn debug_print(self: pFile, level: usize) void {
+    pub fn debug_print(self: pFile, level: u64) void {
         debug_print_level(level);
         println("File '{}':", .{self.file.path});
 
@@ -85,7 +85,7 @@ pub const pModule = struct {
         self.children.deinit();
     }
 
-    pub fn debug_print(self: pModule, level: usize) void {
+    pub fn debug_print(self: pModule, level: u64) void {
         debug_print_level(level);
         println("Module '{}':", .{self.name});
 
@@ -136,7 +136,7 @@ pub const pBlock = struct {
         self.contents.deinit();
     }
 
-    pub fn debug_print(self: pBlock, level: usize) void {
+    pub fn debug_print(self: pBlock, level: u64) void {
         debug_print_level(level);
 
         if(self.contents.len == 0) {
@@ -185,7 +185,7 @@ pub const pOperator = struct {
         self.right.deinit();
     }
 
-    pub fn debug_print(self: pOperator, level: usize) void {
+    pub fn debug_print(self: pOperator, level: u64) void {
         debug_print_level(level);
         println("{}:", .{@tagName(self.kind)});
         self.left.debug_print(level+1);
@@ -201,7 +201,7 @@ pub const pNegate = struct {
         self.expression.deinit();
     }
 
-    pub fn debug_print(self: pNegate, level: usize) void {
+    pub fn debug_print(self: pNegate, level: u64) void {
         debug_print_level(level);
         println("Negate:", .{});
         self.expression.debug_print(level+1);
@@ -241,7 +241,7 @@ pub const pExpression = union(enum) {
         };
     }
 
-    pub fn debug_print(self: pExpression, level: usize) void {
+    pub fn debug_print(self: pExpression, level: u64) void {
         debug_print_level(level);
         println("Expression:", .{});
 
@@ -273,7 +273,7 @@ pub const pLet = struct {
         }
     }
 
-    pub fn debug_print(self: pLet, level: usize) void {
+    pub fn debug_print(self: pLet, level: u64) void {
         debug_print_level(level);
 
         print("Let '{}' with type '", .{self.name});
@@ -297,7 +297,7 @@ pub const pFunc = struct {
         self.ptype.deinit();
     }
 
-    pub fn debug_print(self: pFunc, level: usize) void {
+    pub fn debug_print(self: pFunc, level: u64) void {
         debug_print_level(level);
 
         print("Func '{}' with return type '", .{self.name});

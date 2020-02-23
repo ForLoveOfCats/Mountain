@@ -55,15 +55,15 @@ pub const Token = struct {
 
 pub const StreamCodePoint8 = struct {
     bytes: [4]u8,
-    len: usize,
-    start: usize,
-    end: usize,
+    len: u64,
+    start: u64,
+    end: u64,
 
     pub fn chars(self: StreamCodePoint8) []u8 {
         return self.bytes[0 .. self.len];
     }
 
-    pub fn init(point: u21, end: usize) !StreamCodePoint8 {
+    pub fn init(point: u21, end: u64) !StreamCodePoint8 {
         var bytes: [4]u8 = undefined;
         var len = try unicode.utf8Encode(point, bytes[0..]);
 

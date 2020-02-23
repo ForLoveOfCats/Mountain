@@ -16,7 +16,7 @@ pub const Server = struct {
 
     fn read_json(instream: *fs.File.InStream.Stream, arena: *mem.Allocator) ![]u8 {
         var buffer: [1024 * 4]u8 = undefined;
-        var content_length: ?usize = null;
+        var content_length: ?u64 = null;
 
         //Process the header
         while(true) {
@@ -28,7 +28,7 @@ pub const Server = struct {
 
             const seperator = mem.indexOf(u8, line, ": ") orelse return error.LspMissingSeperator;
             if(content_length == null and mem.eql(u8, line[0..seperator], "Content-Length")) {
-                content_length = try std.fmt.parseInt(usize, line[seperator+2..], 10);
+                content_length = try std.fmt.parseInt(u64, line[seperator+2..], 10);
             }
         }
 

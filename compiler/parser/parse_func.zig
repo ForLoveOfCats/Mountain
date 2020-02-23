@@ -20,7 +20,7 @@ pub fn parse_func(self: *TokenIterator) anyerror!pFunc {
 
     self.next();
     expect_kind(self.token, .OpenParentheses);
-    var open_count: usize = 0;
+    var open_count: u64 = 0;
     while(true) {
         if(self.token.kind == .OpenParentheses) {
             open_count += 1;
