@@ -105,6 +105,7 @@ pub const pBlock = struct {
     contents: std.ArrayList(InBlock),
 
     pub const InBlock = union(enum) {
+        Block: pBlock,
         Let: pLet,
         Func: pFunc,
         Expression: *pExpression,
@@ -119,6 +120,10 @@ pub const pBlock = struct {
     pub fn deinit(self: pBlock) void {
         for(self.contents.toSlice()) |*item| {
             switch(item.*) {
+                .Block => |*block| {
+                    block.deinit();
+                },
+
                 .Let => |*let| {
                     let.deinit();
                 },
@@ -147,6 +152,7 @@ pub const pBlock = struct {
 
             for(self.contents.toSlice()) |item| {
                 switch(item) {
+                    .Block => |block| block.debug_print(level+1),
                     .Let => |let| let.debug_print(level+1),
                     .Func => |func| func.debug_print(level+1),
                     .Expression => |expression| expression.debug_print(level+1),

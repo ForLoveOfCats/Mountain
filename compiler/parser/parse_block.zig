@@ -21,7 +21,12 @@ pub fn parse_block(self: *TokenIterator, block: *pBlock, global: bool) anyerror!
         }
 
         //Parse the next item in block
-        if(mem.eql(u8, self.token.string, "func")) {
+        if(self.token.kind == .OpenBrace) {
+            var child_block = pBlock.init();
+            try parse_block(self, &child_block, false);
+            try block.contents.append(pBlock.InBlock {.Block = child_block});
+        }
+        else if(mem.eql(u8, self.token.string, "func")) {
             var func = try parse_func(self);
             try block.contents.append(pBlock.InBlock {.Func = func});
         }
