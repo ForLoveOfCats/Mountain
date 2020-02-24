@@ -115,7 +115,12 @@ pub fn parse_expression(self: *TokenIterator) anyerror!*pExpression {
         }
         else { //Parse value
             if(expected == .Operator) {
-                parse_error(self.token, "Expected operator but found value", .{});
+                if(self.token.kind == .Word) {
+                    parse_error(self.token, "Expected operator or end of expression but found value", .{});
+                }
+                else {
+                    parse_error(self.token, "Expected operator or end of expression", .{});
+                }
             }
 
             if(try parse_int(self.token.string)) |int| {
