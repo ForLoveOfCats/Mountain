@@ -6,7 +6,8 @@ module Main;
 
 func:Void:Ptr main() {
 	let:i32 variable = 100 / 10 + 5 * 2 == 20;
+
 	{
-		let:Void inner = 5 + 5;
+		let:i32 inner = 5;
 	}
 }
