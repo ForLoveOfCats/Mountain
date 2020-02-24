@@ -86,7 +86,7 @@ pub fn main() anyerror!void {
             for(project.files.toSlice()) |file| {
                 file.contents = try io.readFileAlloc(allocator, file.path);
 
-                var token_iterator = parser.TokenIterator.init(&project, file, file.contents.?);
+                var token_iterator = parser.TokenIterator.init(file, file.contents.?);
                 if(try parser.parse_file(&token_iterator, file)) |pfile| {
                     try project.add_pfile(pfile);
                 }

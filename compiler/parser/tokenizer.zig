@@ -35,7 +35,6 @@ pub const tKind = enum {
 
 
 pub const Token = struct {
-    project: *Project,
     file: *FileInfo,
     line: LineNumber,
     column_start: CharNumber,
@@ -78,7 +77,6 @@ pub const StreamCodePoint8 = struct {
 
 
 pub const TokenIterator = struct {
-    project: *Project,
     file: *FileInfo,
     source: []const u8,
     index: u64,
@@ -86,9 +84,8 @@ pub const TokenIterator = struct {
     column: CharNumber,
     token: Token,
 
-    pub fn init(project: *Project, file: *FileInfo, source: []const u8) TokenIterator {
+    pub fn init(file: *FileInfo, source: []const u8) TokenIterator {
         var self = TokenIterator {
-            .project = project,
             .file = file,
             .source = source,
             .index = 0,
@@ -197,7 +194,6 @@ pub const TokenIterator = struct {
         }
 
         var token = Token {
-            .project = self.project,
             .file = self.file,
             .line = self.line,
             .column_start = self.column,
