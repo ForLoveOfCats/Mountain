@@ -86,9 +86,6 @@ pub fn main() anyerror!void {
             for(project.files.toSlice()) |file| {
                 file.contents = try io.readFileAlloc(allocator, file.path);
 
-                var tokens = std.ArrayList(parser.Token).init(allocator);
-                defer tokens.deinit();
-
                 var token_iterator = parser.TokenIterator.init(&project, file, file.contents.?);
                 if(try parser.parse_file(&token_iterator, file)) |pfile| {
                     try project.add_pfile(pfile);
