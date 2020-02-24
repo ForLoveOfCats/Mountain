@@ -41,7 +41,7 @@ pub const pType = struct {
 
 
 pub const pFile = struct {
-    file: *FileInfo,
+    file: *const FileInfo,
     module_path: std.ArrayList([]u8),
     block: pBlock,
 

@@ -4,7 +4,7 @@ usingnamespace parser;
 
 
 
-pub fn parse_file(self: *TokenIterator, file: *FileInfo) !?*pFile {
+pub fn parse_file(self: *TokenIterator, file: *const FileInfo) !?*pFile {
     if(!self.more_left()) {
         return null;
     }

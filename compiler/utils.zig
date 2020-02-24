@@ -45,7 +45,7 @@ pub fn internal_error(comptime fmt: []const u8, args: var) noreturn {
 }
 
 
-pub fn warn_line_error(file: *FileInfo, start: u64, end: u64) void {
+pub fn warn_line_error(file: *const FileInfo, start: u64, end: u64) void {
     const spacer = "        ";
     const source = file.contents.?;
 

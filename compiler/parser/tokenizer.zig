@@ -35,7 +35,7 @@ pub const tKind = enum {
 
 
 pub const Token = struct {
-    file: *FileInfo,
+    file: *const FileInfo,
     line: LineNumber,
     column_start: CharNumber,
     column_end: CharNumber,
@@ -77,14 +77,14 @@ pub const StreamCodePoint8 = struct {
 
 
 pub const TokenIterator = struct {
-    file: *FileInfo,
+    file: *const FileInfo,
     source: []const u8,
     index: u64,
     line: LineNumber,
     column: CharNumber,
     token: Token,
 
-    pub fn init(file: *FileInfo, source: []const u8) TokenIterator {
+    pub fn init(file: *const FileInfo, source: []const u8) TokenIterator {
         var self = TokenIterator {
             .file = file,
             .source = source,

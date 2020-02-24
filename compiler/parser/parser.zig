@@ -18,7 +18,7 @@ pub fn parse_error(token: parser.Token, comptime fmt: []const u8, args: var) nor
 
 
 pub fn parse_error_file_line_column_start_end(
-    file: *FileInfo,
+    file: *const FileInfo,
     line: LineNumber,
     column_start: CharNumber,
     start: u64,
