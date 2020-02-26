@@ -20,7 +20,7 @@ pub const Server = struct {
 
         //Process the header
         while(true) {
-            var line = io.readLineSliceFrom(instream, buffer[0..]) catch continue;
+            var line = readLineSliceFrom(instream, buffer[0..]) catch continue;
 
             if (line.len == 0) {
                 break; //Blank line between header and content, end of header

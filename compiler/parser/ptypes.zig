@@ -8,11 +8,11 @@ pub fn debug_print_level(level: u64) void {
 
 
 pub const pType = struct {
-    name: []u8,
-    reach_module: []u8,
+    name: []const u8,
+    reach_module: []const u8,
     child: ?*pType,
 
-    pub fn init(name: []u8, reach_module: []u8, child: ?*pType) !*pType {
+    pub fn init(name: []const u8, reach_module: []const u8, child: ?*pType) !*pType {
         var self = try allocator.create(pType);
         self.* = pType {
             .name = name,
@@ -42,7 +42,7 @@ pub const pType = struct {
 
 pub const pFile = struct {
     file: *const FileInfo,
-    module_path: std.ArrayList([]u8),
+    module_path: std.ArrayList([]const u8),
     block: pBlock,
 
     pub fn init(pfile: pFile) !*pFile {
@@ -267,7 +267,7 @@ pub const pExpression = union(enum) {
 
 
 pub const pLet = struct {
-    name: []u8,
+    name: []const u8,
     ptype: *pType,
     expression: ?*pExpression,
 
@@ -294,7 +294,7 @@ pub const pLet = struct {
 
 
 pub const pFunc = struct {
-    name: []u8,
+    name: []const u8,
     ptype: *pType,
     block: pBlock,
 

@@ -15,7 +15,7 @@ pub fn parse_file(self: *TokenIterator, file: *const FileInfo) !?*pFile {
     }
 
     self.next();
-    var name_parts = std.ArrayList([]u8).init(allocator);
+    var name_parts = std.ArrayList([]const u8).init(allocator);
     while(true) {
         expect_kind(self.token, .Word);
         try name_parts.append(self.token.string);

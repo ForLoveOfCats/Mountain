@@ -43,7 +43,7 @@ fn get_operator_precedence(kind: pOperatorKind) i32 {
 }
 
 
-fn parse_int(string: []u8) !?big.Int {
+fn parse_int(string: []const u8) !?big.Int {
     var int = try big.Int.init(allocator);
     int.setString(10, string) catch {
         int.deinit();

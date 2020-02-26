@@ -150,3 +150,35 @@ pub const CharNumber = struct { //TODO: Rename to ColumnNumber
         };
     }
 };
+
+
+/// Reads all characters until the next newline into buf, and returns
+/// a slice of the characters read (excluding the newline character(s)).
+/// Originally was in std but was removed
+fn readLineFrom(stream: var, buf: *std.Buffer) ![]u8 {
+    const start = buf.len();
+    while (true) {
+        const byte = try stream.readByte();
+        switch (byte) {
+            '\r' => {
+                // trash the following \n
+                _ = try stream.readByte();
+                return buf.toSlice()[start..];
+            },
+            '\n' => return buf.toSlice()[start..],
+            else => try buf.appendByte(byte),
+        }
+    }
+}
+
+
+/// Reads all characters until the next newline into slice, and returns
+/// a slice of the characters read (excluding the newline character(s)).
+/// Originally was in std but was removed
+pub fn readLineSliceFrom(stream: var, slice: []u8) ![]u8 {
+    // We cannot use Buffer.fromOwnedSlice, as it wants to append a null byte
+    // after taking ownership, which would always require an allocation.
+    var buf = std.Buffer{ .list = std.ArrayList(u8).fromOwnedSlice(std.testing.failing_allocator, slice) };
+    try buf.resize(0);
+    return try readLineFrom(stream, &buf);
+}
