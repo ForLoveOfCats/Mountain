@@ -7,16 +7,14 @@ pub fn debug_print_level(level: u64) void {
 }
 
 
-pub const pType = struct {
+pub const pType = struct { //TODO: Handle module dotpaths
     name: []const u8,
-    reach_module: []const u8,
     child: ?*pType,
 
-    pub fn init(name: []const u8, reach_module: []const u8, child: ?*pType) !*pType {
+    pub fn init(name: []const u8, child: ?*pType) !*pType {
         var self = try allocator.create(pType);
         self.* = pType {
             .name = name,
-            .reach_module = reach_module,
             .child = child,
         };
         return self;
