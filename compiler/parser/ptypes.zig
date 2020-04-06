@@ -9,28 +9,43 @@ pub fn debug_print_level(level: u64) void {
 
 pub const pType = struct { //TODO: Handle module dotpaths
     name: []const u8,
-    child: ?*pType,
+    children: std.ArrayList(*pType),
 
-    pub fn init(name: []const u8, child: ?*pType) !*pType {
+    pub fn init(name: []const u8, children: std.ArrayList(*pType)) !*pType {
         var self = try allocator.create(pType);
         self.* = pType {
             .name = name,
-            .child = child,
+            .children = children,
         };
         return self;
     }
 
     pub fn deinit(self: *pType) void {
-        if(self.child) |actual| {
-            actual.deinit();
+        for(self.children.toSlice()) |child| {
+            child.deinit();
         }
         allocator.destroy(self);
     }
 
     pub fn debug_print(self: *pType) void {
-        if(self.child) |actual| {
-            actual.debug_print();
+        if(self.children.len == 1) {
+            self.children.toSlice()[0].debug_print();
             print(":", .{});
+        }
+        else if(self.children.len > 1) {
+            print("[", .{});
+
+            var children_slice = self.children.toSlice();
+            var index: usize = 0;
+            while(index < children_slice.len) {
+                children_slice[index].debug_print();
+                index += 1;
+                if(index < children_slice.len) {
+                    print(", ", .{});
+                }
+            }
+
+            print("]:", .{});
         }
 
         print("{}", .{self.name});

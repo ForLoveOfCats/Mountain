@@ -4,7 +4,7 @@ module Main;
 
 
 
-func main() of Void:Ptr {
+func main() of [i32:Ptr, [i16, String]:HashMap]:HashMap {
 	let variable of i32 = 100 / 10 + 5 * 2 == 20;
 
 	{
