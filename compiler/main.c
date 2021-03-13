@@ -1,0 +1,6 @@
+#include "compiler.c"
+#include "parser.c"
+#include "ast.c"
+#include "symbols.c"
+#include "validator.c"
+#include "transpile.c"

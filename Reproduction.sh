@@ -1,6 +1,6 @@
 
 printf "===== Compiler Building =====\n"
-scons #build
+sh ./Build.sh #build
 
 if [ $? -eq 0 ]; then #if the compiler was built correctly
 	printf "\n\n===== Tests Building =====\n"
